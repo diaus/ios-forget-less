@@ -28,13 +28,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AA00000000000000000000E1 /* Exceptions for "ForgetLess" folder in "ForgetLess" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Shared/.gitkeep,
-			);
-			target = 49107520308CB643003A7B4D /* ForgetLess */;
-		};
 		AA00000000000000000000E2 /* Exceptions for "ForgetLessTests" folder in "ForgetLessTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -47,9 +40,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		49107523308CB643003A7B4D /* ForgetLess */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				AA00000000000000000000E1 /* Exceptions for "ForgetLess" folder in "ForgetLess" target */,
-			);
 			path = ForgetLess;
 			sourceTree = "<group>";
 		};
