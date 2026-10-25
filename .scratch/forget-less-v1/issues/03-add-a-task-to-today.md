@@ -22,11 +22,11 @@ For the domain model, the `AddTask` use case, the repository and the Day encodin
   - a Task round-trips every field;
   - a Day saved with a UTC−4 calendar and with a UTC+2 calendar is stored as UTC midnight of the same year/month/day and reads back as local midnight of that Day;
   - Tasks on a Day come back only for that Day.
-- [ ] Every new catalog key has `en` and `uk`. `scripts/check.sh` passes, and the flow is driven on the iOS 18 simulator with UI snapshots.
+- [x] Every new catalog key has `en` and `uk`. `scripts/check.sh` passes, and the flow is driven on the iOS 18 simulator with UI snapshots.
 
 ## Comments
 
-- 2026-10-25: Implemented on branch `docs/forget-less-v1-spec`. `scripts/check.sh` passes, and the three new catalog keys (`error.title`, `error.emptyName`, `error.unexpected`) have `en` and `uk`. The last box waits for the user's iOS 18 run. The agent drove the flow on the iPhone 18 Pro (iOS 27) simulator through UI snapshots:
+- 2026-10-25: Implemented on branch `docs/forget-less-v1-spec`. `scripts/check.sh` passes, and the three new catalog keys (`error.title`, `error.emptyName`, `error.unexpected`) have `en` and `uk`. The agent drove the flow on the iPhone 18 Pro (iOS 27) simulator through UI snapshots:
   - "+" brings up the composer with the keyboard and a green `Today` chip. ▶ is grey and not tappable while the field is empty, and Return on a blank name adds nothing and keeps the keyboard up.
   - ▶ added "Buy milk" and Return added "Call mom". Each time the field cleared, the keyboard stayed up and ▶ went grey again.
   - After a relaunch both came back under Today in that order, and a third Task added after them landed last.
