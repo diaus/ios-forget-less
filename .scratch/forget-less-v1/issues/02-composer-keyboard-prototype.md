@@ -20,7 +20,7 @@ Nothing is saved; this ticket is about the presentation only. Keep the view if i
 **Status:** resolved
 
 - [x] Tapping "+" shows the panel and starts the keyboard in the same frame: no staggered "panel, then keyboard". No `asyncAfter`, `Task.sleep` or delayed `onAppear` is used anywhere for focus.
-- [ ] The panel rides up with the keyboard on the keyboard's own animation, and sits directly above it on iPhone sizes with and without a home indicator.
+- [x] The panel rides up with the keyboard on the keyboard's own animation, and sits directly above it on iPhone sizes with and without a home indicator.
 - [x] Tapping the dimmed background, or dragging the panel down, hides the panel and the keyboard together.
 - [x] Opening, dismissing and opening again works repeatedly, with focus landing every time.
 - [x] Taking focus away while keeping the panel visible (as the later "Discard changes?" dialog will) leaves the panel on screen, and focus can be given back.
@@ -30,7 +30,7 @@ Nothing is saved; this ticket is about the presentation only. Keep the view if i
 ## Comments
 
 - 2026-10-25: Implemented on branch `docs/forget-less-v1-spec`. The user checked it on the iOS 18 simulator and an iOS 18 iPhone: it works as expected, with no visible delay. The agent checked part of it on the iPhone 16 Pro (iOS 18.5) simulator: "+" shows the panel with the field focused and the keyboard up beneath it, and tapping the dimmed background hides both. After the review fixes, the agent checked open → drag down → open on the iPhone 18 Pro (iOS 27) simulator through UI snapshots. `scripts/check.sh` passes.
-- Left unticked: no phone without a home indicator (iPhone SE size) is recorded as checked.
+- Without a home indicator: on the iPhone SE (3rd generation) simulator (iOS 27), the panel sits directly above the keyboard, 8 pt clear of it, as on phones with a home indicator. With no keyboard, it sits 8 pt above the bottom edge.
 - **Hiding technique: `opacity`.** A field hidden with `.opacity(0)` takes focus, so the off-screen `offset` fallback wasn't needed. While hidden, the panel also has `.allowsHitTesting(false)` and `.accessibilityHidden(true)`.
 - The panel is `Features/Composer/ComposerView.swift`. `ScheduleView` owns the visibility `@State` and the `@FocusState` and passes them in, so "+" (and the later row taps) set both in one action. `ComposerView` asks for dismissal through `onDismiss` rather than writing that state itself, so ticket 09 has one place to intercept. A drag short of the dismiss distance springs back. The list behind the panel has `.ignoresSafeArea(.keyboard)`, so only the panel rides up and the "+" stays put.
 - Prototype stand-ins that ticket 03 replaces: Return takes focus away and leaves the panel up (standing in for the "Discard changes?" dialog); ▶ gives focus back (standing in for "Keep Editing"). Ticket 03 makes both add the Task.
