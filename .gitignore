@@ -60,3 +60,9 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# MobileBuildMCP session defaults (machine-local)
+/.mobilebuildmcp/
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

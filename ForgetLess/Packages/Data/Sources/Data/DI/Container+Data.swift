@@ -1,0 +1,16 @@
+import FactoryKit
+import SwiftData
+
+public extension Container {
+    /// The single on-disk `ModelContainer`.
+    var modelContainer: Factory<ModelContainer> {
+        self {
+            do {
+                return try ForgetLessModelContainer.make(inMemory: false)
+            } catch {
+                fatalError("Could not create the ModelContainer: \(error)")
+            }
+        }
+        .singleton
+    }
+}
