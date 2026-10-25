@@ -1,7 +1,11 @@
-# Only custom rules for now: localization (user-facing text comes from generated String Catalog symbols)
-# and domain language (GLOSSARY.md).
-only_rules:
-  - custom_rules
+# SwiftLint's default rules plus custom rules for localization (user-facing text comes from generated
+# String Catalog symbols) and domain language (GLOSSARY.md).
+
+# Zero warnings: every violation fails the build and scripts/check.sh.
+strict: true
+
+disabled_rules:
+  - trailing_comma  # trailing commas keep multi-line lists, e.g. in Package.swift, diff-friendly
 
 excluded:
   - "**/.build"

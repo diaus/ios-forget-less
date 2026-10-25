@@ -6,6 +6,7 @@ public enum ForgetLessModelContainer {
 
     /// The on-disk store the app uses, or an in-memory one for tests and previews.
     public static func make(inMemory: Bool) throws -> ModelContainer {
-        try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory))
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
+        return try ModelContainer(for: schema, configurations: configuration)
     }
 }

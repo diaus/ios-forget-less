@@ -1,7 +1,8 @@
 # Coding Standards
 
 These are the judgement calls for reviewing a diff. Tooling already enforces the mechanical rules, so a review skips them:
-- SwiftLint (`ForgetLess/.swiftlint.yml`): catalog symbols instead of string literals, no `localizedDescription`, no GLOSSARY "Avoid" words in identifiers.
+- SwiftLint (`ForgetLess/.swiftlint.yml`): its default style rules, plus catalog symbols instead of string literals, no `localizedDescription`, no GLOSSARY "Avoid" words in identifiers.
+- Zero warnings: compiler and SwiftLint warnings are errors in the app and the packages.
 - The String Catalog format and its `en`/`uk` coverage (`scripts/xcstrings.py check`).
 
 Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
