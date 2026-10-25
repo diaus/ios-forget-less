@@ -1,0 +1,51 @@
+# Only custom rules for now: localization (user-facing text comes from generated String Catalog symbols)
+# and domain language (GLOSSARY.md).
+only_rules:
+  - custom_rules
+
+excluded:
+  - "**/.build"
+
+custom_rules:
+  localized_text_literal:
+    name: "Localized Text Literal"
+    regex: '(?:\b(?:Text|Button|Label|Toggle|Section|LabeledContent|ContentUnavailableView|TextField|SecureField|Picker|Menu|Link|NavigationLink|Tab|Stepper|navigationTitle|alert|confirmationDialog|accessibilityLabel|accessibilityHint|accessibilityValue|help|LocalizedStringResource|LocalizedStringKey)\(|\bString\(localized:)\s*"'
+    excluded_match_kinds:
+      - comment
+      - doccomment
+    message: "Pass a generated String Catalog symbol, e.g. Text(.dayToday); add the key first with scripts/xcstrings.py set. Use Text(verbatim:) for text that is never localized."
+    severity: error
+
+  # Keys typed as strings anywhere else, e.g. a switch returning LocalizedStringResource.
+  # Keep the prefixes in sync with the top-level key groups in Localizable.xcstrings (scripts/xcstrings.py sync).
+  catalog_key_literal:
+    name: "String Catalog Key Literal"
+    regex: '"(?:common|composer|day|error|overdue|task)\.[A-Za-z.]*"'
+    match_kinds:
+      - string
+    message: "Reference the generated String Catalog symbol (e.g. .dayToday) instead of typing its key."
+    severity: error
+
+  # Errors reach the user only through Error.userMessage and errorAlert, which map them to catalog text.
+  localized_description:
+    name: "Localized Description"
+    regex: '\.localizedDescription\b'
+    excluded_match_kinds:
+      - comment
+      - doccomment
+    message: "Show errors through `error.userMessage` and `.errorAlert(message:)`; localizedDescription bypasses the String Catalog."
+    severity: error
+
+  # GLOSSARY.md "Avoid" terms, matched as whole camelCase segments of identifiers and generated catalog symbols.
+  # Only the terms with no common Swift/SwiftUI meaning: item, entry, open, date and the Date type stay legal.
+  # "Todo" is allowed only as part of the TodoTask type family, which avoids shadowing Swift's Task.
+  glossary_avoided_term:
+    name: "Glossary Avoided Term"
+    # Utils is project-independent: its generic words aren't this domain's language.
+    excluded: "/Packages/Utils/"
+    regex: '(?<![A-Za-z0-9_])(?:todo(?!Task)|reminder|done|finished|checked|unchecked|closed|pending|late|missed|deadline|due)(?![a-z])|(?<![A-Z])(?:Todo(?!Task)|Reminder|Done|Finished|Checked|Unchecked|Closed|Pending|Late|Missed|Deadline|Due)(?![a-z])'
+    match_kinds:
+      - identifier
+      - typeidentifier
+    message: "GLOSSARY.md lists this word under Avoid; use the glossary term (e.g. Task, Complete, Incomplete, Day, Overdue)."
+    severity: error
