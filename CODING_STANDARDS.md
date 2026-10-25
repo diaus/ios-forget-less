@@ -35,6 +35,10 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 - **An extension file's name covers all its members.** `Date+DayChip.swift` holds the category, label and colour of a Day chip. `Date+ChipLabel.swift` would mislead.
 - Use glossary terms in names, keys and test names, even where the linter can't see the word (test display strings, comments, catalog values).
 
+## Layout
+
+- **A type with more than one group of members marks each group with `// MARK: - <Group>`.** Stored properties and `init` lead the type unmarked. Each group after them opens with its MARK on its own line, a blank line before it and none after. Views use `Body`, `UI Components` (the subviews `body` composes), `Actions` and `Gestures`. A view model names its groups by what they drive (`Loading`, `Composer`). A test suite splits `Tests` from `Helpers`, and private helpers anywhere go under `Helpers`. A type with one group after its `init` (`TaskRow`, `AddTask`, `FakeTodoTaskRepository`) has no MARKs.
+
 ## SwiftUI
 
 - **View models** are `@MainActor @Observable` and own the async work. Views call into them from `.task`, `.onChange` and actions.

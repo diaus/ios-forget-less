@@ -6,6 +6,7 @@ struct AddTaskTests {
     private let today = Date(timeIntervalSinceReferenceDate: 0)
     private var tomorrow: Date { today.addingTimeInterval(24 * 60 * 60) }
 
+    // MARK: - Tests
     @Test func addTaskAppendsAnIncompleteTaskAtTheEndOfItsDay() async throws {
         let repository = FakeTodoTaskRepository(tasks: [
             task(day: today, sortIndex: 0),
@@ -40,6 +41,7 @@ struct AddTaskTests {
         #expect(await repository.tasks.isEmpty)
     }
 
+    // MARK: - Helpers
     private func task(day: Date, sortIndex: Int) -> TodoTask {
         TodoTask(id: UUID(), name: "Existing", day: day, isComplete: false, sortIndex: sortIndex)
     }

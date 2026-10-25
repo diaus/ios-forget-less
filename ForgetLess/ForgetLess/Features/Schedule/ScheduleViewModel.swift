@@ -30,11 +30,13 @@ final class ScheduleViewModel {
         self.addTask = addTask
     }
 
+    // MARK: - Loading
     func load() async {
         today = Calendar.current.startOfDay(for: .now)
         await reloadTodayTasks()
     }
 
+    // MARK: - Composer
     func showComposer() {
         composer.day = today
         composer.isVisible = true
@@ -67,6 +69,7 @@ final class ScheduleViewModel {
         }
     }
 
+    // MARK: - Helpers
     private func reloadTodayTasks() async {
         do {
             todayTasks = try await repository.tasks(on: today).sorted { $0.sortIndex < $1.sortIndex }

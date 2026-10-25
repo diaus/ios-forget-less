@@ -3,6 +3,7 @@ import Foundation
 /// Converts a Task's Day between its Domain form, local start of day, and its stored form, 00:00 UTC of the same
 /// year/month/day (ADR 0001), so a Day never shifts when the time zone changes.
 enum DayEncoding {
+    // MARK: - Conversions
     static func stored(_ day: Date, calendar: Calendar) -> Date {
         convert(day, from: calendar, to: utc(like: calendar))
     }
@@ -11,6 +12,7 @@ enum DayEncoding {
         convert(stored, from: utc(like: calendar), to: calendar)
     }
 
+    // MARK: - Helpers
     /// The same calendar system in UTC, so a non-Gregorian calendar names the same year/month/day on both sides.
     private static func utc(like calendar: Calendar) -> Calendar {
         var utc = calendar

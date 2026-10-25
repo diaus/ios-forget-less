@@ -22,6 +22,7 @@ struct ComposerView: View {
     /// How far the panel must be dragged down, or flung, to dismiss.
     private let dismissDistance: CGFloat = 60
 
+    // MARK: - Body
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // TextField(_:text:) takes a catalog symbol only from iOS 26; on iOS 18 it goes through a Text.
@@ -59,12 +60,14 @@ struct ComposerView: View {
         .accessibilityHidden(!isVisible)
     }
 
+    // MARK: - Actions
     /// Return on a blank name does nothing; either way the field keeps focus, since Return would otherwise drop it.
     private func submit() {
         isNameFocused.wrappedValue = true
         onSubmit()
     }
 
+    // MARK: - Gestures
     private var dismissDrag: some Gesture {
         DragGesture()
             .updating($dragOffset) { value, offset, _ in

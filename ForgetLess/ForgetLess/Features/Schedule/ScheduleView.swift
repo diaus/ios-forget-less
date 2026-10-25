@@ -5,6 +5,7 @@ struct ScheduleView: View {
     @State private var viewModel = ScheduleViewModel()
     @FocusState private var isComposerNameFocused: Bool
 
+    // MARK: - Body
     var body: some View {
         ZStack(alignment: .bottom) {
             content
@@ -27,6 +28,7 @@ struct ScheduleView: View {
         .errorAlert(message: $viewModel.errorMessage)
     }
 
+    // MARK: - UI Components
     private var content: some View {
         ZStack(alignment: .bottomTrailing) {
             List {
@@ -52,6 +54,7 @@ struct ScheduleView: View {
         }
     }
 
+    // MARK: - Actions
     /// Shows the panel and focuses its field in one synchronous action, so the keyboard starts in the same frame.
     private func showComposer() {
         viewModel.showComposer()
