@@ -33,11 +33,12 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 - **The glossary word is Task; the type is `TodoTask`.** That's the one place the code departs from the glossary, so it doesn't shadow Swift's `Task`. Derived names follow the type (`TodoTaskRepository`). Prose, test names and catalog keys say Task (`addTaskAppendsAtEndOfItsDay`).
 - **One concept, one name across features.** If two views or view models hold the same thing (the Task being edited, the composer's Day), they name it the same way.
 - **An extension file's name covers all its members.** `Date+DayChip.swift` holds the category, label and colour of a Day chip. `Date+ChipLabel.swift` would mislead.
+- **A SwiftUI view's type ends in `View`** (`ScheduleView`, `ComposerView`, `TaskRowView`), and its file takes the same name.
 - Use glossary terms in names, keys and test names, even where the linter can't see the word (test display strings, comments, catalog values).
 
 ## Layout
 
-- **A type with more than one group of members marks each group with `// MARK: - <Group>`.** Stored properties and `init` lead the type unmarked. Each group after them opens with its MARK on its own line, a blank line before it and none after. Views use `Body`, `UI Components` (the subviews `body` composes), `Actions` and `Gestures`. A view model names its groups by what they drive (`Loading`, `Composer`). A test suite splits `Tests` from `Helpers`, and private helpers anywhere go under `Helpers`. A type with one group after its `init` (`TaskRow`, `AddTask`, `FakeTodoTaskRepository`) has no MARKs.
+- **A type with more than one group of members marks each group with `// MARK: - <Group>`.** Stored properties and `init` lead the type unmarked. Each group after them opens with its MARK on its own line, a blank line before it and none after. Views use `Body`, `UI Components` (the subviews `body` composes), `Actions` and `Gestures`. A view model names its groups by what they drive (`Loading`, `Composer`). A test suite splits `Tests` from `Helpers`, and private helpers anywhere go under `Helpers`. A type with one group after its `init` (`TaskRowView`, `AddTask`, `FakeTodoTaskRepository`) has no MARKs.
 
 ## SwiftUI
 
