@@ -9,6 +9,9 @@ struct ComposerView: View {
     let isVisible: Bool
     var isNameFocused: FocusState<Bool>.Binding
     @Binding var taskName: String
+    /// The Day the Task goes to, shown on the Day chip.
+    let day: Date
+    let today: Date
     /// Whether the name passes the name rule, so ▶ and Return can add the Task.
     let canSubmit: Bool
     /// Asks the owner to add the Task. The panel stays up, with focus kept, for the next one.
@@ -32,10 +35,9 @@ struct ComposerView: View {
             .focused(isNameFocused)
             .onSubmit(submit)
             HStack {
-                // Ticket 04 labels and colours the chip by the composer's Day; until then it's always Today.
-                Text(.dayToday)
+                Text(day.dayChipLabel(today: today))
                     .font(.subheadline)
-                    .foregroundStyle(Color(.dayChipToday))
+                    .foregroundStyle(day.dayChipColor(today: today))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(.fill.tertiary, in: .capsule)

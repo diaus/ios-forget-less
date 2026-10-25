@@ -4,12 +4,12 @@ import FactoryKit
 import Foundation
 import Observation
 
-/// Owns Today, its Tasks, the composer state and every write on the Schedule screen.
+/// Owns Today, the Schedule, the composer state and every write on the Schedule screen.
 @MainActor @Observable
 final class ScheduleViewModel {
     private(set) var today: Date
-    /// Today's Tasks in the order they were added.
-    private(set) var todayTasks: [TodoTask] = []
+    /// The Days the screen lists, with their Tasks; the empty window until the first load lands.
+    private(set) var schedule: Schedule
     var composer: ComposerState
     var errorMessage: String?
 
@@ -25,6 +25,7 @@ final class ScheduleViewModel {
     ) {
         let today = Calendar.current.startOfDay(for: .now)
         self.today = today
+        self.schedule = Schedule(tasks: [], today: today, calendar: .current)
         self.composer = ComposerState(day: today)
         self.repository = repository
         self.addTask = addTask
@@ -33,12 +34,13 @@ final class ScheduleViewModel {
     // MARK: - Loading
     func load() async {
         today = Calendar.current.startOfDay(for: .now)
-        await reloadTodayTasks()
+        await reloadSchedule()
     }
 
     // MARK: - Composer
-    func showComposer() {
-        composer.day = today
+    /// Shows the composer for `day`: Today from the floating "+", or the Day whose header "+" was tapped.
+    func showComposer(on day: Date) {
+        composer.day = day
         composer.isVisible = true
     }
 
@@ -58,7 +60,7 @@ final class ScheduleViewModel {
             await previousAdd?.value
             do {
                 try await addTask(name: taskName, day: day)
-                await reloadTodayTasks()
+                await reloadSchedule()
             } catch {
                 // Give the name back unless the user has started typing another.
                 if composer.taskName.isEmpty {
@@ -70,9 +72,10 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Helpers
-    private func reloadTodayTasks() async {
+    private func reloadSchedule() async {
         do {
-            todayTasks = try await repository.tasks(on: today).sorted { $0.sortIndex < $1.sortIndex }
+            let tasks = try await repository.tasks(onOrAfter: today)
+            schedule = Schedule(tasks: tasks, today: today, calendar: .current)
         } catch {
             errorMessage = error.userMessage
         }

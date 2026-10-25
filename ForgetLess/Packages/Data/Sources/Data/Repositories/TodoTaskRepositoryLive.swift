@@ -22,6 +22,12 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         return try modelContext.fetch(descriptor).map { $0.toDomain(calendar: calendar) }
     }
 
+    func tasks(onOrAfter day: Date) throws -> [TodoTask] {
+        let storedDay = DayEncoding.stored(day, calendar: calendar)
+        let descriptor = FetchDescriptor<TodoTaskModel>(predicate: #Predicate { $0.day >= storedDay })
+        return try modelContext.fetch(descriptor).map { $0.toDomain(calendar: calendar) }
+    }
+
     func create(_ task: TodoTask) throws {
         modelContext.insert(TodoTaskModel(task, calendar: calendar))
         try modelContext.save()
