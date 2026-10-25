@@ -34,7 +34,7 @@ struct ScheduleView: View {
             List {
                 Section {
                     ForEach(viewModel.todayTasks) { task in
-                        TaskRow(task: task)
+                        TaskRowView(task: task)
                     }
                 } header: {
                     Text(.dayToday)
