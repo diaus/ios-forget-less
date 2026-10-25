@@ -1,3 +1,4 @@
+import Domain
 import FactoryKit
 import SwiftData
 
@@ -12,5 +13,11 @@ public extension Container {
             }
         }
         .singleton
+    }
+
+    /// The Task store, in the device's calendar and time zone.
+    var todoTaskRepository: Factory<any TodoTaskRepository> {
+        self { TodoTaskRepositoryLive(modelContainer: self.modelContainer()) }
+            .singleton
     }
 }

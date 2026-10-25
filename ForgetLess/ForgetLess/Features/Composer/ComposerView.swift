@@ -8,10 +8,14 @@ import SwiftUI
 struct ComposerView: View {
     let isVisible: Bool
     var isNameFocused: FocusState<Bool>.Binding
+    @Binding var taskName: String
+    /// Whether the name passes the name rule, so ▶ and Return can add the Task.
+    let canSubmit: Bool
+    /// Asks the owner to add the Task. The panel stays up, with focus kept, for the next one.
+    let onSubmit: () -> Void
     /// Asks the owner to hide the panel and the keyboard together.
     let onDismiss: () -> Void
 
-    @State private var taskName = ""
     // Animated reset, so a drag short of dismissing settles back instead of jumping.
     @GestureState(resetTransaction: Transaction(animation: .spring)) private var dragOffset: CGFloat = 0
 
@@ -25,24 +29,21 @@ struct ComposerView: View {
                 Text(.composerTaskName)
             }
             .focused(isNameFocused)
-            // Prototype stand-in for the "Discard changes?" dialog: Return takes focus away
-            // and leaves the panel up. Ticket 03 makes Return add the Task.
-            .onSubmit { isNameFocused.wrappedValue = false }
+            .onSubmit(submit)
             HStack {
+                // Ticket 04 labels and colours the chip by the composer's Day; until then it's always Today.
                 Text(.dayToday)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color(.dayChipToday))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background(.fill.tertiary, in: .capsule)
                 Spacer()
-                // Prototype stand-in for "Keep Editing": gives focus back. Ticket 03 makes it add the Task.
-                Button {
-                    isNameFocused.wrappedValue = true
-                } label: {
+                Button(action: submit) {
                     Image(systemName: "arrowtriangle.right.fill")
                         .font(.title3)
                 }
+                .disabled(!canSubmit)
                 .accessibilityLabel(Text(.taskAdd))
             }
         }
@@ -56,6 +57,12 @@ struct ComposerView: View {
         .opacity(isVisible ? 1 : 0)
         .allowsHitTesting(isVisible)
         .accessibilityHidden(!isVisible)
+    }
+
+    /// Return on a blank name does nothing; either way the field keeps focus, since Return would otherwise drop it.
+    private func submit() {
+        isNameFocused.wrappedValue = true
+        onSubmit()
     }
 
     private var dismissDrag: some Gesture {

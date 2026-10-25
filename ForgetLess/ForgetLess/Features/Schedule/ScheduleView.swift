@@ -1,31 +1,45 @@
 import SwiftUI
 
-/// The app's one screen. A placeholder list until the Schedule list is built, with the composer over it.
+/// The app's one screen: the Today section, with the composer over it.
 struct ScheduleView: View {
-    @State private var isComposerVisible = false
+    @State private var viewModel = ScheduleViewModel()
     @FocusState private var isComposerNameFocused: Bool
 
     var body: some View {
         ZStack(alignment: .bottom) {
             content
                 .ignoresSafeArea(.keyboard)
-            Color.black.opacity(isComposerVisible ? 0.3 : 0)
+            Color.black.opacity(viewModel.composer.isVisible ? 0.3 : 0)
                 .ignoresSafeArea()
-                .allowsHitTesting(isComposerVisible)
+                .allowsHitTesting(viewModel.composer.isVisible)
                 .onTapGesture(perform: dismissComposer)
-                .animation(.easeOut(duration: 0.2), value: isComposerVisible)
+                .animation(.easeOut(duration: 0.2), value: viewModel.composer.isVisible)
             ComposerView(
-                isVisible: isComposerVisible,
+                isVisible: viewModel.composer.isVisible,
                 isNameFocused: $isComposerNameFocused,
+                taskName: $viewModel.composer.taskName,
+                canSubmit: viewModel.composer.canSubmit,
+                onSubmit: viewModel.submitComposer,
                 onDismiss: dismissComposer
             )
         }
+        .task { await viewModel.load() }
+        .errorAlert(message: $viewModel.errorMessage)
     }
 
     private var content: some View {
         ZStack(alignment: .bottomTrailing) {
-            Text(.dayToday)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            List {
+                Section {
+                    ForEach(viewModel.todayTasks) { task in
+                        TaskRow(task: task)
+                    }
+                } header: {
+                    Text(.dayToday)
+                }
+            }
+            // Room under the last row, so the floating "+" never covers it.
+            .contentMargins(.bottom, 88, for: .scrollContent)
             Button(action: showComposer) {
                 Image(systemName: "plus")
                     .font(.title2.weight(.semibold))
@@ -40,12 +54,12 @@ struct ScheduleView: View {
 
     /// Shows the panel and focuses its field in one synchronous action, so the keyboard starts in the same frame.
     private func showComposer() {
-        isComposerVisible = true
+        viewModel.showComposer()
         isComposerNameFocused = true
     }
 
     private func dismissComposer() {
-        isComposerVisible = false
+        viewModel.dismissComposer()
         isComposerNameFocused = false
     }
 }
