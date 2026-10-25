@@ -35,6 +35,23 @@
         }
       }
     },
+    "day.tomorrow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завтра"
+          }
+        }
+      }
+    },
     "error.emptyName" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -99,6 +116,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Додати завдання"
+          }
+        }
+      }
+    },
+    "task.addToDay" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Task to %(day)@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додати завдання на %(day)@"
           }
         }
       }

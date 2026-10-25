@@ -53,6 +53,26 @@ struct TodoTaskRepositoryLiveTests {
         #expect(tasksOnDay.count == 2)
     }
 
+    @Test(arguments: [-4 * 3600, 2 * 3600])
+    func tasksFromTodayOnIncludeTodayAndLeaveOutYesterday(secondsFromGMT: Int) async throws {
+        let calendar = Self.calendar(secondsFromGMT: secondsFromGMT)
+        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer(), calendar: calendar)
+        let offset = String(format: "%+03d:00", secondsFromGMT / 3600)
+        let yesterday = try Date("2026-10-24T00:00:00\(offset)", strategy: .iso8601)
+        let today = try Date("2026-10-25T00:00:00\(offset)", strategy: .iso8601)
+        let later = try Date("2027-03-01T00:00:00\(offset)", strategy: .iso8601)
+        let tasks = [yesterday, today, later].map {
+            TodoTask(id: UUID(), name: "Buy milk", day: $0, isComplete: false, sortIndex: 0)
+        }
+        for task in tasks {
+            try await repository.create(task)
+        }
+
+        let tasksFromToday = try await repository.tasks(onOrAfter: today)
+
+        #expect(Set(tasksFromToday.map(\.day)) == [today, later])
+    }
+
     // MARK: - Helpers
     private static func inMemoryContainer() throws -> ModelContainer {
         try ForgetLessModelContainer.make(inMemory: true)

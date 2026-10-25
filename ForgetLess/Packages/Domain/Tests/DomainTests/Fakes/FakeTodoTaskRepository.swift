@@ -13,6 +13,10 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         tasks.filter { $0.day == day }
     }
 
+    func tasks(onOrAfter day: Date) -> [TodoTask] {
+        tasks.filter { $0.day >= day }
+    }
+
     func create(_ task: TodoTask) {
         tasks.append(task)
     }
