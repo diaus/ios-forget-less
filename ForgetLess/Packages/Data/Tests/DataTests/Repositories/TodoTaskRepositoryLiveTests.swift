@@ -5,6 +5,7 @@ import Testing
 @testable import Data
 
 struct TodoTaskRepositoryLiveTests {
+    // MARK: - Tests
     @Test func aTaskRoundTripsEveryField() async throws {
         let calendar = Self.calendar(secondsFromGMT: 2 * 3600)
         let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer(), calendar: calendar)
@@ -52,6 +53,7 @@ struct TodoTaskRepositoryLiveTests {
         #expect(tasksOnDay.count == 2)
     }
 
+    // MARK: - Helpers
     private static func inMemoryContainer() throws -> ModelContainer {
         try ForgetLessModelContainer.make(inMemory: true)
     }
