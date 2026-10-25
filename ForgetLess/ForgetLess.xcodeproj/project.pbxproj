@@ -1,0 +1,554 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 110;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		4910752F308CB644003A7B4D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 49107519308CB643003A7B4D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 49107520308CB643003A7B4D;
+			remoteInfo = ForgetLess;
+		};
+		49107539308CB644003A7B4D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 49107519308CB643003A7B4D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 49107520308CB643003A7B4D;
+			remoteInfo = ForgetLess;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		49107521308CB643003A7B4D /* ForgetLess.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ForgetLess.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4910752E308CB644003A7B4D /* ForgetLessTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ForgetLessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		49107538308CB644003A7B4D /* ForgetLessUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ForgetLessUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		49107523308CB643003A7B4D /* ForgetLess */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ForgetLess;
+			sourceTree = "<group>";
+		};
+		49107531308CB644003A7B4D /* ForgetLessTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ForgetLessTests;
+			sourceTree = "<group>";
+		};
+		4910753B308CB644003A7B4D /* ForgetLessUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ForgetLessUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4910751E308CB643003A7B4D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		4910752B308CB644003A7B4D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		49107535308CB644003A7B4D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		49107518308CB643003A7B4D = {
+			isa = PBXGroup;
+			children = (
+				49107523308CB643003A7B4D /* ForgetLess */,
+				49107531308CB644003A7B4D /* ForgetLessTests */,
+				4910753B308CB644003A7B4D /* ForgetLessUITests */,
+				49107522308CB643003A7B4D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		49107522308CB643003A7B4D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				49107521308CB643003A7B4D /* ForgetLess.app */,
+				4910752E308CB644003A7B4D /* ForgetLessTests.xctest */,
+				49107538308CB644003A7B4D /* ForgetLessUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		49107520308CB643003A7B4D /* ForgetLess */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49107540308CB644003A7B4D /* Build configuration list for PBXNativeTarget "ForgetLess" */;
+			buildPhases = (
+				4910751D308CB643003A7B4D /* Sources */,
+				4910751E308CB643003A7B4D /* Frameworks */,
+				4910751F308CB643003A7B4D /* Resources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				49107523308CB643003A7B4D /* ForgetLess */,
+			);
+			name = ForgetLess;
+			productName = ForgetLess;
+			productReference = 49107521308CB643003A7B4D /* ForgetLess.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4910752D308CB644003A7B4D /* ForgetLessTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49107543308CB644003A7B4D /* Build configuration list for PBXNativeTarget "ForgetLessTests" */;
+			buildPhases = (
+				4910752A308CB644003A7B4D /* Sources */,
+				4910752B308CB644003A7B4D /* Frameworks */,
+				4910752C308CB644003A7B4D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				49107530308CB644003A7B4D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				49107531308CB644003A7B4D /* ForgetLessTests */,
+			);
+			name = ForgetLessTests;
+			productName = ForgetLessTests;
+			productReference = 4910752E308CB644003A7B4D /* ForgetLessTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		49107537308CB644003A7B4D /* ForgetLessUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49107546308CB644003A7B4D /* Build configuration list for PBXNativeTarget "ForgetLessUITests" */;
+			buildPhases = (
+				49107534308CB644003A7B4D /* Sources */,
+				49107535308CB644003A7B4D /* Frameworks */,
+				49107536308CB644003A7B4D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4910753A308CB644003A7B4D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4910753B308CB644003A7B4D /* ForgetLessUITests */,
+			);
+			name = ForgetLessUITests;
+			productName = ForgetLessUITests;
+			productReference = 49107538308CB644003A7B4D /* ForgetLessUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		49107519308CB643003A7B4D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2710;
+				LastUpgradeCheck = 2710;
+				TargetAttributes = {
+					49107520308CB643003A7B4D = {
+						CreatedOnToolsVersion = 27.1;
+					};
+					4910752D308CB644003A7B4D = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = 49107520308CB643003A7B4D;
+					};
+					49107537308CB644003A7B4D = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = 49107520308CB643003A7B4D;
+					};
+				};
+			};
+			buildConfigurationList = 4910751C308CB643003A7B4D /* Build configuration list for PBXProject "ForgetLess" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 49107518308CB643003A7B4D;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 49107522308CB643003A7B4D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				49107520308CB643003A7B4D /* ForgetLess */,
+				4910752D308CB644003A7B4D /* ForgetLessTests */,
+				49107537308CB644003A7B4D /* ForgetLessUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4910751F308CB643003A7B4D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		4910752C308CB644003A7B4D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		49107536308CB644003A7B4D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4910751D308CB643003A7B4D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		4910752A308CB644003A7B4D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		49107534308CB644003A7B4D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		49107530308CB644003A7B4D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 49107520308CB643003A7B4D /* ForgetLess */;
+			targetProxy = 4910752F308CB644003A7B4D /* PBXContainerItemProxy */;
+		};
+		4910753A308CB644003A7B4D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 49107520308CB643003A7B4D /* ForgetLess */;
+			targetProxy = 49107539308CB644003A7B4D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4910753E308CB644003A7B4D /* Debug configuration for PBXProject "ForgetLess" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		4910753F308CB644003A7B4D /* Release configuration for PBXProject "ForgetLess" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		49107541308CB644003A7B4D /* Debug configuration for PBXNativeTarget "ForgetLess" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrew.ForgetLess;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		49107542308CB644003A7B4D /* Release configuration for PBXNativeTarget "ForgetLess" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrew.ForgetLess;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		49107544308CB644003A7B4D /* Debug configuration for PBXNativeTarget "ForgetLessTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrew.ForgetLessTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ForgetLess.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ForgetLess";
+			};
+			name = Debug;
+		};
+		49107545308CB644003A7B4D /* Release configuration for PBXNativeTarget "ForgetLessTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrew.ForgetLessTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ForgetLess.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ForgetLess";
+			};
+			name = Release;
+		};
+		49107547308CB644003A7B4D /* Debug configuration for PBXNativeTarget "ForgetLessUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrew.ForgetLessUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ForgetLess;
+			};
+			name = Debug;
+		};
+		49107548308CB644003A7B4D /* Release configuration for PBXNativeTarget "ForgetLessUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrew.ForgetLessUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ForgetLess;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4910751C308CB643003A7B4D /* Build configuration list for PBXProject "ForgetLess" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4910753E308CB644003A7B4D /* Debug configuration for PBXProject "ForgetLess" */,
+				4910753F308CB644003A7B4D /* Release configuration for PBXProject "ForgetLess" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		49107540308CB644003A7B4D /* Build configuration list for PBXNativeTarget "ForgetLess" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49107541308CB644003A7B4D /* Debug configuration for PBXNativeTarget "ForgetLess" */,
+				49107542308CB644003A7B4D /* Release configuration for PBXNativeTarget "ForgetLess" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		49107543308CB644003A7B4D /* Build configuration list for PBXNativeTarget "ForgetLessTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49107544308CB644003A7B4D /* Debug configuration for PBXNativeTarget "ForgetLessTests" */,
+				49107545308CB644003A7B4D /* Release configuration for PBXNativeTarget "ForgetLessTests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		49107546308CB644003A7B4D /* Build configuration list for PBXNativeTarget "ForgetLessUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49107547308CB644003A7B4D /* Debug configuration for PBXNativeTarget "ForgetLessUITests" */,
+				49107548308CB644003A7B4D /* Release configuration for PBXNativeTarget "ForgetLessUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 49107519308CB643003A7B4D /* Project object */;
+	validationLevel = 1;
+}
