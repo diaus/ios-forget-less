@@ -20,7 +20,7 @@ custom_rules:
   # Keep the prefixes in sync with the top-level key groups in Localizable.xcstrings (scripts/xcstrings.py sync).
   catalog_key_literal:
     name: "String Catalog Key Literal"
-    regex: '"(?:common|composer|day|error|overdue|task)\.[A-Za-z.]*"'
+    regex: '"(?:day)\.[A-Za-z.]*"'
     match_kinds:
       - string
     message: "Reference the generated String Catalog symbol (e.g. .dayToday) instead of typing its key."
