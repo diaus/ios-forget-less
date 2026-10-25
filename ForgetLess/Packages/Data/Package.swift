@@ -1,5 +1,8 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 import PackageDescription
+
+// Zero warnings, matching the app's SWIFT_TREAT_WARNINGS_AS_ERRORS.
+let zeroWarnings: [SwiftSetting] = [.treatAllWarnings(as: .error)]
 
 let package = Package(
     name: "Data",
@@ -18,11 +21,13 @@ let package = Package(
             dependencies: [
                 "Domain",
                 .product(name: "FactoryKit", package: "Factory"),
-            ]
+            ],
+            swiftSettings: zeroWarnings
         ),
         .testTarget(
             name: "DataTests",
-            dependencies: ["Data"]
+            dependencies: ["Data"],
+            swiftSettings: zeroWarnings
         ),
     ],
     // The Swift 6 language mode checks concurrency completely.
