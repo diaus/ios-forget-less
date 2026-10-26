@@ -1,9 +1,10 @@
 import Domain
+import FactoryKit
 import SwiftUI
 
 /// The app's one screen: a section per Day of the Schedule, with the composer over it.
 struct ScheduleView: View {
-    @State private var vm = ScheduleViewModel()
+    @InjectedObservable(\.scheduleViewModel) private var vm
     @FocusState private var isComposerNameFocused: Bool
 
     // MARK: - Body
@@ -16,16 +17,12 @@ struct ScheduleView: View {
                 .allowsHitTesting(vm.composer.isVisible)
                 .onTapGesture(perform: dismissComposer)
                 .animation(.easeOut(duration: 0.2), value: vm.composer.isVisible)
-            ComposerView(
-                isVisible: vm.composer.isVisible,
-                isNameFocused: $isComposerNameFocused,
-                taskName: $vm.composer.taskName,
-                day: vm.composer.day,
-                today: vm.today,
-                canSubmit: vm.composer.canSubmit,
-                onSubmit: vm.submitComposer,
-                onDismiss: dismissComposer
-            )
+            // Mounted while hidden, so its field can take focus in the same action that shows it and the keyboard
+            // starts in the same frame. Opacity, not removal or `.hidden()`: the field stays focusable while hidden.
+            ComposerView(isNameFocused: $isComposerNameFocused, onDismiss: dismissComposer)
+                .opacity(vm.composer.isVisible ? 1 : 0)
+                .allowsHitTesting(vm.composer.isVisible)
+                .accessibilityHidden(!vm.composer.isVisible)
         }
         .task { await vm.load() }
         .errorAlert(message: $vm.errorMessage)
