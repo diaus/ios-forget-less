@@ -3,6 +3,7 @@ import Domain
 import FactoryKit
 import Foundation
 import Observation
+import Utils
 
 /// Owns Today, the Schedule, the composer state and every write on the Schedule screen.
 @MainActor @Observable
@@ -49,7 +50,8 @@ final class ScheduleViewModel {
     }
 
     /// Adds the typed Task to the composer's Day and clears the name, keeping the composer up on the same Day.
-    /// The name clears at once, so a second ▶ or Return before the write lands adds nothing.
+    /// The name clears at once, so a second ▶ or Return before the write lands adds nothing. Once the Task is added,
+    /// VoiceOver announces it over the dimmed ▶ it's still on.
     func submitComposer() {
         guard composer.canSubmit else { return }
         let taskName = composer.taskName
@@ -60,6 +62,7 @@ final class ScheduleViewModel {
             await previousAdd?.value
             do {
                 try await addTask(name: taskName, day: day)
+                postAnnouncement(.taskAdded(name: taskName))
                 await reloadSchedule()
             } catch {
                 // Give the name back unless the user has started typing another.
