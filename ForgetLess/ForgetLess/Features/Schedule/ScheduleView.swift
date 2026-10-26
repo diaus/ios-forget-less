@@ -6,6 +6,9 @@ import SwiftUI
 struct ScheduleView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @FocusState private var isComposerNameFocused: Bool
+    @AccessibilityFocusState private var focusedComposerOpener: ComposerOpener?
+    /// The "+" that showed the composer, where VoiceOver returns when it's dismissed.
+    @State private var composerOpener: ComposerOpener = .floating
 
     // MARK: - Body
     var body: some View {
@@ -45,7 +48,7 @@ struct ScheduleView: View {
             }
             // Room under the last row, so the floating "+" never covers it.
             .contentMargins(.bottom, 88, for: .scrollContent)
-            Button { showComposer(on: vm.today) } label: {
+            Button { showComposer(on: vm.today, from: .floating) } label: {
                 Image(systemName: "plus")
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(.white)
@@ -53,6 +56,7 @@ struct ScheduleView: View {
                     .background(.tint, in: .circle)
             }
             .accessibilityLabel(Text(.taskAdd))
+            .accessibilityFocused($focusedComposerOpener, equals: .floating)
             .padding(20)
             // Its own container, so the rotor's Containers moves between it and the List.
             .accessibilityElement(children: .contain)
@@ -65,12 +69,13 @@ struct ScheduleView: View {
         return HStack {
             Text(header)
             Spacer()
-            Button { showComposer(on: scheduleDay.day) } label: {
+            Button { showComposer(on: scheduleDay.day, from: .day(scheduleDay.day)) } label: {
                 Image(systemName: "plus")
             }
             // Only the "+" takes the tap, not the whole header.
             .buttonStyle(.borderless)
             .accessibilityLabel(Text(.taskAddToDay(day: header)))
+            .accessibilityFocused($focusedComposerOpener, equals: .day(scheduleDay.day))
         }
         .font(.subheadline.weight(scheduleDay.tasks.isEmpty ? .regular : .bold))
         .foregroundStyle(scheduleDay.tasks.isEmpty ? .secondary : .primary)
@@ -79,14 +84,25 @@ struct ScheduleView: View {
 
     // MARK: - Actions
     /// Shows the panel and focuses its field in one synchronous action, so the keyboard starts in the same frame.
-    private func showComposer(on day: Date) {
+    private func showComposer(on day: Date, from opener: ComposerOpener) {
         vm.showComposer(on: day)
         isComposerNameFocused = true
+        composerOpener = opener
     }
 
+    /// Hides the panel and the keyboard, and returns VoiceOver to the "+" that showed it, since its focus was in the
+    /// panel.
     private func dismissComposer() {
         vm.dismissComposer()
         isComposerNameFocused = false
+        focusedComposerOpener = composerOpener
+    }
+
+    // MARK: - Helpers
+    /// The "+" that shows the composer: the floating one, or a Day header's.
+    private enum ComposerOpener: Hashable {
+        case floating
+        case day(Date)
     }
 }
 
