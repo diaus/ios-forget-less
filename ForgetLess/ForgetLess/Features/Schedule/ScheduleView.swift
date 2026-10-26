@@ -12,6 +12,7 @@ struct ScheduleView: View {
         ZStack(alignment: .bottom) {
             content
                 .ignoresSafeArea(.keyboard)
+                .accessibilityHidden(vm.composer.isVisible)
             Color.black.opacity(vm.composer.isVisible ? 0.3 : 0)
                 .ignoresSafeArea()
                 .allowsHitTesting(vm.composer.isVisible)
@@ -53,6 +54,8 @@ struct ScheduleView: View {
             }
             .accessibilityLabel(Text(.taskAdd))
             .padding(20)
+            // Its own container, so the rotor's Containers moves between it and the List.
+            .accessibilityElement(children: .contain)
         }
     }
 
