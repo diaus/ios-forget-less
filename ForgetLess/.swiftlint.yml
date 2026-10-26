@@ -10,6 +10,13 @@ disabled_rules:
 excluded:
   - "**/.build"
 
+identifier_name:
+  excluded:  # replaces SwiftLint's defaults, so they're repeated here
+    - id
+    - URL
+    - GlobalAPIKey
+    - vm  # a view's view model, per CODING_STANDARDS.md
+
 custom_rules:
   localized_text_literal:
     name: "Localized Text Literal"

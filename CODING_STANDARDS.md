@@ -42,7 +42,7 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 
 ## SwiftUI
 
-- **View models** are `@MainActor @Observable` and own the async work. Views call into them from `.task`, `.onChange` and actions.
+- **View models** are `@MainActor @Observable` and own the async work. Views call into them from `.task`, `.onChange` and actions. A view holds its view model as `vm`, never `viewModel`.
 - **Conditional containers render something on every path.** When `.task`, `.onAppear` or `.onChange` hang off a `Group` or `if` chain, every branch, including the loading state, produces a view (`ProgressView()`, never nothing). An empty first render never fires `.task`, and the screen stays blank.
 - **Keyboard focus is set synchronously, in the action that asks for it,** on a field that is already mounted. Never focus from a delayed `onAppear`, `asyncAfter` or `Task.sleep`. Never put a text field that must focus at once inside a `.sheet`.
 - **Colours with meaning come from the asset catalog with light and dark variants,** never a hard-coded `Color.green`, so both appearances stay readable.
