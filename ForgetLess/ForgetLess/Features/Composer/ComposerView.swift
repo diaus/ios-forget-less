@@ -48,6 +48,9 @@ struct ComposerView: View {
         .padding(.bottom, 8)
         .offset(y: max(dragOffset, 0))
         .gesture(dismissDrag)
+        // A container, so VoiceOver's escape (two-finger scrub) from any of its elements dismisses, like the drag.
+        .accessibilityElement(children: .contain)
+        .accessibilityAction(.escape, onDismiss)
     }
 
     // MARK: - Actions
