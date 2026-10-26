@@ -51,9 +51,13 @@ struct ComposerView: View {
     }
 
     // MARK: - Actions
-    /// Adds the Task, keeping the panel up for the next one. Return on a blank name does nothing; either way the field
-    /// keeps focus, since Return would otherwise drop it.
+    /// Adds the Task, keeping the panel up for the next one, with focus kept since Return would otherwise drop it.
+    /// Return on a blank name dismisses the panel instead.
     private func submit() {
+        guard vm.composer.canSubmit else {
+            onDismiss()
+            return
+        }
         isNameFocused.wrappedValue = true
         vm.submitComposer()
     }
