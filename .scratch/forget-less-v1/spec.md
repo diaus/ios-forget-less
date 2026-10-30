@@ -80,7 +80,7 @@ An iPhone app with one screen: a scrolling list of Days from Today through the n
 
 Per the use-case rule in `CODING_STANDARDS.md`:
 
-- **`AddTask(name:day:)`**: applies the name rule, fetches that Day's Tasks, applies the end-of-Day rule, then creates the Task Incomplete.
+- **`AddTask(name:day:)`**: applies the name rule, then has the repository create the Task.
 - **`LoadSchedule(today:keepingOverdue:)`**: fetches the Tasks from Today on, the Incomplete Tasks before Today, and the Tasks whose ids are in `keepingOverdue` (Overdue Tasks completed since the last refresh, story 13), then builds the Schedule.
 - Called directly from the view model, with no use case: rename (name rule, then `repository.rename`), set Complete/Incomplete, delete.
 
@@ -91,7 +91,7 @@ Per the use-case rule in `CODING_STANDARDS.md`:
   - `tasks(onOrAfter:)`
   - `incompleteTasks(before:)`
   - `tasks(ids:)`
-  - `create(_:)`
+  - `create(name:day:)`: creates the Task Incomplete at the end of its Day. It reads the Day and inserts in one actor call with no suspension between, so two creates at once can't take the same place.
   - `rename(id:name:)`
   - `setComplete(id:isComplete:)`
   - `delete(id:)`
@@ -132,10 +132,11 @@ A good test exercises behaviour through a public interface and asserts on outcom
     - Tasks are ordered within a Day;
     - a kept Overdue Task stays after it's completed;
     - the window crosses a year boundary;
-  - `AddTask`: appends at the end of its Day and refuses an empty name, against a fake repository;
+  - `AddTask`: creates the Task with the trimmed name and refuses an empty name, against a fake repository;
   - `LoadSchedule`, against a fake repository.
 - **Data**, against an in-memory `ModelContainer`:
   - round trip of every field;
+  - `create(name:day:)` creates the Task Incomplete at the end of its Day;
   - the Day round trip, including that the stored value is the Day as given;
   - `tasks(onOrAfter:)` and `incompleteTasks(before:)` boundaries at Today;
   - delete.

@@ -25,7 +25,7 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
   - (b) composes more than one repository call;
   - (c) is shared by several view models.
 
-  Otherwise the view model calls the repository directly: no pass-through use cases. `AddTask` qualifies: it fetches the Day's Tasks, applies the end-of-Day rule, then creates. So does `LoadSchedule`, which composes the queries behind the Schedule. Set Complete and delete are single repository calls made directly. A rule that needs no I/O, such as the end-of-Day rule, is a pure Domain function or entity method. Use cases and view models call it, and it's tested without fakes. If nearly all data access ends up going through use cases, route all of it that way for consistency.
+  Otherwise the view model calls the repository directly: no pass-through use cases. `AddTask` qualifies: it applies the name rule before creating. So does `LoadSchedule`, which composes the queries behind the Schedule. Set Complete and delete are single repository calls made directly. A rule that needs no I/O, such as the end-of-Day rule, is a pure Domain function or entity method. Use cases and view models call it, and it's tested without fakes. A repository calls it when the rule must read and write in one step, as `create(name:day:)` does with the end-of-Day rule, so two creates at once can't take the same place. If nearly all data access ends up going through use cases, route all of it that way for consistency.
 - **No speculative abstraction.** Add a protocol, wrapper or injection point only for a need the current spec has. View models read `Date.today`; use cases take `today` as a parameter, so there is no clock or `DateProvider` to inject. A two-case enum that only means yes/no is a `Bool`.
 
 ## Naming

@@ -22,7 +22,15 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }
 
-    func create(_ task: TodoTask) throws {
+    func create(name: String, day: Date) throws {
+        // Read and insert without suspending, so two creates at once can't take the same place in the Day.
+        let task = TodoTask(
+            id: UUID(),
+            name: name,
+            day: day,
+            isComplete: false,
+            sortIndex: TodoTask.nextSortIndex(in: try tasks(on: day))
+        )
         modelContext.insert(TodoTaskModel(task))
         try modelContext.save()
     }

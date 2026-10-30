@@ -3,11 +3,7 @@ import Foundation
 
 /// An in-memory `TodoTaskRepository` that keeps every created Task for the test to inspect.
 actor FakeTodoTaskRepository: TodoTaskRepository {
-    private(set) var tasks: [TodoTask]
-
-    init(tasks: [TodoTask] = []) {
-        self.tasks = tasks
-    }
+    private(set) var tasks: [TodoTask] = []
 
     func tasks(on day: Date) -> [TodoTask] {
         tasks.filter { $0.day == day }
@@ -17,7 +13,14 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         tasks.filter { $0.day >= day }
     }
 
-    func create(_ task: TodoTask) {
+    func create(name: String, day: Date) {
+        let task = TodoTask(
+            id: UUID(),
+            name: name,
+            day: day,
+            isComplete: false,
+            sortIndex: TodoTask.nextSortIndex(in: tasks(on: day))
+        )
         tasks.append(task)
     }
 
