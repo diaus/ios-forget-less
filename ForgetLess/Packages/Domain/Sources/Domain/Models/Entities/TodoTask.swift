@@ -4,7 +4,7 @@ import Foundation
 public struct TodoTask: Identifiable, Equatable, Sendable {
     public let id: UUID
     public var name: String
-    /// The Task's Day, as local start of day.
+    /// The Task's Day, as 00:00 GMT.
     public var day: Date
     public var isComplete: Bool
     /// The Task's place within its Day; ascending in the order the Tasks were added, with gaps allowed.

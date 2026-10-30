@@ -70,11 +70,11 @@ An iPhone app with one screen: a scrolling list of Days from Today through the n
 
 ### Domain model
 
-- **`TodoTask`** (an entity; the glossary word is Task, and the type name avoids shadowing Swift's `Task`): `id: UUID`, `name: String`, `day: Date` (local start of day), `isComplete: Bool`, `sortIndex: Int`. A `Sendable` value type.
+- **`TodoTask`** (an entity; the glossary word is Task, and the type name avoids shadowing Swift's `Task`): `id: UUID`, `name: String`, `day: Date` (00:00 GMT of its year/month/day, ADR 0001), `isComplete: Bool`, `sortIndex: Int`. A `Sendable` value type.
 - **Name rule** (pure function in Domain): trim whitespace and newlines; an empty result throws `DomainError.emptyName`. Single line, no length limit.
 - **End-of-Day rule** (pure function in Domain): `TodoTask.nextSortIndex(in tasksOfDay:)` is the highest `sortIndex` + 1, or 0 for an empty Day. Gaps are allowed.
-- **Schedule** (a read model, never stored): the Overdue Tasks (by Day ascending, then `sortIndex`) and one entry per Day from Today through Today + 99, followed by an entry for each later Day that has Tasks. Each entry holds its Tasks ordered by `sortIndex`. Building it is a pure Domain function of the Tasks, Today and the calendar.
-- There is no `Day` type and no clock. Today is a parameter (`today: Date`, local start of day). The app computes it with `Calendar.current.startOfDay(for: .now)`.
+- **Schedule** (a read model, never stored): the Overdue Tasks (by Day ascending, then `sortIndex`) and one entry per Day from Today through Today + 99, followed by an entry for each later Day that has Tasks. Each entry holds its Tasks ordered by `sortIndex`. Building it is a pure Domain function of the Tasks and Today.
+- There is no `Day` type and no clock. Today is a parameter (`today: Date`, 00:00 GMT). Domain computes it as `Date.today`, the one place the local calendar is read, and the view model reads it.
 
 ### Use cases
 
@@ -96,7 +96,7 @@ Per the use-case rule in `CODING_STANDARDS.md`:
   - `setComplete(id:isComplete:)`
   - `delete(id:)`
 - `TodoTaskRepositoryLive` (Data) is an actor conforming to `ModelActor`, as in PillsTracker.
-- Day encoding is per ADR 0001. Data alone converts between a local start-of-day `Date` and the stored UTC-midnight `Date`. It does so in every mapping and every predicate, with an injected `Calendar` (default `.current`) so tests can pin a time zone.
+- Day storage is per ADR 0001. A Day is already 00:00 GMT in Domain, so Data stores and queries it as given, with no `Calendar`.
 - No change stream. All writes come from the one screen, whose view model reloads after each write.
 
 ### App
@@ -118,11 +118,13 @@ Per the use-case rule in `CODING_STANDARDS.md`:
 
 ## Testing Decisions
 
-A good test exercises behaviour through a public interface and asserts on outcomes: returned values, thrown errors, repository contents. Tests pass `today` and a `Calendar` with a fixed time zone explicitly, so nothing depends on wall time or the machine's time zone. Swift Testing only.
+A good test exercises behaviour through a public interface and asserts on outcomes: returned values, thrown errors, repository contents. Tests pass `today` explicitly, and Days are GMT midnights, so nothing depends on wall time or the machine's time zone. Only the Today rule's tests pin a local time zone. Swift Testing only.
 
 - **Domain**:
   - the name rule (trimming, empty name refused);
   - the end-of-Day rule (empty Day, gaps);
+  - the Today rule: a moment falls on its local year/month/day as 00:00 GMT, in time zones on both sides of GMT;
+  - the Day count between two Days, and the same-year check behind the short date's year rule;
   - building the Schedule:
     - the 100-Day window, including empty Days;
     - later Days appear only when they have Tasks;
@@ -134,10 +136,10 @@ A good test exercises behaviour through a public interface and asserts on outcom
   - `LoadSchedule`, against a fake repository.
 - **Data**, against an in-memory `ModelContainer`:
   - round trip of every field;
-  - the Day round trip in UTC−4 and UTC+2 calendars, including that the stored value is UTC midnight of the same year/month/day;
+  - the Day round trip, including that the stored value is the Day as given;
   - `tasks(onOrAfter:)` and `incompleteTasks(before:)` boundaries at Today;
   - delete.
-- **App**: the Day chip category for Today, Tomorrow, Today + 6, Today + 7 and a past Day, plus the year rule.
+- **App**: the Day chip category for Today, Tomorrow, Today + 6, Today + 7 and a past Day.
 - No view-model, UI or snapshot tests in v1.
 
 ## Out of Scope

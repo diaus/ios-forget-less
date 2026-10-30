@@ -11,13 +11,13 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 
 - **Layers.** Domain imports only Foundation: no SwiftData, no SwiftUI, no Factory. Only Data imports SwiftData. Factory wiring lives in Data's `DI/` and the app's `Composition/`.
 - **Utils is project-independent, and doesn't exist yet.** It's created when the first helper another project could reuse turns up (a concurrency primitive, a Foundation extension). It imports only the standard library and Apple's system frameworks: no Domain, no Data, no third-party package. The glossary lint rule skips it.
-- **A Task's Day is a `Date` at local start of day everywhere except Data** (ADR 0001). Only Data knows it's stored as UTC midnight. It converts in every mapping and every predicate, with an injected `Calendar`. Outside Data, compare and group Days with `Calendar.current`. Never read a stored value with it.
+- **A Task's Day is a `Date` at 00:00 GMT everywhere** (ADR 0001). Data stores and queries it as given. Add, compare, group and format Days with `Calendar.gmt`, never with `Calendar.current` or `startOfDay(for:)`. The local calendar is read only for Today, which is Domain's `Date.today`. Day helpers take no `calendar:` parameter.
 - **Folders by role.** A new file goes in the folder for its role:
-  - Domain: `Models/`, `Repositories/` (protocols), `UseCases/`, `Errors/`. `Models/` splits by DDD building block:
+  - Domain: `Models/`, `Repositories/` (protocols), `UseCases/`, `Errors/`, `Extensions/`. `Models/` splits by DDD building block:
     - `Entities/`: a stored record with its own ID (`TodoTask`).
     - `ValueObjects/`: a value without an ID, equal by its fields.
     - `ReadModels/`: computed for a screen, never stored (`Schedule`).
-  - Data: `Repositories/` (the concrete repositories only), `Infrastructure/` (generic SwiftData helpers the repositories share), `Mapping/` (model ↔ domain, including the Day encoding), `Schema/V<n>/`, `DI/`, `Errors/`.
+  - Data: `Repositories/` (the concrete repositories only), `Infrastructure/` (generic SwiftData helpers the repositories share), `Mapping/` (model ↔ domain), `Schema/V<n>/`, `DI/`, `Errors/`.
   - App: `App/`, `Composition/`, `Features/<Feature>/` (a view and its view model), `Shared/{Components,Extensions,Modifiers,Preview}/`.
   - Mixed folders get split. Repositories and helper infrastructure don't share a folder.
 - **A use case exists only when an operation does at least one of these:**
@@ -26,7 +26,7 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
   - (c) is shared by several view models.
 
   Otherwise the view model calls the repository directly: no pass-through use cases. `AddTask` qualifies: it fetches the Day's Tasks, applies the end-of-Day rule, then creates. So does `LoadSchedule`, which composes the queries behind the Schedule. Set Complete and delete are single repository calls made directly. A rule that needs no I/O, such as the name rule or the end-of-Day rule, is a pure Domain function or entity method. Use cases and view models call it, and it's tested without fakes. If nearly all data access ends up going through use cases, route all of it that way for consistency.
-- **No speculative abstraction.** Add a protocol, wrapper or injection point only for a need the current spec has. Use cases take `today` as a parameter, so there is no clock or `DateProvider`. A two-case enum that only means yes/no is a `Bool`.
+- **No speculative abstraction.** Add a protocol, wrapper or injection point only for a need the current spec has. View models read `Date.today`; use cases take `today` as a parameter, so there is no clock or `DateProvider` to inject. A two-case enum that only means yes/no is a `Bool`.
 
 ## Naming
 
@@ -55,7 +55,7 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
   - restate a declaration: an enum's `allCases`, a schema version, a constant;
   - re-check what the compiler already guarantees (generated catalog symbols, exhaustive switches);
   - use a fake the code under test can never reach, so the assertion passes whatever the code does.
-- **Tests never depend on the machine's clock or time zone.** Pass `today` and a `Calendar` with a fixed `timeZone`. Day-encoding tests cover zones on both sides of UTC.
+- **Tests never depend on the machine's clock or time zone.** Pass `today`, never `Date.today`. Days are GMT midnights, so only the Today rule's tests pin a local time zone, on both sides of GMT.
 - **SwiftData fetches are unordered unless sorted.** Tests compare as sets or sort first. Code that needs an order sorts explicitly (by `sortIndex` within a Day).
 - Test names describe behaviour in glossary terms (`keepsACompletedOverdueTaskUntilRefresh`).
 

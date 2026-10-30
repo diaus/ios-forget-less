@@ -2,21 +2,21 @@ import Domain
 import Foundation
 
 extension TodoTaskModel {
-    convenience init(_ task: TodoTask, calendar: Calendar) {
+    convenience init(_ task: TodoTask) {
         self.init(
             id: task.id,
             name: task.name,
-            day: DayEncoding.stored(task.day, calendar: calendar),
+            day: task.day,
             isComplete: task.isComplete,
             sortIndex: task.sortIndex
         )
     }
 
-    func toDomain(calendar: Calendar) -> TodoTask {
+    func toDomain() -> TodoTask {
         TodoTask(
             id: id,
             name: name,
-            day: DayEncoding.day(fromStored: day, calendar: calendar),
+            day: day,
             isComplete: isComplete,
             sortIndex: sortIndex
         )
