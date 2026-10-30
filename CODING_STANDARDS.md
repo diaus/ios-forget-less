@@ -9,7 +9,8 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 
 ## Architecture
 
-- **Layers.** Domain imports neither SwiftData nor SwiftUI, so it doesn't depend on the storage or the UI chosen. Only Data imports SwiftData. Factory wiring lives in Data's `DI/` and the app's `Composition/`.
+- **Layers.** Domain imports neither SwiftData nor SwiftUI, so it doesn't depend on the storage or the UI chosen. Only Data imports SwiftData.
+- **Injection.** Factory wiring lives in Data's `DI/` and the app's `Composition/`. The app resolves its dependencies through Factory's property wrappers: a view holds its view model as `@InjectedObservable(\.key) private var vm`, and a view model holds each repository and use case as `@ObservationIgnored @Injected(\.key) private var`, so its `init` sets up only its own state. Domain and Data types take their dependencies as `init` parameters, which their factory passes, so Domain stays free of Factory.
 - **Utils is project-independent.** It holds helpers another project could reuse (a concurrency primitive, a Foundation extension). It imports only the standard library and Apple's system frameworks: no Domain, no Data, no third-party package. The glossary lint rule skips it.
 - **A Task's Day is a `Date` at 00:00 GMT everywhere** (ADR 0001). Data stores and queries it as given. The local calendar is read only for Today, which is Domain's `Date.today`. A new Day operation is a helper in Domain's `Date+Day`, and Days are formatted in GMT (`Date.FormatStyle(calendar: .gmt, timeZone: .gmt)`).
 - **Folders by role.** A new file goes in the folder for its role:
