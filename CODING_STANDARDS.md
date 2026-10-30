@@ -9,8 +9,8 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 
 ## Architecture
 
-- **Layers.** Domain imports only Foundation: no SwiftData, no SwiftUI, no Factory. Only Data imports SwiftData. Factory wiring lives in Data's `DI/` and the app's `Composition/`.
-- **Utils is project-independent, and doesn't exist yet.** It's created when the first helper another project could reuse turns up (a concurrency primitive, a Foundation extension). It imports only the standard library and Apple's system frameworks: no Domain, no Data, no third-party package. The glossary lint rule skips it.
+- **Layers.** Domain imports neither SwiftData nor SwiftUI, so it doesn't depend on the storage or the UI chosen. Only Data imports SwiftData. Factory wiring lives in Data's `DI/` and the app's `Composition/`.
+- **Utils is project-independent.** It holds helpers another project could reuse (a concurrency primitive, a Foundation extension). It imports only the standard library and Apple's system frameworks: no Domain, no Data, no third-party package. The glossary lint rule skips it.
 - **A Task's Day is a `Date` at 00:00 GMT everywhere** (ADR 0001). Data stores and queries it as given. Add, compare, group and format Days with `Calendar.gmt`, never with `Calendar.current` or `startOfDay(for:)`. The local calendar is read only for Today, which is Domain's `Date.today`. Day helpers take no `calendar:` parameter.
 - **Folders by role.** A new file goes in the folder for its role:
   - Domain: `Models/`, `Repositories/` (protocols), `UseCases/`, `Errors/`, `Extensions/`. `Models/` splits by DDD building block:
@@ -25,7 +25,7 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
   - (b) composes more than one repository call;
   - (c) is shared by several view models.
 
-  Otherwise the view model calls the repository directly: no pass-through use cases. `AddTask` qualifies: it fetches the Day's Tasks, applies the end-of-Day rule, then creates. So does `LoadSchedule`, which composes the queries behind the Schedule. Set Complete and delete are single repository calls made directly. A rule that needs no I/O, such as the name rule or the end-of-Day rule, is a pure Domain function or entity method. Use cases and view models call it, and it's tested without fakes. If nearly all data access ends up going through use cases, route all of it that way for consistency.
+  Otherwise the view model calls the repository directly: no pass-through use cases. `AddTask` qualifies: it fetches the Day's Tasks, applies the end-of-Day rule, then creates. So does `LoadSchedule`, which composes the queries behind the Schedule. Set Complete and delete are single repository calls made directly. A rule that needs no I/O, such as the end-of-Day rule, is a pure Domain function or entity method. Use cases and view models call it, and it's tested without fakes. If nearly all data access ends up going through use cases, route all of it that way for consistency.
 - **No speculative abstraction.** Add a protocol, wrapper or injection point only for a need the current spec has. View models read `Date.today`; use cases take `today` as a parameter, so there is no clock or `DateProvider` to inject. A two-case enum that only means yes/no is a `Bool`.
 
 ## Naming

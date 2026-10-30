@@ -11,8 +11,11 @@ let package = Package(
     products: [
         .library(name: "Domain", targets: ["Domain"]),
     ],
+    dependencies: [
+        .package(path: "../Utils"),
+    ],
     targets: [
-        .target(name: "Domain", swiftSettings: zeroWarnings),
+        .target(name: "Domain", dependencies: ["Utils"], swiftSettings: zeroWarnings),
         .testTarget(
             name: "DomainTests",
             dependencies: ["Domain"],
