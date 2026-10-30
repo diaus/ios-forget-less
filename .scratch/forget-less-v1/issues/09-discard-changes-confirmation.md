@@ -6,6 +6,8 @@ What counts as a change:
 - **Add mode:** the trimmed name isn't empty. After adding several Tasks in a row, the field is empty again, so dismissing doesn't ask.
 - **Edit mode:** the trimmed name differs from the saved one.
 
+Return on a blank name does nothing in both modes, so it never shows the dialog.
+
 **Blocked by:** 06: Rename a Task
 
 **Status:** ready-for-agent

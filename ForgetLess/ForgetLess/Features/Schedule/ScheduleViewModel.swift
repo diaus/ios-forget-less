@@ -58,15 +58,15 @@ final class ScheduleViewModel {
     }
 
     /// Adds the typed Task to the composer's Day and keeps the composer up, or renames the Task being edited and
-    /// hides the composer.
-    func submitComposer() {
-        guard composer.canSubmit else { return }
+    /// hides the composer. Does nothing and returns `nil` when the typed name can't be saved.
+    func submitComposer() -> ComposerSubmission? {
+        guard composer.canSubmit else { return nil }
         if let editedTask = composer.editedTask {
             // The name rule: `canSubmit` has refused a blank name, and the name is saved trimmed.
             rename(editedTask, to: composer.taskName.trimmed)
             // Hidden here rather than by the user's dismissal, so a saved edit never counts as unsaved.
             dismissComposer()
-            return
+            return .renamed
         }
         let taskName = composer.taskName
         let day = composer.day
@@ -85,6 +85,7 @@ final class ScheduleViewModel {
                 errorMessage = error.userMessage
             }
         }
+        return .added
     }
 
     // MARK: - Completion
@@ -118,5 +119,13 @@ final class ScheduleViewModel {
         } catch {
             errorMessage = error.userMessage
         }
+    }
+
+    /// What submitting the composer did.
+    enum ComposerSubmission {
+        /// A Task was added, and the composer stays up for the next one.
+        case added
+        /// The edited Task was renamed, and the composer is hidden.
+        case renamed
     }
 }

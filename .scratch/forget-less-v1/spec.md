@@ -37,9 +37,9 @@ An iPhone app with one screen: a scrolling list of Days from Today through the n
 15. As a user, I want the composer to appear as a rounded panel right above the keyboard with the name field already focused, with no delay before the keyboard shows, so that I can type immediately.
 16. As a user, I want the composer to show the Task Name field, a Day chip, and an `arrowtriangle.right.fill` submit button, so that I see where the Task will go.
 17. As a user, I want the Day chip to read `Today` (green), `Tomorrow` (orange), a weekday such as `Sunday` (light blue) for Days before Today + 7, or a short date such as `Nov 10` (light grey, with the year if not the current year) for later Days, with darker equivalents in light mode for contrast, so that the Day reads at a glance.
-18. As a user, I want the submit button accent-red when the trimmed name isn't empty and grey and disabled otherwise, so that I can't add a blank Task.
-19. As a user, I want Return and the submit button to both add the Task at the end of its Day and keep the composer open with the name cleared and the same Day, so that I can add several Tasks in a row.
-20. As a user, I want to dismiss the composer by tapping the dimmed background, swiping down, or pressing Return on a blank name, so that leaving is easy.
+18. As a user, I want the submit button accent-red when the trimmed name isn't empty and grey and disabled otherwise, and Return on a blank name to do nothing, so that I can't add a blank Task.
+19. As a user, I want the submit button to add the Task at the end of its Day and keep the composer open with the name cleared and the same Day, so that I can add several Tasks in a row.
+20. As a user, I want to dismiss the composer by tapping the dimmed background or swiping down, so that leaving is easy.
 21. As a user, I want to be asked "Discard changes?" (Discard / Keep Editing) when I dismiss with a non-empty trimmed name, so that I don't lose typing by accident; Keep Editing returns me to the field with the keyboard up.
 
 ### Editing and deleting

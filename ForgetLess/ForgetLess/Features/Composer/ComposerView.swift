@@ -22,6 +22,8 @@ struct ComposerView: View {
                 Text(.composerTaskName)
             }
             .focused(isNameFocused)
+            // The Twitter layout has no Return key, so ▶ is the only submit on the software keyboard.
+            .keyboardType(.twitter)
             .onSubmit(submit)
             HStack {
                 Text(vm.composer.day.dayChipLabel(today: vm.today))
@@ -52,16 +54,14 @@ struct ComposerView: View {
 
     // MARK: - Actions
     private func submit() {
-        guard vm.composer.canSubmit else {
-            onDismiss()
-            return
-        }
-        vm.submitComposer()
-        if vm.composer.isVisible {
+        switch vm.submitComposer() {
+        case .added:
             // Return would otherwise drop focus, and the panel stays up for the next Task.
             isNameFocused.wrappedValue = true
-        } else {
+        case .renamed:
             onDismiss()
+        case nil:
+            break
         }
     }
 
