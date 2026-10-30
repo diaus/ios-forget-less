@@ -15,8 +15,6 @@ final class ScheduleViewModel {
 
     @ObservationIgnored private let repository: any TodoTaskRepository
     @ObservationIgnored private let addTask: AddTask
-    /// Serialises adds, so two at once can't take the same place in a Day.
-    @ObservationIgnored private var latestAdd: Task<Void, Never>?
 
     init(
         repository: any TodoTaskRepository = Container.shared.todoTaskRepository(),
@@ -53,9 +51,7 @@ final class ScheduleViewModel {
         let day = composer.day
         // Cleared at once, so a second submit before the write lands adds nothing.
         composer.taskName = ""
-        let previousAdd = latestAdd
-        latestAdd = Task {
-            await previousAdd?.value
+        Task {
             do {
                 try await addTask(name: taskName, day: day)
                 postAnnouncement(.taskAdded(name: taskName))
