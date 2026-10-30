@@ -70,6 +70,12 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         try saveAndNotify()
     }
 
+    func delete(id: UUID) throws {
+        guard let model = try model(id: id) else { return }
+        modelContext.delete(model)
+        try saveAndNotify()
+    }
+
     // MARK: - Helpers
     private func fetchScheduleTasks(today: Date) throws -> [TodoTask] {
         // An Incomplete Task has no `completeDay`, so it counts as completed on no Day yet.

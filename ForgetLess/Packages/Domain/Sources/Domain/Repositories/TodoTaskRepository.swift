@@ -13,4 +13,6 @@ public protocol TodoTaskRepository: Sendable {
     func rename(id: UUID, name: String) async throws
     /// Makes the Task with `id` Complete on `today`, or Incomplete; does nothing when no Task has `id`.
     func setComplete(id: UUID, isComplete: Bool, today: Date) async throws
+    /// Deletes the Task with `id` for good; does nothing when no Task has `id`.
+    func delete(id: UUID) async throws
 }
