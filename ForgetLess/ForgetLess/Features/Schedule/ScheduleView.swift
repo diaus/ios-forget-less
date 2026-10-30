@@ -10,6 +10,7 @@ struct ScheduleView: View {
     @AccessibilityFocusState private var focusedComposerOpener: ComposerOpener?
     /// What showed the composer, where VoiceOver returns when it's dismissed.
     @State private var composerOpener: ComposerOpener = .floating
+    @State private var isConfirmingDiscard = false
 
     // MARK: - Body
     var body: some View {
@@ -20,14 +21,19 @@ struct ScheduleView: View {
             Color.black.opacity(vm.composer.isVisible ? 0.3 : 0)
                 .ignoresSafeArea()
                 .allowsHitTesting(vm.composer.isVisible)
-                .onTapGesture(perform: dismissComposer)
+                .onTapGesture(perform: requestComposerDismissal)
                 .animation(.easeOut(duration: 0.2), value: vm.composer.isVisible)
             // Mounted while hidden, so its field can take focus in the same action that shows it and the keyboard
             // starts in the same frame. Opacity, not removal or `.hidden()`: the field stays focusable while hidden.
-            ComposerView(isNameFocused: $isComposerNameFocused, onDismiss: dismissComposer)
-                .opacity(vm.composer.isVisible ? 1 : 0)
-                .allowsHitTesting(vm.composer.isVisible)
-                .accessibilityHidden(!vm.composer.isVisible)
+            ComposerView(isNameFocused: $isComposerNameFocused, onDismiss: requestComposerDismissal)
+            .opacity(vm.composer.isVisible ? 1 : 0)
+            .allowsHitTesting(vm.composer.isVisible)
+            .accessibilityHidden(!vm.composer.isVisible)
+            // An alert, not a confirmation dialog: as a popover, iOS 27 hides the dialog's Keep Editing.
+            .alert(Text(.composerDiscardChanges), isPresented: $isConfirmingDiscard) {
+                Button(role: .destructive, action: dismissComposer) { Text(.composerDiscard) }
+                Button(role: .cancel, action: keepEditing) { Text(.composerKeepEditing) }
+            }
         }
         // Restarts on a new Today and on coming back, when a fresh fetch also picks up changes made outside the app.
         .task(id: ScheduleObservation(today: vm.today, isActive: scenePhase == .active)) {
@@ -138,6 +144,21 @@ struct ScheduleView: View {
     private func focusComposer(from opener: ComposerOpener) {
         isComposerNameFocused = true
         composerOpener = opener
+    }
+
+    /// Dismisses the composer, first asking whether to discard any change.
+    private func requestComposerDismissal() {
+        if vm.composer.hasChanges {
+            // The panel stays up behind the alert; only the keyboard goes.
+            isComposerNameFocused = false
+            isConfirmingDiscard = true
+        } else {
+            dismissComposer()
+        }
+    }
+
+    private func keepEditing() {
+        isComposerNameFocused = true
     }
 
     private func dismissComposer() {

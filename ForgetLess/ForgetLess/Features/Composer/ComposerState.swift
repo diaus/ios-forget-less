@@ -14,4 +14,10 @@ struct ComposerState {
     var canSubmit: Bool {
         !taskName.trimmed.isEmpty
     }
+
+    /// Whether dismissing would drop what the user typed: a name to add, or a rename.
+    var hasChanges: Bool {
+        guard let editedTask else { return canSubmit }
+        return taskName.trimmed != editedTask.name
+    }
 }
