@@ -17,25 +17,16 @@ final class ScheduleViewModel {
     /// Counts the reloads started, so one that finishes late can tell a newer one has started.
     @ObservationIgnored private var reloadCount = 0
 
-    @ObservationIgnored private let repository: any TodoTaskRepository
-    @ObservationIgnored private let loadSchedule: LoadSchedule
-    @ObservationIgnored private let addTask: AddTask
-    @ObservationIgnored private let renameTask: RenameTask
+    @ObservationIgnored @Injected(\.todoTaskRepository) private var repository
+    @ObservationIgnored @Injected(\.loadSchedule) private var loadSchedule
+    @ObservationIgnored @Injected(\.addTask) private var addTask
+    @ObservationIgnored @Injected(\.renameTask) private var renameTask
 
-    init(
-        repository: any TodoTaskRepository = Container.shared.todoTaskRepository(),
-        loadSchedule: LoadSchedule = Container.shared.loadSchedule(),
-        addTask: AddTask = Container.shared.addTask(),
-        renameTask: RenameTask = Container.shared.renameTask()
-    ) {
+    init() {
         let today = Date.today
         self.today = today
         self.schedule = Schedule(tasks: [], today: today)
         self.composer = ComposerState(day: today)
-        self.repository = repository
-        self.loadSchedule = loadSchedule
-        self.addTask = addTask
-        self.renameTask = renameTask
     }
 
     // MARK: - Loading
