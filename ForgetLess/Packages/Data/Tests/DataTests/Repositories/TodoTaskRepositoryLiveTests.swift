@@ -60,6 +60,29 @@ struct TodoTaskRepositoryLiveTests {
         #expect(Set(tasksFromToday.map(\.day)) == [today, later])
     }
 
+    @Test func settingATaskCompleteAndBackToIncompleteIsPersisted() async throws {
+        let container = try Self.inMemoryContainer()
+        let repository = TodoTaskRepositoryLive(modelContainer: container)
+        let day = try Self.day("2026-10-25")
+        let task = TodoTask(id: UUID(), name: "Buy milk", day: day, isComplete: false, sortIndex: 3)
+        let other = TodoTask(id: UUID(), name: "Call mum", day: day, isComplete: false, sortIndex: 4)
+        try await repository.create(task)
+        try await repository.create(other)
+
+        try await repository.setComplete(id: task.id, isComplete: true)
+        // A fresh repository on the same store, as after a relaunch.
+        let completed = try await TodoTaskRepositoryLive(modelContainer: container).tasks(on: day)
+        try await repository.setComplete(id: task.id, isComplete: false)
+        let incomplete = try await TodoTaskRepositoryLive(modelContainer: container).tasks(on: day)
+
+        var completeTask = task
+        completeTask.isComplete = true
+        #expect(Set(completed.map(\.id)) == [task.id, other.id])
+        #expect(completed.first { $0.id == task.id } == completeTask)
+        #expect(completed.first { $0.id == other.id } == other)
+        #expect(incomplete.first { $0.id == task.id } == task)
+    }
+
     // MARK: - Helpers
     private static func inMemoryContainer() throws -> ModelContainer {
         try ForgetLessModelContainer.make(inMemory: true)

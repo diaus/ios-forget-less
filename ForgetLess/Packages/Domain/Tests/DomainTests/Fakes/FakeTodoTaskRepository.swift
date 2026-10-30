@@ -20,4 +20,9 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
     func create(_ task: TodoTask) {
         tasks.append(task)
     }
+
+    func setComplete(id: UUID, isComplete: Bool) {
+        guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
+        tasks[index].isComplete = isComplete
+    }
 }

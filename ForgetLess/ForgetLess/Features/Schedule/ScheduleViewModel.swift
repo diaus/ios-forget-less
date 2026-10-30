@@ -74,6 +74,19 @@ final class ScheduleViewModel {
         }
     }
 
+    // MARK: - Completion
+    /// Makes `task` Complete, or Incomplete again. It keeps its place in its Day.
+    func toggleComplete(_ task: TodoTask) {
+        Task {
+            do {
+                try await repository.setComplete(id: task.id, isComplete: !task.isComplete)
+                await reloadSchedule()
+            } catch {
+                errorMessage = error.userMessage
+            }
+        }
+    }
+
     // MARK: - Helpers
     private func reloadSchedule() async {
         do {

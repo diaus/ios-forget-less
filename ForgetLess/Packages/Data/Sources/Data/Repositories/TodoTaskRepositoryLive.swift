@@ -26,4 +26,11 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         modelContext.insert(TodoTaskModel(task))
         try modelContext.save()
     }
+
+    func setComplete(id: UUID, isComplete: Bool) throws {
+        let descriptor = FetchDescriptor<TodoTaskModel>(predicate: #Predicate { $0.id == id })
+        guard let model = try modelContext.fetch(descriptor).first else { return }
+        model.isComplete = isComplete
+        try modelContext.save()
+    }
 }
