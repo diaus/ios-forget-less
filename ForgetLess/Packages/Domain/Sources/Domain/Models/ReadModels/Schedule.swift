@@ -10,17 +10,17 @@ public struct Schedule: Sendable {
         public var id: Date { day }
     }
 
-    /// The Overdue Tasks, with the kept ones, oldest Day first.
+    /// The Overdue Tasks, with those completed from it on Today, oldest Day first.
     public let overdue: [TodoTask]
     public let days: [Day]
 
     /// How many Days the window holds, Today included.
     private static let windowDayCount = 100
 
-    /// `keepingOverdue` holds the Tasks completed from Overdue that stay in it, so a mis-tap can be undone.
-    public init(tasks: [TodoTask], today: Date, keepingOverdue: Set<UUID> = []) {
+    public init(tasks: [TodoTask], today: Date) {
         overdue = tasks
-            .filter { $0.day < today && (!$0.isComplete || keepingOverdue.contains($0.id)) }
+            // A Task completed from Overdue stays there until Today rolls over, so a mis-tap can be undone.
+            .filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }
             .sorted { ($0.day, $0.sortIndex) < ($1.day, $1.sortIndex) }
         let tasksByDay = Dictionary(grouping: tasks) { $0.day }
         let window = (0..<Self.windowDayCount).map { today.addingDays($0) }

@@ -15,14 +15,14 @@ enum ForgetLessSchemaV1: VersionedSchema {
         @Attribute(.unique) var id: UUID
         var name: String
         var day: Date
-        var isComplete: Bool
+        var completeDay: Date?
         var sortIndex: Int
 
-        init(id: UUID, name: String, day: Date, isComplete: Bool, sortIndex: Int) {
+        init(id: UUID, name: String, day: Date, completeDay: Date?, sortIndex: Int) {
             self.id = id
             self.name = name
             self.day = day
-            self.isComplete = isComplete
+            self.completeDay = completeDay
             self.sortIndex = sortIndex
         }
     }

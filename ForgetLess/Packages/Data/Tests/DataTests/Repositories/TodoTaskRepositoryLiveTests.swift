@@ -61,51 +61,46 @@ struct TodoTaskRepositoryLiveTests {
         #expect(tasksOnDay.map(\.day) == [days[1], days[1]])
     }
 
-    @Test func tasksFromTodayOnIncludeTodayAndLeaveOutYesterday() async throws {
-        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
-        let yesterday = try Self.day("2026-10-24")
-        let today = try Self.day("2026-10-25")
-        let later = try Self.day("2027-03-01")
-        for day in [yesterday, today, later] {
-            try await repository.create(name: "Buy milk", day: day)
-        }
-
-        let tasksFromToday = try await repository.tasks(onOrAfter: today)
-
-        #expect(Set(tasksFromToday.map(\.day)) == [today, later])
-    }
-
-    @Test func incompleteTasksBeforeTodayLeaveOutTodayAndCompleteTasks() async throws {
+    @Test func scheduleTasksHoldTodayOnIncompleteBeforeTodayAndThoseCompletedOnToday() async throws {
         let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
         let lastYear = try Self.day("2025-12-31")
         let yesterday = try Self.day("2026-10-24")
         let today = try Self.day("2026-10-25")
-        for day in [lastYear, yesterday, today] {
-            try await repository.create(name: "Buy milk", day: day)
-        }
-        try await repository.create(name: "Call mum", day: yesterday)
-        let completed = try #require(try await repository.tasks(on: yesterday).first { $0.name == "Call mum" })
-        try await repository.setComplete(id: completed.id, isComplete: true)
+        let later = try Self.day("2027-03-01")
+        try await repository.create(name: "Overdue", day: lastYear)
+        try await repository.create(name: "Completed today", day: yesterday)
+        try await repository.create(name: "Completed yesterday", day: yesterday)
+        try await repository.create(name: "Today's", day: today)
+        try await repository.create(name: "Later", day: later)
+        let yesterdays = try await repository.tasks(on: yesterday)
+        let completedToday = try #require(yesterdays.first { $0.name == "Completed today" })
+        let completedYesterday = try #require(yesterdays.first { $0.name == "Completed yesterday" })
+        try await repository.setComplete(id: completedToday.id, isComplete: true, today: today)
+        try await repository.setComplete(id: completedYesterday.id, isComplete: true, today: yesterday)
 
-        let overdue = try await repository.incompleteTasks(before: today)
+        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
 
-        #expect(Set(overdue.map(\.day)) == [lastYear, yesterday])
-        #expect(overdue.map(\.name) == ["Buy milk", "Buy milk"])
+        let first = try #require(await scheduleTasks.next())
+        #expect(Set(first.map(\.name)) == ["Overdue", "Completed today", "Today's", "Later"])
     }
 
-    @Test func tasksByIdComeBackOnlyForThoseIds() async throws {
+    @Test(.timeLimit(.minutes(1)))
+    func scheduleTasksAreSentAgainAfterEveryWrite() async throws {
         let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
-        let yesterday = try Self.day("2026-10-24")
         let today = try Self.day("2026-10-25")
-        try await repository.create(name: "Buy milk", day: yesterday)
-        try await repository.create(name: "Call mum", day: yesterday)
-        try await repository.create(name: "Walk the dog", day: today)
-        let created = try await repository.tasks(onOrAfter: yesterday)
-        let wanted = created.filter { $0.name != "Call mum" }
+        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+        #expect(await scheduleTasks.next() == [])
 
-        let found = try await repository.tasks(ids: Set(wanted.map(\.id) + [UUID()]))
+        try await repository.create(name: "Cal mum", day: today)
+        let created = try #require(await scheduleTasks.next()?.first)
+        try await repository.rename(id: created.id, name: "Call mum")
+        let renamed = try #require(await scheduleTasks.next()?.first)
+        try await repository.setComplete(id: created.id, isComplete: true, today: today)
+        let completed = try #require(await scheduleTasks.next()?.first)
 
-        #expect(Set(found.map(\.id)) == Set(wanted.map(\.id)))
+        #expect(created.name == "Cal mum")
+        #expect(renamed.name == "Call mum")
+        #expect(completed.completeDay == today)
     }
 
     @Test func settingATaskCompleteAndBackToIncompleteIsPersisted() async throws {
@@ -118,14 +113,16 @@ struct TodoTaskRepositoryLiveTests {
         let task = try #require(created.first { $0.name == "Buy milk" })
         let other = try #require(created.first { $0.name == "Call mum" })
 
-        try await repository.setComplete(id: task.id, isComplete: true)
+        let today = try Self.day("2026-10-27")
+
+        try await repository.setComplete(id: task.id, isComplete: true, today: today)
         // A fresh repository on the same store, as after a relaunch.
         let completed = try await TodoTaskRepositoryLive(modelContainer: container).tasks(on: day)
-        try await repository.setComplete(id: task.id, isComplete: false)
+        try await repository.setComplete(id: task.id, isComplete: false, today: today)
         let incomplete = try await TodoTaskRepositoryLive(modelContainer: container).tasks(on: day)
 
         var completeTask = task
-        completeTask.isComplete = true
+        completeTask.completeDay = today
         #expect(Set(completed.map(\.id)) == [task.id, other.id])
         #expect(completed.first { $0.id == task.id } == completeTask)
         #expect(completed.first { $0.id == other.id } == other)
@@ -141,13 +138,13 @@ struct TodoTaskRepositoryLiveTests {
         let created = try await repository.tasks(on: day)
         let task = try #require(created.first { $0.name == "Cal mum" })
         let other = try #require(created.first { $0.name == "Buy milk" })
-        try await repository.setComplete(id: task.id, isComplete: true)
+        try await repository.setComplete(id: task.id, isComplete: true, today: day)
 
         try await repository.rename(id: task.id, name: "Call mum")
         // A fresh repository on the same store, as after a relaunch.
         let renamed = try await TodoTaskRepositoryLive(modelContainer: container).tasks(on: day)
 
-        let expected = TodoTask(id: task.id, name: "Call mum", day: day, isComplete: true, sortIndex: 1)
+        let expected = TodoTask(id: task.id, name: "Call mum", day: day, completeDay: day, sortIndex: 1)
         #expect(Set(renamed.map(\.id)) == [task.id, other.id])
         #expect(renamed.first { $0.id == task.id } == expected)
         #expect(renamed.first { $0.id == other.id } == other)

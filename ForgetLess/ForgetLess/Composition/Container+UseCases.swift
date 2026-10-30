@@ -8,10 +8,6 @@ extension Container {
         self { AddTask(repository: self.todoTaskRepository()) }
     }
 
-    nonisolated var loadSchedule: Factory<LoadSchedule> {
-        self { LoadSchedule(repository: self.todoTaskRepository()) }
-    }
-
     nonisolated var renameTask: Factory<RenameTask> {
         self { RenameTask(repository: self.todoTaskRepository()) }
     }

@@ -29,7 +29,7 @@ An iPhone app with one screen: a scrolling list of Days from Today through the n
 10. As a user, I want to tap a Task's circle to make it Complete and tap again to make it Incomplete, so that a mis-tap is reversible.
 11. As a user, I want a Complete Task shown with a filled grey check circle and its name struck through and greyed, so that done and not-done are obvious at a glance.
 12. As a user, I want a Task to keep its place when I complete it, so that the list doesn't jump under my finger.
-13. As a user, I want a Task I complete from the Overdue section to stay there (struck through) until the list next refreshes (app becomes active again, or Today rolls over), so that I can undo a mis-tap.
+13. As a user, I want a Task I complete from the Overdue section to stay there (struck through) until Today rolls over, so that I can undo a mis-tap.
 
 ### Adding
 
@@ -70,7 +70,7 @@ An iPhone app with one screen: a scrolling list of Days from Today through the n
 
 ### Domain model
 
-- **`TodoTask`** (an entity; the glossary word is Task, and the type name avoids shadowing Swift's `Task`): `id: UUID`, `name: String`, `day: Date` (00:00 GMT of its year/month/day, ADR 0001), `isComplete: Bool`, `sortIndex: Int`. A `Sendable` value type.
+- **`TodoTask`** (an entity; the glossary word is Task, and the type name avoids shadowing Swift's `Task`): `id: UUID`, `name: String`, `day: Date` (00:00 GMT of its year/month/day, ADR 0001), `completeDay: Date?` (the Day it was made Complete, `nil` while Incomplete; `isComplete` is computed from it), `sortIndex: Int`. A `Sendable` value type.
 - **Name rule** (pure function in Domain): trim whitespace and newlines; an empty result throws `DomainError.emptyName`. Single line, no length limit.
 - **End-of-Day rule** (pure function in Domain): `TodoTask.nextSortIndex(in tasksOfDay:)` is the highest `sortIndex` + 1, or 0 for an empty Day. Gaps are allowed.
 - **Schedule** (a read model, never stored): the Overdue Tasks (by Day ascending, then `sortIndex`) and one entry per Day from Today through Today + 99, followed by an entry for each later Day that has Tasks. Each entry holds its Tasks ordered by `sortIndex`. Building it is a pure Domain function of the Tasks and Today.
@@ -82,30 +82,28 @@ Per the use-case rule in `CODING_STANDARDS.md`:
 
 - **`AddTask(name:day:)`**: applies the name rule, then has the repository create the Task.
 - **`RenameTask(id:name:)`**: applies the name rule, then has the repository rename the Task.
-- **`LoadSchedule(today:keepingOverdue:)`**: fetches the Tasks from Today on, the Incomplete Tasks before Today, and the Tasks whose ids are in `keepingOverdue` (Overdue Tasks completed since the last refresh, story 13), then builds the Schedule.
-- Called directly from the view model, with no use case: set Complete/Incomplete, delete.
+- Called directly from the view model, with no use case: observing the Schedule's Tasks, set Complete/Incomplete, delete.
 
 ### Repository
 
 - `TodoTaskRepository` (Domain protocol, async throwing) has these methods:
   - `tasks(on:)`
-  - `tasks(onOrAfter:)`
-  - `incompleteTasks(before:)`
-  - `tasks(ids:)`
+  - `scheduleTasks(today:)`: a stream of the Tasks the Schedule lists on Today (from Today on, Incomplete before Today, and completed on Today), sent at once and again after every change. Throws when the first fetch fails; a later failed fetch is logged and sends nothing (ADR 0002).
   - `create(name:day:)`: creates the Task Incomplete at the end of its Day. It reads the Day and inserts in one actor call with no suspension between, so two creates at once can't take the same place.
   - `rename(id:name:)`
-  - `setComplete(id:isComplete:)`
+  - `setComplete(id:isComplete:today:)`: stores `today` as the `completeDay`, or clears it
   - `delete(id:)`
 - `TodoTaskRepositoryLive` (Data) is an actor conforming to `ModelActor`, as in PillsTracker.
 - Day storage is per ADR 0001. A Day is already 00:00 GMT in Domain, so Data stores and queries it as given, with no `Calendar`.
-- No change stream. All writes come from the one screen, whose view model reloads after each write.
+- Every write goes through one save that signals a change, so each open `scheduleTasks(today:)` stream fetches again. How Data learns of a change stays inside Data (ADR 0002).
+- In the simulator only, a store that won't open is deleted and created again, since V1 is edited in place until the first release.
 
 ### App
 
 - **`ScheduleViewModel`** (`@MainActor @Observable`):
   - It owns Today, the Schedule, the composer state and all writes.
-  - It does a full refresh (recompute Today, clear `keepingOverdue`) on launch, when the scene becomes active, and on `significantTimeChangeNotification`, which fires at midnight and on time-zone changes.
-  - After a write it reloads while keeping `keepingOverdue`.
+  - It recomputes Today on launch, when the scene becomes active, and on `significantTimeChangeNotification`, which fires at midnight and on time-zone changes.
+  - It observes `scheduleTasks(today:)` and rebuilds the Schedule on each element. The observation restarts when Today changes and each time the scene becomes active, so a fresh fetch picks up changes made outside the app.
 - **Composer** (the no-delay keyboard approach):
   - No `.sheet`. The composer panel and its `TextField` are always mounted in a `ZStack` over the list and hidden while unused, with `opacity`, or with an off-screen `offset` if a hidden field can't take focus.
   - The "+" and row-tap actions set the composer's visible state and `@FocusState` **synchronously** in the same action, so the keyboard starts in the same frame. Never use `asyncAfter` or `Task.sleep` delays.
@@ -129,17 +127,17 @@ A good test exercises behaviour through a public interface and asserts on outcom
   - building the Schedule:
     - the 100-Day window, including empty Days;
     - later Days appear only when they have Tasks;
-    - Overdue holds only Incomplete Tasks before Today, ordered by Day then index;
+    - Overdue holds the Incomplete Tasks before Today, ordered by Day then index;
     - Tasks are ordered within a Day;
-    - a kept Overdue Task stays after it's completed;
+    - a Task completed from Overdue on Today stays, and one completed on an earlier Day leaves;
     - the window crosses a year boundary;
   - `AddTask`: creates the Task with the trimmed name and refuses an empty name, against a fake repository;
-  - `LoadSchedule`, against a fake repository.
 - **Data**, against an in-memory `ModelContainer`:
   - round trip of every field;
   - `create(name:day:)` creates the Task Incomplete at the end of its Day;
   - the Day round trip, including that the stored value is the Day as given;
-  - `tasks(onOrAfter:)` and `incompleteTasks(before:)` boundaries at Today;
+  - `scheduleTasks(today:)`: which Tasks it holds at Today's boundaries, and that every write sends them again;
+  - `setComplete` stores and clears the `completeDay`;
   - delete.
 - **App**: the Day chip category for Today, Tomorrow, Today + 6, Today + 7 and a past Day.
 - No view-model, UI or snapshot tests in v1.

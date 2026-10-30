@@ -29,7 +29,13 @@ struct ScheduleView: View {
                 .allowsHitTesting(vm.composer.isVisible)
                 .accessibilityHidden(!vm.composer.isVisible)
         }
-        // Today may have moved while the app was away, and coming back lets go of the kept Overdue Tasks.
+        // Restarts on a new Today and on coming back, when a fresh fetch also picks up changes made outside the app.
+        .task(id: ScheduleObservation(today: vm.today, isActive: scenePhase == .active)) {
+            if scenePhase == .active {
+                await vm.observeSchedule()
+            }
+        }
+        // Today may have moved while the app was away.
         .onChange(of: scenePhase, initial: true) {
             if scenePhase == .active {
                 vm.refresh()
@@ -146,6 +152,12 @@ struct ScheduleView: View {
         case floating
         case day(Date)
         case task(UUID)
+    }
+
+    /// What the Schedule is observed for; a change restarts the observation.
+    private struct ScheduleObservation: Equatable {
+        let today: Date
+        let isActive: Bool
     }
 }
 
