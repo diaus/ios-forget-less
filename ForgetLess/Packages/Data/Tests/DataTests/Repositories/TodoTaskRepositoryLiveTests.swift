@@ -75,6 +75,39 @@ struct TodoTaskRepositoryLiveTests {
         #expect(Set(tasksFromToday.map(\.day)) == [today, later])
     }
 
+    @Test func incompleteTasksBeforeTodayLeaveOutTodayAndCompleteTasks() async throws {
+        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
+        let lastYear = try Self.day("2025-12-31")
+        let yesterday = try Self.day("2026-10-24")
+        let today = try Self.day("2026-10-25")
+        for day in [lastYear, yesterday, today] {
+            try await repository.create(name: "Buy milk", day: day)
+        }
+        try await repository.create(name: "Call mum", day: yesterday)
+        let completed = try #require(try await repository.tasks(on: yesterday).first { $0.name == "Call mum" })
+        try await repository.setComplete(id: completed.id, isComplete: true)
+
+        let overdue = try await repository.incompleteTasks(before: today)
+
+        #expect(Set(overdue.map(\.day)) == [lastYear, yesterday])
+        #expect(overdue.map(\.name) == ["Buy milk", "Buy milk"])
+    }
+
+    @Test func tasksByIdComeBackOnlyForThoseIds() async throws {
+        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
+        let yesterday = try Self.day("2026-10-24")
+        let today = try Self.day("2026-10-25")
+        try await repository.create(name: "Buy milk", day: yesterday)
+        try await repository.create(name: "Call mum", day: yesterday)
+        try await repository.create(name: "Walk the dog", day: today)
+        let created = try await repository.tasks(onOrAfter: yesterday)
+        let wanted = created.filter { $0.name != "Call mum" }
+
+        let found = try await repository.tasks(ids: Set(wanted.map(\.id) + [UUID()]))
+
+        #expect(Set(found.map(\.id)) == Set(wanted.map(\.id)))
+    }
+
     @Test func settingATaskCompleteAndBackToIncompleteIsPersisted() async throws {
         let container = try Self.inMemoryContainer()
         let repository = TodoTaskRepositoryLive(modelContainer: container)

@@ -23,6 +23,16 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }
 
+    func incompleteTasks(before day: Date) throws -> [TodoTask] {
+        let descriptor = FetchDescriptor<TodoTaskModel>(predicate: #Predicate { $0.day < day && !$0.isComplete })
+        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+    }
+
+    func tasks(ids: Set<UUID>) throws -> [TodoTask] {
+        let descriptor = FetchDescriptor<TodoTaskModel>(predicate: #Predicate { ids.contains($0.id) })
+        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+    }
+
     func create(name: String, day: Date) throws {
         // Read and insert without suspending, so two creates at once can't take the same place in the Day.
         let task = TodoTask(
