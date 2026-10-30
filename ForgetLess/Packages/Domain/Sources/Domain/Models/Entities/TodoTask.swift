@@ -7,7 +7,7 @@ public struct TodoTask: Identifiable, Equatable, Sendable {
     /// The Task's Day, as 00:00 GMT.
     public var day: Date
     public var isComplete: Bool
-    /// The Task's place within its Day; ascending in the order the Tasks were added, with gaps allowed.
+    /// The Task's place within its Day.
     public var sortIndex: Int
 
     public init(id: UUID, name: String, day: Date, isComplete: Bool, sortIndex: Int) {
@@ -18,7 +18,7 @@ public struct TodoTask: Identifiable, Equatable, Sendable {
         self.sortIndex = sortIndex
     }
 
-    /// The end-of-Day rule: a new Task goes after the highest `sortIndex` of its Day, or at 0 on an empty Day.
+    /// The end-of-Day rule: where a new Task goes in its Day.
     public static func nextSortIndex(in tasksOfDay: [TodoTask]) -> Int {
         (tasksOfDay.map(\.sortIndex).max() ?? -1) + 1
     }

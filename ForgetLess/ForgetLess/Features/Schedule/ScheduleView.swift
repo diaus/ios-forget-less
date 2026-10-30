@@ -2,7 +2,7 @@ import Domain
 import FactoryKit
 import SwiftUI
 
-/// The app's one screen: a section per Day of the Schedule, with the composer over it.
+/// The Schedule screen.
 struct ScheduleView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @FocusState private var isComposerNameFocused: Bool
@@ -63,7 +63,7 @@ struct ScheduleView: View {
         }
     }
 
-    /// The Day's date and weekday with its "+": bold primary when the Day has any Task, grey when it has none.
+    /// A Day section's header.
     private func dayHeader(_ scheduleDay: Schedule.Day) -> some View {
         let header = scheduleDay.day.dayHeader(today: vm.today)
         return HStack {
@@ -83,15 +83,13 @@ struct ScheduleView: View {
     }
 
     // MARK: - Actions
-    /// Shows the panel and focuses its field in one synchronous action, so the keyboard starts in the same frame.
     private func showComposer(on day: Date, from opener: ComposerOpener) {
         vm.showComposer(on: day)
+        // In the same action that shows the panel, so the keyboard starts in the same frame.
         isComposerNameFocused = true
         composerOpener = opener
     }
 
-    /// Hides the panel and the keyboard, and returns VoiceOver to the "+" that showed it, since its focus was in the
-    /// panel.
     private func dismissComposer() {
         vm.dismissComposer()
         isComposerNameFocused = false
@@ -99,7 +97,7 @@ struct ScheduleView: View {
     }
 
     // MARK: - Helpers
-    /// The "+" that shows the composer: the floating one, or a Day header's.
+    /// Which "+" showed the composer.
     private enum ComposerOpener: Hashable {
         case floating
         case day(Date)

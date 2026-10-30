@@ -1,7 +1,7 @@
 import Foundation
 import Utils
 
-/// Adds a Task, Incomplete, at the end of its Day, with its name trimmed of surrounding whitespace and newlines.
+/// Adds a new Task to its Day.
 public struct AddTask: Sendable {
     private let repository: any TodoTaskRepository
 
@@ -9,7 +9,7 @@ public struct AddTask: Sendable {
         self.repository = repository
     }
 
-    /// Throws `DomainError.emptyName`, creating nothing, when the name is empty after trimming.
+    /// Throws `DomainError.emptyName` for a blank name.
     public func callAsFunction(name: String, day: Date) async throws {
         let name = name.trimmed
         guard !name.isEmpty else { throw DomainError.emptyName }

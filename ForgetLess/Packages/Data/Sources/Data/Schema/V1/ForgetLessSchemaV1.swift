@@ -9,7 +9,7 @@ enum ForgetLessSchemaV1: VersionedSchema {
         [TodoTaskModel.self]
     }
 
-    /// A stored Task. `day` holds 00:00 UTC of the Task's year/month/day (ADR 0001); only `Mapping/` converts it.
+    /// A stored Task.
     @Model
     final class TodoTaskModel {
         @Attribute(.unique) var id: UUID

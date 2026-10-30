@@ -1,13 +1,13 @@
 import Domain
 import SwiftUI
 
-/// Which kind of Day the composer's Day chip shows, by the Day relative to Today.
+/// The kind of Day a Day chip shows, relative to Today.
 enum DayChipCategory {
     case today
     case tomorrow
-    /// After Tomorrow and before Today + 7.
+    /// Near enough to name by its weekday.
     case weekday
-    /// Today + 7 or later.
+    /// Too far to name by its weekday.
     case later
     /// Before Today.
     case past
@@ -15,7 +15,6 @@ enum DayChipCategory {
 
 extension Date {
     // MARK: - Category
-    /// The chip category of this Day relative to `today`, both 00:00 GMT.
     func dayChipCategory(today: Date) -> DayChipCategory {
         switch dayCount(from: today) {
         case ..<0: .past
@@ -27,7 +26,6 @@ extension Date {
     }
 
     // MARK: - Label
-    /// `Today`, `Tomorrow`, the weekday (`Sunday`), or the short date (`Nov 10`) with the year rule.
     func dayChipLabel(today: Date) -> String {
         switch dayChipCategory(today: today) {
         case .today: String(localized: .dayToday)
@@ -39,7 +37,6 @@ extension Date {
     }
 
     // MARK: - Colour
-    /// Green Today, orange Tomorrow, light blue weekday, light grey later, red past.
     func dayChipColor(today: Date) -> Color {
         switch dayChipCategory(today: today) {
         case .today: Color(.dayChipToday)

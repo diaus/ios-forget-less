@@ -1,15 +1,14 @@
 import Foundation
 
 public extension Calendar {
-    /// The calendar every Day is reckoned in: the current calendar in GMT, where a Day is 00:00 of its year/month/day
-    /// (ADR 0001).
+    /// The calendar every Day is reckoned in (ADR 0001).
     static var gmt: Calendar {
         var calendar = Calendar.current
         calendar.timeZone = .gmt
         return calendar
     }
 
-    /// The Day `moment` falls on in this calendar, as 00:00 GMT of that year/month/day.
+    /// The Day `moment` falls on in this calendar.
     internal func day(containing moment: Date) -> Date {
         var gmt = self
         gmt.timeZone = .gmt

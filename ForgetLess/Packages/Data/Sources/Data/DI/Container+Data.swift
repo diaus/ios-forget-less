@@ -15,7 +15,7 @@ public extension Container {
         .singleton
     }
 
-    /// The Task store, in the device's calendar and time zone.
+    /// The Task store.
     var todoTaskRepository: Factory<any TodoTaskRepository> {
         self { TodoTaskRepositoryLive(modelContainer: self.modelContainer()) }
             .singleton
