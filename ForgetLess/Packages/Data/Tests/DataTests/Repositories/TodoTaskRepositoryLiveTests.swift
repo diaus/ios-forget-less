@@ -99,6 +99,27 @@ struct TodoTaskRepositoryLiveTests {
         #expect(incomplete.first { $0.id == task.id } == task)
     }
 
+    @Test func aRenameIsPersistedAndLeavesTheTasksOtherFieldsAsTheyWere() async throws {
+        let container = try Self.inMemoryContainer()
+        let repository = TodoTaskRepositoryLive(modelContainer: container)
+        let day = try Self.day("2026-10-25")
+        try await repository.create(name: "Buy milk", day: day)
+        try await repository.create(name: "Cal mum", day: day)
+        let created = try await repository.tasks(on: day)
+        let task = try #require(created.first { $0.name == "Cal mum" })
+        let other = try #require(created.first { $0.name == "Buy milk" })
+        try await repository.setComplete(id: task.id, isComplete: true)
+
+        try await repository.rename(id: task.id, name: "Call mum")
+        // A fresh repository on the same store, as after a relaunch.
+        let renamed = try await TodoTaskRepositoryLive(modelContainer: container).tasks(on: day)
+
+        let expected = TodoTask(id: task.id, name: "Call mum", day: day, isComplete: true, sortIndex: 1)
+        #expect(Set(renamed.map(\.id)) == [task.id, other.id])
+        #expect(renamed.first { $0.id == task.id } == expected)
+        #expect(renamed.first { $0.id == other.id } == other)
+    }
+
     // MARK: - Helpers
     private static func inMemoryContainer() throws -> ModelContainer {
         try ForgetLessModelContainer.make(inMemory: true)

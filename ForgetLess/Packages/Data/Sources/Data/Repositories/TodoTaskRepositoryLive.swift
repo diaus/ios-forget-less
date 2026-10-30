@@ -12,6 +12,7 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         self.modelContainer = modelContainer
     }
 
+    // MARK: - TodoTaskRepository
     func tasks(on day: Date) throws -> [TodoTask] {
         let descriptor = FetchDescriptor<TodoTaskModel>(predicate: #Predicate { $0.day == day })
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
@@ -35,10 +36,21 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         try modelContext.save()
     }
 
+    func rename(id: UUID, name: String) throws {
+        guard let model = try model(id: id) else { return }
+        model.name = name
+        try modelContext.save()
+    }
+
     func setComplete(id: UUID, isComplete: Bool) throws {
-        let descriptor = FetchDescriptor<TodoTaskModel>(predicate: #Predicate { $0.id == id })
-        guard let model = try modelContext.fetch(descriptor).first else { return }
+        guard let model = try model(id: id) else { return }
         model.isComplete = isComplete
         try modelContext.save()
+    }
+
+    // MARK: - Helpers
+    private func model(id: UUID) throws -> TodoTaskModel? {
+        let descriptor = FetchDescriptor<TodoTaskModel>(predicate: #Predicate { $0.id == id })
+        return try modelContext.fetch(descriptor).first
     }
 }

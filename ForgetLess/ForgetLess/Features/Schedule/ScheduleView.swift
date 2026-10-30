@@ -7,7 +7,7 @@ struct ScheduleView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @FocusState private var isComposerNameFocused: Bool
     @AccessibilityFocusState private var focusedComposerOpener: ComposerOpener?
-    /// The "+" that showed the composer, where VoiceOver returns when it's dismissed.
+    /// What showed the composer, where VoiceOver returns when it's dismissed.
     @State private var composerOpener: ComposerOpener = .floating
 
     // MARK: - Body
@@ -39,7 +39,9 @@ struct ScheduleView: View {
                 ForEach(vm.schedule.days) { scheduleDay in
                     Section {
                         ForEach(scheduleDay.tasks) { task in
-                            TaskRowView(task: task)
+                            TaskRowView(task: task, focusedComposerOpener: $focusedComposerOpener) {
+                                showComposer(editing: task)
+                            }
                         }
                     } header: {
                         dayHeader(scheduleDay)
@@ -85,7 +87,16 @@ struct ScheduleView: View {
     // MARK: - Actions
     private func showComposer(on day: Date, from opener: ComposerOpener) {
         vm.showComposer(on: day)
-        // In the same action that shows the panel, so the keyboard starts in the same frame.
+        focusComposer(from: opener)
+    }
+
+    private func showComposer(editing task: TodoTask) {
+        vm.showComposer(editing: task)
+        focusComposer(from: .task(task.id))
+    }
+
+    /// Called in the same action that shows the panel, so the keyboard starts in the same frame.
+    private func focusComposer(from opener: ComposerOpener) {
         isComposerNameFocused = true
         composerOpener = opener
     }
@@ -97,10 +108,11 @@ struct ScheduleView: View {
     }
 
     // MARK: - Helpers
-    /// Which "+" showed the composer.
-    private enum ComposerOpener: Hashable {
+    /// What showed the composer: a "+", or a Task's row.
+    enum ComposerOpener: Hashable {
         case floating
         case day(Date)
+        case task(UUID)
     }
 }
 

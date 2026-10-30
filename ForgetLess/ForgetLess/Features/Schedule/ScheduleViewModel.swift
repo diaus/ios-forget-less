@@ -40,13 +40,34 @@ final class ScheduleViewModel {
         composer.isVisible = true
     }
 
-    func dismissComposer() {
-        composer.isVisible = false
+    /// Shows the composer filled in with `task`, to rename it.
+    func showComposer(editing task: TodoTask) {
+        composer.editedTask = task
+        composer.taskName = task.name
+        composer.day = task.day
+        composer.isVisible = true
     }
 
-    /// Adds the typed Task to the composer's Day.
+    func dismissComposer() {
+        composer.isVisible = false
+        // An edit left unsaved is dropped, so the next add starts blank.
+        if composer.editedTask != nil {
+            composer.editedTask = nil
+            composer.taskName = ""
+        }
+    }
+
+    /// Adds the typed Task to the composer's Day and keeps the composer up, or renames the Task being edited and
+    /// hides the composer.
     func submitComposer() {
         guard composer.canSubmit else { return }
+        if let editedTask = composer.editedTask {
+            // The name rule: `canSubmit` has refused a blank name, and the name is saved trimmed.
+            rename(editedTask, to: composer.taskName.trimmed)
+            // Hidden here rather than by the user's dismissal, so a saved edit never counts as unsaved.
+            dismissComposer()
+            return
+        }
         let taskName = composer.taskName
         let day = composer.day
         // Cleared at once, so a second submit before the write lands adds nothing.
@@ -79,6 +100,17 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Helpers
+    private func rename(_ task: TodoTask, to name: String) {
+        Task {
+            do {
+                try await repository.rename(id: task.id, name: name)
+                await reloadSchedule()
+            } catch {
+                errorMessage = error.userMessage
+            }
+        }
+    }
+
     private func reloadSchedule() async {
         do {
             let tasks = try await repository.tasks(onOrAfter: today)

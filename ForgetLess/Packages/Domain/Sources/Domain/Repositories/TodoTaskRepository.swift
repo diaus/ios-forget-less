@@ -8,6 +8,8 @@ public protocol TodoTaskRepository: Sendable {
     func tasks(onOrAfter day: Date) async throws -> [TodoTask]
     /// Creates an Incomplete Task at the end of `day`.
     func create(name: String, day: Date) async throws
+    /// Gives the Task with `id` a new name; does nothing when no Task has `id`.
+    func rename(id: UUID, name: String) async throws
     /// Makes the Task with `id` Complete or Incomplete; does nothing when no Task has `id`.
     func setComplete(id: UUID, isComplete: Bool) async throws
 }
