@@ -55,13 +55,11 @@ final class ScheduleViewModel {
         composer.isVisible = true
     }
 
+    /// Hides the composer and drops what's typed, so the next add starts blank.
     func dismissComposer() {
         composer.isVisible = false
-        // An edit left unsaved is dropped, so the next add starts blank.
-        if composer.editedTask != nil {
-            composer.editedTask = nil
-            composer.taskName = ""
-        }
+        composer.editedTask = nil
+        composer.taskName = ""
     }
 
     /// Saves the typed name: adds a Task to the composer's Day, or renames the Task being edited. Returns `nil` and
@@ -74,6 +72,8 @@ final class ScheduleViewModel {
                 try await self.renameTask(id: editedTask.id, name: name)
                 postAnnouncement(.taskRenamed(name: name))
             }
+            // Saved under the typed name, so dismissing now drops nothing.
+            composer.editedTask?.name = name.trimmed
             return .renamed
         }
         let day = composer.day
@@ -121,7 +121,7 @@ final class ScheduleViewModel {
     enum ComposerSubmission {
         /// A Task was added, and the composer stays up for the next one.
         case added
-        /// The edited Task was renamed; the caller closes the composer.
+        /// The edited Task was renamed; nothing is left to save.
         case renamed
     }
 }
