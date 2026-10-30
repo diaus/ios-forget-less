@@ -38,4 +38,8 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
         tasks[index].completeDay = isComplete ? today : nil
     }
+
+    func delete(id: UUID) {
+        tasks.removeAll { $0.id == id }
+    }
 }

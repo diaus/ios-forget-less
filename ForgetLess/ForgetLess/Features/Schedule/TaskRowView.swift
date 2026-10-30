@@ -12,6 +12,8 @@ struct TaskRowView: View {
     /// Asks the owner to show the composer on this Task, to rename it.
     let onRename: () -> Void
 
+    @State private var isConfirmingDelete = false
+
     /// The circle's grey, which keeps a white checkmark legible in both appearances.
     private let circleGray = Color(uiColor: .systemGray)
 
@@ -49,6 +51,22 @@ struct TaskRowView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(.rect)
         .onTapGesture(perform: onRename)
+        // No full swipe: deleting always asks first.
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            // No destructive role: the List would remove the row, and its dialog, before the user confirms.
+            Button { isConfirmingDelete = true } label: {
+                Label { Text(.taskDelete) } icon: { Image(systemName: "trash") }
+                    .labelStyle(.iconOnly)
+            }
+            .tint(Color(.deleteAction))
+        }
+        .confirmationDialog(
+            Text(.taskDeleteConfirmation(name: task.name)),
+            isPresented: $isConfirmingDelete,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive) { vm.delete(task) } label: { Text(.taskDelete) }
+        }
     }
 
     // MARK: - Helpers

@@ -96,6 +96,11 @@ final class ScheduleViewModel {
         write { try await self.repository.setComplete(id: task.id, isComplete: !task.isComplete, today: self.today) }
     }
 
+    // MARK: - Deletion
+    func delete(_ task: TodoTask) {
+        write { try await self.repository.delete(id: task.id) }
+    }
+
     // MARK: - Helpers
     /// Runs `operation`; on failure, runs `onFailure` and shows the error.
     private func write(

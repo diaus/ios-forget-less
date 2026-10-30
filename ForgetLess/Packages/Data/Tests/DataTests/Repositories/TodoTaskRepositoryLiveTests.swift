@@ -150,6 +150,43 @@ struct TodoTaskRepositoryLiveTests {
         #expect(renamed.first { $0.id == other.id } == other)
     }
 
+    @Test func aDeleteRemovesOnlyThatTaskAndTheRestOfItsDayKeepTheirOrder() async throws {
+        let container = try Self.inMemoryContainer()
+        let repository = TodoTaskRepositoryLive(modelContainer: container)
+        let day = try Self.day("2026-10-25")
+        let nextDay = try Self.day("2026-10-26")
+        for name in ["Buy milk", "Call mum", "Walk the dog"] {
+            try await repository.create(name: name, day: day)
+        }
+        try await repository.create(name: "Pay rent", day: nextDay)
+        let created = try await repository.tasks(on: day)
+        let task = try #require(created.first { $0.name == "Call mum" })
+        let others = created.filter { $0.id != task.id }.sorted { $0.sortIndex < $1.sortIndex }
+
+        try await repository.delete(id: task.id)
+        // A fresh repository on the same store, as after a relaunch.
+        let relaunched = TodoTaskRepositoryLive(modelContainer: container)
+        let remaining = try await relaunched.tasks(on: day).sorted { $0.sortIndex < $1.sortIndex }
+        let remainingOnNextDay = try await relaunched.tasks(on: nextDay)
+
+        #expect(remaining.map(\.name) == ["Buy milk", "Walk the dog"])
+        #expect(remaining == others)
+        #expect(remainingOnNextDay.map(\.name) == ["Pay rent"])
+    }
+
+    @Test(.timeLimit(.minutes(1)))
+    func scheduleTasksAreSentAgainAfterADelete() async throws {
+        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
+        let today = try Self.day("2026-10-25")
+        try await repository.create(name: "Buy milk", day: today)
+        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+        let task = try #require(await scheduleTasks.next()?.first)
+
+        try await repository.delete(id: task.id)
+
+        #expect(await scheduleTasks.next() == [])
+    }
+
     // MARK: - Helpers
     private static func inMemoryContainer() throws -> ModelContainer {
         try ForgetLessModelContainer.make(inMemory: true)
