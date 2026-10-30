@@ -4,12 +4,6 @@ import Testing
 
 @MainActor
 struct DateDayChipTests {
-    private let calendar: Calendar = {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: 2 * 3600)!
-        return calendar
-    }()
-
     // MARK: - Tests
     @Test(arguments: [
         ("2026-10-25", DayChipCategory.today),
@@ -21,12 +15,12 @@ struct DateDayChipTests {
     func aDayChipIsCategorisedByTheDayRelativeToToday(yearMonthDay: String, category: DayChipCategory) throws {
         let today = try day("2026-10-25")
 
-        #expect(try day(yearMonthDay).dayChipCategory(today: today, calendar: calendar) == category)
+        #expect(try day(yearMonthDay).dayChipCategory(today: today) == category)
     }
 
     // MARK: - Helpers
-    /// Local midnight of `yyyy-MM-dd` in the suite's UTC+2 calendar.
+    /// The Day `yyyy-MM-dd`, as 00:00 GMT.
     private func day(_ yearMonthDay: String) throws -> Date {
-        try Date("\(yearMonthDay)T00:00:00+02:00", strategy: .iso8601)
+        try Date("\(yearMonthDay)T00:00:00Z", strategy: .iso8601)
     }
 }

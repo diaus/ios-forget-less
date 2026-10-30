@@ -3,17 +3,11 @@ import Foundation
 import Testing
 
 struct ScheduleTests {
-    private let calendar: Calendar = {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: 2 * 3600)!
-        return calendar
-    }()
-
     // MARK: - Tests
     @Test func theWindowShowsEveryDayFromTodayThroughTodayPlus99EvenWhenEmpty() throws {
         let today = try day("2026-03-01")
 
-        let schedule = Schedule(tasks: [], today: today, calendar: calendar)
+        let schedule = Schedule(tasks: [], today: today)
 
         #expect(schedule.days.count == 100)
         #expect(schedule.days.first?.day == today)
@@ -31,7 +25,7 @@ struct ScheduleTests {
             task("Second", day: tomorrow, sortIndex: 3),
         ]
 
-        let schedule = Schedule(tasks: tasks, today: today, calendar: calendar)
+        let schedule = Schedule(tasks: tasks, today: today)
 
         #expect(schedule.days[0].tasks.map(\.name) == ["Today's"])
         #expect(schedule.days[1].tasks.map(\.name) == ["First", "Second", "Third"])
@@ -46,7 +40,7 @@ struct ScheduleTests {
             task("Also just after", day: try day("2026-06-09"), sortIndex: 0),
         ]
 
-        let schedule = Schedule(tasks: tasks, today: today, calendar: calendar)
+        let schedule = Schedule(tasks: tasks, today: today)
 
         let laterDays = schedule.days.dropFirst(100)
         #expect(laterDays.map(\.day) == [try day("2026-06-09"), try day("2026-09-01")])
@@ -57,11 +51,7 @@ struct ScheduleTests {
         let today = try day("2026-12-30")
         let newYearsDay = try day("2027-01-01")
 
-        let schedule = Schedule(
-            tasks: [task("Celebrate", day: newYearsDay, sortIndex: 0)],
-            today: today,
-            calendar: calendar
-        )
+        let schedule = Schedule(tasks: [task("Celebrate", day: newYearsDay, sortIndex: 0)], today: today)
 
         #expect(schedule.days.prefix(3).map(\.day) == [today, try day("2026-12-31"), newYearsDay])
         #expect(schedule.days[2].tasks.map(\.name) == ["Celebrate"])
@@ -74,8 +64,8 @@ struct ScheduleTests {
         TodoTask(id: UUID(), name: name, day: day, isComplete: isComplete, sortIndex: sortIndex)
     }
 
-    /// Local midnight of `yyyy-MM-dd` in the suite's UTC+2 calendar.
+    /// The Day `yyyy-MM-dd`, as 00:00 GMT.
     private func day(_ yearMonthDay: String) throws -> Date {
-        try Date("\(yearMonthDay)T00:00:00+02:00", strategy: .iso8601)
+        try Date("\(yearMonthDay)T00:00:00Z", strategy: .iso8601)
     }
 }

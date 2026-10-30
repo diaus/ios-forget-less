@@ -24,9 +24,9 @@ final class ScheduleViewModel {
         repository: any TodoTaskRepository = Container.shared.todoTaskRepository(),
         addTask: AddTask = Container.shared.addTask()
     ) {
-        let today = Calendar.current.startOfDay(for: .now)
+        let today = Date.today
         self.today = today
-        self.schedule = Schedule(tasks: [], today: today, calendar: .current)
+        self.schedule = Schedule(tasks: [], today: today)
         self.composer = ComposerState(day: today)
         self.repository = repository
         self.addTask = addTask
@@ -34,7 +34,7 @@ final class ScheduleViewModel {
 
     // MARK: - Loading
     func load() async {
-        today = Calendar.current.startOfDay(for: .now)
+        today = .today
         await reloadSchedule()
     }
 
@@ -78,7 +78,7 @@ final class ScheduleViewModel {
     private func reloadSchedule() async {
         do {
             let tasks = try await repository.tasks(onOrAfter: today)
-            schedule = Schedule(tasks: tasks, today: today, calendar: .current)
+            schedule = Schedule(tasks: tasks, today: today)
         } catch {
             errorMessage = error.userMessage
         }

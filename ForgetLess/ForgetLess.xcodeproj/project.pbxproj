@@ -526,14 +526,14 @@
 			package = AA00000000000000000000A3 /* XCRemoteSwiftPackageReference "Factory" */;
 			productName = FactoryKit;
 		};
-		AA00000000000000000000B5 /* Utils */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Utils;
-		};
 		AA00000000000000000000B4 /* SwiftLintBuildToolPlugin */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = AA00000000000000000000A4 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
 			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		AA00000000000000000000B5 /* Utils */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Utils;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

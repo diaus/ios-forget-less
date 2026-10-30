@@ -7,9 +7,8 @@ import Testing
 struct TodoTaskRepositoryLiveTests {
     // MARK: - Tests
     @Test func aTaskRoundTripsEveryField() async throws {
-        let calendar = Self.calendar(secondsFromGMT: 2 * 3600)
-        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer(), calendar: calendar)
-        let day = try Date("2026-10-25T00:00:00+02:00", strategy: .iso8601)
+        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
+        let day = try Self.day("2026-10-25")
         let task = TodoTask(id: UUID(), name: "Buy milk", day: day, isComplete: true, sortIndex: 7)
 
         try await repository.create(task)
@@ -17,29 +16,20 @@ struct TodoTaskRepositoryLiveTests {
         #expect(try await repository.tasks(on: day) == [task])
     }
 
-    @Test(arguments: [
-        (-4 * 3600, "2026-10-25T00:00:00-04:00"),
-        (2 * 3600, "2026-10-25T00:00:00+02:00"),
-    ])
-    func aDayIsStoredAsUTCMidnightAndReadsBackAsLocalMidnight(secondsFromGMT: Int, localMidnight: String) async throws {
+    @Test func aDayIsStoredAsGiven() async throws {
         let container = try Self.inMemoryContainer()
-        let calendar = Self.calendar(secondsFromGMT: secondsFromGMT)
-        let repository = TodoTaskRepositoryLive(modelContainer: container, calendar: calendar)
-        let day = try Date(localMidnight, strategy: .iso8601)
+        let repository = TodoTaskRepositoryLive(modelContainer: container)
+        let day = try Self.day("2026-10-25")
 
         try await repository.create(TodoTask(id: UUID(), name: "Buy milk", day: day, isComplete: false, sortIndex: 0))
 
         let stored = try ModelContext(container).fetch(FetchDescriptor<TodoTaskModel>())
-        #expect(stored.map(\.day) == [try Date("2026-10-25T00:00:00Z", strategy: .iso8601)])
-        #expect(try await repository.tasks(on: day).map(\.day) == [day])
+        #expect(stored.map(\.day) == [day])
     }
 
     @Test func tasksOnADayComeBackOnlyForThatDay() async throws {
-        let calendar = Self.calendar(secondsFromGMT: -4 * 3600)
-        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer(), calendar: calendar)
-        let days = try ["2026-10-24", "2026-10-25", "2026-10-26"].map {
-            try Date("\($0)T00:00:00-04:00", strategy: .iso8601)
-        }
+        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
+        let days = try ["2026-10-24", "2026-10-25", "2026-10-26"].map(Self.day)
         let tasks = days.enumerated().flatMap { index, day in
             (0...index).map { TodoTask(id: UUID(), name: "Task \($0)", day: day, isComplete: false, sortIndex: $0) }
         }
@@ -53,14 +43,11 @@ struct TodoTaskRepositoryLiveTests {
         #expect(tasksOnDay.count == 2)
     }
 
-    @Test(arguments: [-4 * 3600, 2 * 3600])
-    func tasksFromTodayOnIncludeTodayAndLeaveOutYesterday(secondsFromGMT: Int) async throws {
-        let calendar = Self.calendar(secondsFromGMT: secondsFromGMT)
-        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer(), calendar: calendar)
-        let offset = String(format: "%+03d:00", secondsFromGMT / 3600)
-        let yesterday = try Date("2026-10-24T00:00:00\(offset)", strategy: .iso8601)
-        let today = try Date("2026-10-25T00:00:00\(offset)", strategy: .iso8601)
-        let later = try Date("2027-03-01T00:00:00\(offset)", strategy: .iso8601)
+    @Test func tasksFromTodayOnIncludeTodayAndLeaveOutYesterday() async throws {
+        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
+        let yesterday = try Self.day("2026-10-24")
+        let today = try Self.day("2026-10-25")
+        let later = try Self.day("2027-03-01")
         let tasks = [yesterday, today, later].map {
             TodoTask(id: UUID(), name: "Buy milk", day: $0, isComplete: false, sortIndex: 0)
         }
@@ -78,9 +65,8 @@ struct TodoTaskRepositoryLiveTests {
         try ForgetLessModelContainer.make(inMemory: true)
     }
 
-    private static func calendar(secondsFromGMT: Int) -> Calendar {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: secondsFromGMT)!
-        return calendar
+    /// The Day `yyyy-MM-dd`, as 00:00 GMT.
+    private static func day(_ yearMonthDay: String) throws -> Date {
+        try Date("\(yearMonthDay)T00:00:00Z", strategy: .iso8601)
     }
 }
