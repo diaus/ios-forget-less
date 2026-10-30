@@ -25,7 +25,7 @@ Nothing is saved; this ticket is about the presentation only. Keep the view if i
 - [x] Opening, dismissing and opening again works repeatedly, with focus landing every time.
 - [x] Taking focus away while keeping the panel visible (as the later "Discard changes?" dialog will) leaves the panel on screen, and focus can be given back.
 - [x] Which hiding technique worked (opacity or offset), and anything surprising, is recorded under a `## Comments` heading in this file.
-- [x] Verified on the iOS 18 simulator. The user has confirmed there is no visible delay.
+- [x] The user has confirmed there is no visible delay.
 
 ## Comments
 

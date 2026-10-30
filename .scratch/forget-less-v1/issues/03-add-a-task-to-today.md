@@ -22,7 +22,7 @@ For the domain model, the `AddTask` use case, the repository and the Day encodin
   - a Task round-trips every field;
   - a Day saved with a UTC−4 calendar and with a UTC+2 calendar is stored as UTC midnight of the same year/month/day and reads back as local midnight of that Day;
   - Tasks on a Day come back only for that Day.
-- [x] Every new catalog key has `en` and `uk`. `scripts/check.sh` passes, and the flow is driven on the iOS 18 simulator with UI snapshots.
+- [x] Every new catalog key has `en` and `uk`. `scripts/check.sh` passes, and the flow is driven with UI snapshots.
 
 ## Comments
 

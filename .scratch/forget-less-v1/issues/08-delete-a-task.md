@@ -12,4 +12,4 @@
 - [ ] Works for Complete and Incomplete Tasks. Once 07 has landed, it also works in the Overdue section.
 - [ ] The view model calls the repository directly (per the use-case rule).
 - [ ] Data test: delete removes only that Task.
-- [ ] `scripts/check.sh` passes. Verified on the iOS 18 simulator.
+- [ ] `scripts/check.sh` passes.

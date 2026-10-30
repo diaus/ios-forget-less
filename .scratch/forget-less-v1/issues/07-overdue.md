@@ -23,4 +23,4 @@ The full refresh (recompute Today, forget the kept Overdue Tasks) happens on lau
   - a kept Overdue Task stays after being completed;
   - `LoadSchedule` composes its queries correctly, against a fake repository.
 - [ ] Data tests: the boundary of the "Incomplete before Today" query at Today, and fetching Tasks by id.
-- [ ] `scripts/check.sh` passes. Verified on the iOS 18 simulator, including changing the simulator's time zone.
+- [ ] `scripts/check.sh` passes, and the UI check includes changing the simulator's time zone.

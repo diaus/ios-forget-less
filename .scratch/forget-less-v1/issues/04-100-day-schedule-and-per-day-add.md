@@ -33,7 +33,7 @@
   - a window that crosses a year boundary.
 - [x] App tests for the chip category: Today, Tomorrow, Today + 6, Today + 7, a past Day, and the year rule. No assertions on UI copy.
 - [x] Data tests: the boundary of the "from Today on" query at Today.
-- [x] `scripts/check.sh` passes. Verified on the iOS 18 simulator in both appearances.
+- [x] `scripts/check.sh` passes, and the UI check covers both appearances.
 
 ## Comments
 
