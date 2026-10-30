@@ -12,7 +12,7 @@
 - [x] The state persists across relaunch.
 - [x] The view model calls the repository directly, with no use case (per the use-case rule).
 - [x] Data test: setting Complete and back to Incomplete is persisted.
-- [x] `scripts/check.sh` passes. Verified on the iOS 18 simulator.
+- [x] `scripts/check.sh` passes.
 
 ## Comments
 

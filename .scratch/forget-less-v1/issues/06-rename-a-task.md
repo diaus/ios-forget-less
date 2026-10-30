@@ -12,7 +12,7 @@
 - [x] Dismissing without saving (tap outside, swipe down) leaves the Task unchanged. The confirmation for unsaved changes comes in 09.
 - [x] The view model applies the Domain name rule, then calls the repository directly (per the use-case rule).
 - [x] Data test: a rename is persisted, and other fields are untouched.
-- [x] `scripts/check.sh` passes. Verified on the iOS 18 simulator.
+- [x] `scripts/check.sh` passes.
 
 ## Comments
 

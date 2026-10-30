@@ -15,4 +15,4 @@ What counts as a change:
 - [ ] Keep Editing leaves the composer open with the text intact, and returns focus to the field with the keyboard up.
 - [ ] The composer stays visible behind the dialog while focus is away (visibility is separate from focus, as proven in 02).
 - [ ] Whitespace-only input counts as no change in both modes.
-- [ ] `scripts/check.sh` passes. Verified on the iOS 18 simulator in both modes.
+- [ ] `scripts/check.sh` passes, and the UI check covers both modes.

@@ -29,7 +29,7 @@ SourceKit's "No such module" diagnostics for the local packages are index noise;
 Before reporting done:
 - `build_sim` and `test_sim` pass.
 - `scripts/check.sh` ends with `check.sh: OK`. `test_sim` covers only the app target; `check.sh` covers the packages (lint and tests on the Mac) and the String Catalog.
-- For any UI change, the check in `docs/agents/ui-check.md` passes on iOS 27. The iOS 18 deployment target is the user's own check: tick an acceptance box naming iOS 18 once the iOS 27 check passes, without waiting for them, and run iOS 18 only when they ask.
+- For any UI change, the check in `docs/agents/ui-check.md` passes on iOS 27. Run it on iOS 18 only when the user asks.
 - A check that couldn't run is reported as skipped, with its acceptance box left unticked.
 
 ## Editing
