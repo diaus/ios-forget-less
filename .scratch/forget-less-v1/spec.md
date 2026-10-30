@@ -81,8 +81,9 @@ An iPhone app with one screen: a scrolling list of Days from Today through the n
 Per the use-case rule in `CODING_STANDARDS.md`:
 
 - **`AddTask(name:day:)`**: applies the name rule, then has the repository create the Task.
+- **`RenameTask(id:name:)`**: applies the name rule, then has the repository rename the Task.
 - **`LoadSchedule(today:keepingOverdue:)`**: fetches the Tasks from Today on, the Incomplete Tasks before Today, and the Tasks whose ids are in `keepingOverdue` (Overdue Tasks completed since the last refresh, story 13), then builds the Schedule.
-- Called directly from the view model, with no use case: rename (name rule, then `repository.rename`), set Complete/Incomplete, delete.
+- Called directly from the view model, with no use case: set Complete/Incomplete, delete.
 
 ### Repository
 

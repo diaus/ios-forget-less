@@ -8,6 +8,8 @@ What counts as a change:
 
 Return on a blank name does nothing in both modes, so it never shows the dialog.
 
+A saved edit closes the composer through `ScheduleView.dismissComposer()`, the same path as a dismissal. So the check goes on the dismiss gestures (tap outside, swipe down, VoiceOver escape), not on that close.
+
 **Blocked by:** 06: Rename a Task
 
 **Status:** ready-for-agent

@@ -7,4 +7,8 @@ extension Container {
     nonisolated var addTask: Factory<AddTask> {
         self { AddTask(repository: self.todoTaskRepository()) }
     }
+
+    nonisolated var renameTask: Factory<RenameTask> {
+        self { RenameTask(repository: self.todoTaskRepository()) }
+    }
 }

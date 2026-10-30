@@ -15,10 +15,12 @@ final class ScheduleViewModel {
 
     @ObservationIgnored private let repository: any TodoTaskRepository
     @ObservationIgnored private let addTask: AddTask
+    @ObservationIgnored private let renameTask: RenameTask
 
     init(
         repository: any TodoTaskRepository = Container.shared.todoTaskRepository(),
-        addTask: AddTask = Container.shared.addTask()
+        addTask: AddTask = Container.shared.addTask(),
+        renameTask: RenameTask = Container.shared.renameTask()
     ) {
         let today = Date.today
         self.today = today
@@ -26,6 +28,7 @@ final class ScheduleViewModel {
         self.composer = ComposerState(day: today)
         self.repository = repository
         self.addTask = addTask
+        self.renameTask = renameTask
     }
 
     // MARK: - Loading
@@ -57,32 +60,28 @@ final class ScheduleViewModel {
         }
     }
 
-    /// Adds the typed Task to the composer's Day and keeps the composer up, or renames the Task being edited and
-    /// hides the composer. Does nothing and returns `nil` when the typed name can't be saved.
+    /// Saves the typed name: adds a Task to the composer's Day, or renames the Task being edited. Returns `nil` and
+    /// saves nothing when the typed name can't be saved.
     func submitComposer() -> ComposerSubmission? {
         guard composer.canSubmit else { return nil }
+        let name = composer.taskName
         if let editedTask = composer.editedTask {
-            // The name rule: `canSubmit` has refused a blank name, and the name is saved trimmed.
-            rename(editedTask, to: composer.taskName.trimmed)
-            // Hidden here rather than by the user's dismissal, so a saved edit never counts as unsaved.
-            dismissComposer()
+            write {
+                try await self.renameTask(id: editedTask.id, name: name)
+                postAnnouncement(.taskRenamed(name: name))
+            }
             return .renamed
         }
-        let taskName = composer.taskName
         let day = composer.day
         // Cleared at once, so a second submit before the write lands adds nothing.
         composer.taskName = ""
-        Task {
-            do {
-                try await addTask(name: taskName, day: day)
-                postAnnouncement(.taskAdded(name: taskName))
-                await reloadSchedule()
-            } catch {
-                // Give the name back unless the user has started typing another.
-                if composer.taskName.isEmpty {
-                    composer.taskName = taskName
-                }
-                errorMessage = error.userMessage
+        write {
+            try await self.addTask(name: name, day: day)
+            postAnnouncement(.taskAdded(name: name))
+        } onFailure: {
+            // Give the name back unless the user has started typing another.
+            if self.composer.taskName.isEmpty {
+                self.composer.taskName = name
             }
         }
         return .added
@@ -90,23 +89,21 @@ final class ScheduleViewModel {
 
     // MARK: - Completion
     func toggleComplete(_ task: TodoTask) {
-        Task {
-            do {
-                try await repository.setComplete(id: task.id, isComplete: !task.isComplete)
-                await reloadSchedule()
-            } catch {
-                errorMessage = error.userMessage
-            }
-        }
+        write { try await self.repository.setComplete(id: task.id, isComplete: !task.isComplete) }
     }
 
     // MARK: - Helpers
-    private func rename(_ task: TodoTask, to name: String) {
+    /// Runs `operation`, then reloads the Schedule; on failure, runs `onFailure` and shows the error.
+    private func write(
+        _ operation: @escaping @MainActor () async throws -> Void,
+        onFailure: @escaping @MainActor () -> Void = {}
+    ) {
         Task {
             do {
-                try await repository.rename(id: task.id, name: name)
+                try await operation()
                 await reloadSchedule()
             } catch {
+                onFailure()
                 errorMessage = error.userMessage
             }
         }
@@ -125,7 +122,7 @@ final class ScheduleViewModel {
     enum ComposerSubmission {
         /// A Task was added, and the composer stays up for the next one.
         case added
-        /// The edited Task was renamed, and the composer is hidden.
+        /// The edited Task was renamed; the caller closes the composer.
         case renamed
     }
 }
