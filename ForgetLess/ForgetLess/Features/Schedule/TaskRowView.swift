@@ -2,7 +2,7 @@ import Domain
 import FactoryKit
 import SwiftUI
 
-/// A Task in the list: its circle, which toggles Complete, and its name, struck through and grey once Complete.
+/// A Task's row in the Schedule.
 struct TaskRowView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let task: TodoTask
@@ -15,7 +15,7 @@ struct TaskRowView: View {
             Button { vm.toggleComplete(task) } label: {
                 Image(systemName: task.isComplete ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    // A grey ring, or a white checkmark on a grey disc: the ring's one layer takes the first style.
+                    // `circle` has one layer, so it takes the first style.
                     .foregroundStyle(task.isComplete ? .white : circleGray, circleGray)
             }
             // Only the circle takes the tap, not the whole row: a row tap is for renaming.

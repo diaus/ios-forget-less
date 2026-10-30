@@ -40,6 +40,12 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 
 - **A type with more than one group of members marks each group with `// MARK: - <Group>`.** Stored properties and `init` lead the type unmarked. Each group after them opens with its MARK on its own line, a blank line before it and none after. Views use `Body`, `UI Components` (the subviews `body` composes), `Actions` and `Gestures`. A view model names its groups by what they drive (`Loading`, `Composer`). A test suite splits `Tests` from `Helpers`, and private helpers anywhere go under `Helpers`. A type with one group after its `init` (`TaskRowView`, `AddTask`, `FakeTodoTaskRepository`) has no MARKs.
 
+## Comments
+
+- **A doc comment says what a thing is for, not how it works,** so it stays true when the layout changes, another symbol is renamed, or a constant or initializer is added. It leaves out visuals (colours, fonts, layout), constants and thresholds (`Today + 99`), call sequences and what the symbols it uses do, and project-wide rules restated per symbol ("as 00:00 GMT" on every Day). The exception is a contract the caller relies on and can't see in the signature: "in no particular order", "does nothing when no Task has `id`", the error thrown. `Schedule` reads "What the Schedule screen lists.", not the window it spans.
+- **No doc comment when the name already says it** (`days`, `toggleComplete`, `dayChipColor`, private actions).
+- **An inline `//` gives the why for the line beside it** ("Only the circle takes the tap: a row tap is for renaming."). A why that concerns one line goes there, not in the doc comment.
+
 ## SwiftUI
 
 - **View models** are `@MainActor @Observable` and own the async work. Views call into them from `.task`, `.onChange` and actions. A view holds its view model as `vm`, never `viewModel`.

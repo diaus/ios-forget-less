@@ -5,19 +5,17 @@ import Foundation
 import Observation
 import Utils
 
-/// Owns Today, the Schedule, the composer state and every write on the Schedule screen.
+/// Drives the Schedule screen.
 @MainActor @Observable
 final class ScheduleViewModel {
     private(set) var today: Date
-    /// The Days the screen lists, with their Tasks; the empty window until the first load lands.
     private(set) var schedule: Schedule
     var composer: ComposerState
     var errorMessage: String?
 
     @ObservationIgnored private let repository: any TodoTaskRepository
     @ObservationIgnored private let addTask: AddTask
-    /// The latest add, which the next one waits for: each reads its Day's Tasks before creating, so two at once
-    /// could take the same place.
+    /// Serialises adds, so two at once can't take the same place in a Day.
     @ObservationIgnored private var latestAdd: Task<Void, Never>?
 
     init(
@@ -39,7 +37,6 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Composer
-    /// Shows the composer for `day`: Today from the floating "+", or the Day whose header "+" was tapped.
     func showComposer(on day: Date) {
         composer.day = day
         composer.isVisible = true
@@ -49,13 +46,12 @@ final class ScheduleViewModel {
         composer.isVisible = false
     }
 
-    /// Adds the typed Task to the composer's Day and clears the name, keeping the composer up on the same Day.
-    /// The name clears at once, so a second ▶ or Return before the write lands adds nothing. Once the Task is added,
-    /// VoiceOver announces it over the dimmed ▶ it's still on.
+    /// Adds the typed Task to the composer's Day.
     func submitComposer() {
         guard composer.canSubmit else { return }
         let taskName = composer.taskName
         let day = composer.day
+        // Cleared at once, so a second submit before the write lands adds nothing.
         composer.taskName = ""
         let previousAdd = latestAdd
         latestAdd = Task {
@@ -75,7 +71,6 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Completion
-    /// Makes `task` Complete, or Incomplete again. It keeps its place in its Day.
     func toggleComplete(_ task: TodoTask) {
         Task {
             do {

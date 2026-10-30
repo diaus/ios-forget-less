@@ -2,7 +2,7 @@ import Domain
 import Foundation
 import SwiftData
 
-/// The SwiftData `TodoTaskRepository`. Stores each Day as given, 00:00 GMT (ADR 0001).
+/// The SwiftData `TodoTaskRepository`.
 actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     nonisolated let modelExecutor: any ModelExecutor
     nonisolated let modelContainer: ModelContainer

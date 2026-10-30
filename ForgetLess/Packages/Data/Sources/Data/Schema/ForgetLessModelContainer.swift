@@ -1,6 +1,6 @@
 import SwiftData
 
-/// Builds the app's `ModelContainer` for the current schema version.
+/// Builds the app's `ModelContainer`.
 public enum ForgetLessModelContainer {
     static let schema = Schema(versionedSchema: ForgetLessSchemaV1.self)
 

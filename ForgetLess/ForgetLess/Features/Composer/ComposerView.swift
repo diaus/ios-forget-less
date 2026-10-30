@@ -1,20 +1,17 @@
 import FactoryKit
 import SwiftUI
 
-/// The quick-add panel pinned above the keyboard, on the composer state of the shared Schedule view model.
-///
-/// Its owner shows and hides it, and keeps it mounted while hidden. Visibility and focus are separate: focus can leave
-/// while the panel stays on screen.
+/// The quick-add panel for Tasks.
 struct ComposerView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     var isNameFocused: FocusState<Bool>.Binding
-    /// Asks the owner to hide the panel and the keyboard together.
+    /// Asks the owner to dismiss the panel.
     let onDismiss: () -> Void
 
     // Animated reset, so a drag short of dismissing settles back instead of jumping.
     @GestureState(resetTransaction: Transaction(animation: .spring)) private var dragOffset: CGFloat = 0
 
-    /// How far the panel must be dragged down, or flung, to dismiss.
+    /// How far a drag must go to dismiss the panel.
     private let dismissDistance: CGFloat = 60
 
     // MARK: - Body
@@ -54,13 +51,12 @@ struct ComposerView: View {
     }
 
     // MARK: - Actions
-    /// Adds the Task, keeping the panel up for the next one, with focus kept since Return would otherwise drop it.
-    /// Return on a blank name dismisses the panel instead.
     private func submit() {
         guard vm.composer.canSubmit else {
             onDismiss()
             return
         }
+        // Return would otherwise drop focus, and the panel stays up for the next Task.
         isNameFocused.wrappedValue = true
         vm.submitComposer()
     }
