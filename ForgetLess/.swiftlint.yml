@@ -60,3 +60,15 @@ custom_rules:
       - typeidentifier
     message: "GLOSSARY.md lists this word under Avoid; use the glossary term (e.g. Task, Complete, Incomplete, Day, Overdue)."
     severity: error
+
+  # ADR 0001: Domain's Day extensions are the one home of calendar arithmetic, so everything else calls a Day helper.
+  # Domain's tests stay legal: the Today rule's tests pin a local time zone.
+  calendar_outside_day_extensions:
+    name: "Calendar Outside Day Extensions"
+    excluded: "/Packages/Domain/(Sources/Domain/Extensions|Tests)/"
+    regex: '\bCalendar\b'
+    match_kinds:
+      - identifier
+      - typeidentifier
+    message: "Day arithmetic lives in Domain's Date+Day (ADR 0001); call or add a helper there instead of using Calendar."
+    severity: error

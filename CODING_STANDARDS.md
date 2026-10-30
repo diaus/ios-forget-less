@@ -1,7 +1,7 @@
 # Coding Standards
 
 These are the judgement calls for reviewing a diff. Tooling already enforces the mechanical rules, so a review skips them:
-- SwiftLint (`ForgetLess/.swiftlint.yml`): its default style rules, plus catalog symbols instead of string literals, no `localizedDescription`, no GLOSSARY "Avoid" words in identifiers.
+- SwiftLint (`ForgetLess/.swiftlint.yml`): its default style rules, plus catalog symbols instead of string literals, no `localizedDescription`, no GLOSSARY "Avoid" words in identifiers, no `Calendar` outside Domain's Day extensions.
 - Zero warnings: compiler and SwiftLint warnings are errors in the app and the packages.
 - The String Catalog format and its `en`/`uk` coverage (`scripts/xcstrings.py check`).
 
@@ -11,7 +11,7 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 
 - **Layers.** Domain imports neither SwiftData nor SwiftUI, so it doesn't depend on the storage or the UI chosen. Only Data imports SwiftData. Factory wiring lives in Data's `DI/` and the app's `Composition/`.
 - **Utils is project-independent.** It holds helpers another project could reuse (a concurrency primitive, a Foundation extension). It imports only the standard library and Apple's system frameworks: no Domain, no Data, no third-party package. The glossary lint rule skips it.
-- **A Task's Day is a `Date` at 00:00 GMT everywhere** (ADR 0001). Data stores and queries it as given. Add, compare, group and format Days with `Calendar.gmt`, never with `Calendar.current` or `startOfDay(for:)`. The local calendar is read only for Today, which is Domain's `Date.today`. Day helpers take no `calendar:` parameter.
+- **A Task's Day is a `Date` at 00:00 GMT everywhere** (ADR 0001). Data stores and queries it as given. The local calendar is read only for Today, which is Domain's `Date.today`. A new Day operation is a helper in Domain's `Date+Day`, and Days are formatted in GMT (`Date.FormatStyle(calendar: .gmt, timeZone: .gmt)`).
 - **Folders by role.** A new file goes in the folder for its role:
   - Domain: `Models/`, `Repositories/` (protocols), `UseCases/`, `Errors/`, `Extensions/`. `Models/` splits by DDD building block:
     - `Entities/`: a stored record with its own ID (`TodoTask`).
@@ -70,5 +70,5 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 Run `graft build . --no-ignore && graft blast --base <fixed-point> --no-owners` once per review. The build takes under a second and makes a fresh clone work. For uncommitted work, omit `--base`: with it, blast compares the merge base with HEAD and sees nothing, while without it, blast diffs the working tree against HEAD. Blast lists the code that depends on the changed lines, and marks each changed area `✗` when no test reaches it. Without the `graft` CLI, report this step as skipped.
 
 - **Every listed dependent still fits the change.** Read each one against the new behaviour: a caller that passes old arguments, a screen that shows a changed view, a use case that relies on an old rule.
-- **A `✗` area that holds logic gets a test,** in the package's tests where the logic lives. A view with no logic of its own needs none.
+- **A `✗` area that holds logic gets a test,** in the package's tests where the logic lives. View models stay untested in v1 (spec); logic in one that deserves a test moves to Domain. A view with no logic of its own needs none.
 - **The list undercounts.** graft misses calls through a protocol (`repository.create(...)`) and callers of a name two symbols share. Grep the changed protocol methods and shared names before calling a change contained.
