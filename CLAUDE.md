@@ -6,31 +6,34 @@ Issues live as local markdown files under `.scratch/<feature>/`. See `docs/agent
 
 ### Triage labels
 
-Default canonical labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`), recorded as a `Status:` line in each issue file. See `docs/agents/triage-labels.md`.
+Recorded as a `Status:` line in each issue file. The labels are in `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Before exploring the codebase, read `GLOSSARY.md` and the ADRs in `docs/adr/` that touch the area. How to use them is in `docs/agents/domain.md`.
 
 ## Layout
 
-The project is `ForgetLess/ForgetLess.xcodeproj`. Beside it are:
-- the app, `ForgetLess/ForgetLess/` (`App/`, `Composition/`, `Features/<Feature>/`, `Shared/`, `Resources/`);
-- the app tests, `ForgetLess/ForgetLessTests/`;
-- the local packages, `ForgetLess/Packages/{Domain,Data}`.
+The project is `ForgetLess/ForgetLess.xcodeproj`, in a nested `ForgetLess/` folder beside the app (`ForgetLess/ForgetLess/`), its tests (`ForgetLess/ForgetLessTests/`) and the local packages (`ForgetLess/Packages/*`).
 
-Review rules are in `CODING_STANDARDS.md`. The v1 spec is `.scratch/forget-less-v1/spec.md`.
+Before writing or reviewing code, read `CODING_STANDARDS.md`: it holds the review rules and where each new file goes. The v1 spec is `.scratch/forget-less-v1/spec.md`.
 
 ## Building
 
 Build, test and run through the MobileBuildMCP tools (`build_sim`, `test_sim`, `build_run_sim`).
 
-`test_sim` runs only the app target's tests. Before reporting done, run `scripts/check.sh`: it lints the packages, checks the String Catalog's format and en/uk coverage, and runs every local package's tests on the Mac.
+SourceKit's "No such module" diagnostics for the local packages are index noise; `build_sim` is the source of truth.
 
-SourceKit's "No such module 'Domain'/'Data'" diagnostics are index noise; `build_sim` is the source of truth.
+## Done
 
-For any UI change, before reporting done, drive the running app with MobileBuildMCP's UI tools (`snapshot_ui`, `tap`, `drag`) on an iOS 27 simulator (the session default, iPhone 18 Pro). The iOS 18 deployment target is the user's own check, outside the agent's work: an acceptance box naming iOS 18 is ticked once the check passes on iOS 27, without waiting for them. Run iOS 18 only when they ask. Confirm each action from the snapshot in its own result (`capture.targets`) rather than a separate `snapshot_ui`, since a tool's success status can't tell a dropped tap from a landed one, and a `screenshot` can lag seconds behind the screen. Call `snapshot_ui` only once `build_run_sim` has returned. Pass `postDelay: 1` to `tap`: on iOS 27, input sent before the simulator's HID services open is dropped, though the tool reports success. An elementRef tap hits the element's centre; when that misses a small control, tap its point with `scripts/sim-tap.sh X Y`, then `snapshot_ui`. Press a key with `scripts/sim-tap.sh --key CODE` (Return is 40), since `key_press` is dropped the same way. While the software keyboard shows, type by tapping its keys: `type_text` sends hardware-keyboard events, which hide it until the user toggles it back with ⌥⌘K in Xcode's Device Hub, while a field has focus. Once it's hidden (the snapshot lists no keys), type with `type_text`. Type dictionary words, since a pending autocorrect suggestion takes the next Return or button tap. `replaceExisting` appends rather than replaces. Relaunch with `xcrun simctl terminate`/`launch <udid> com.andrew.ForgetLess`: `stop_app_sim` and `launch_app_sim` need a bundle ID the session defaults lack. A check that couldn't run is reported as skipped, with its acceptance box left unticked.
+Before reporting done:
+- `build_sim` and `test_sim` pass.
+- `scripts/check.sh` ends with `check.sh: OK`. `test_sim` covers only the app target; `check.sh` covers the packages (lint and tests on the Mac) and the String Catalog.
+- For any UI change, the check in `docs/agents/ui-check.md` passes on iOS 27. The iOS 18 deployment target is the user's own check: tick an acceptance box naming iOS 18 once the iOS 27 check passes, without waiting for them, and run iOS 18 only when they ask.
+- A check that couldn't run is reported as skipped, with its acceptance box left unticked.
 
 ## Editing
 
 Add or change String Catalog keys with `scripts/xcstrings.py set KEY EN UK`, which writes the file in Xcode's own format and keeps SwiftLint's key prefixes in step.
+
+A file kept out of a target in a synchronized folder (such as a `.gitkeep`) is listed in a `PBXFileSystemSynchronizedBuildFileExceptionSet` in `project.pbxproj`. When you delete or rename one, update its entry; once a set is empty, delete it and the folder's `exceptions = (...)` reference to it, then run `build_sim`.
