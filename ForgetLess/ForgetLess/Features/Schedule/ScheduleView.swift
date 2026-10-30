@@ -5,6 +5,7 @@ import SwiftUI
 /// The Schedule screen.
 struct ScheduleView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
+    @Environment(\.scenePhase) private var scenePhase
     @FocusState private var isComposerNameFocused: Bool
     @AccessibilityFocusState private var focusedComposerOpener: ComposerOpener?
     /// What showed the composer, where VoiceOver returns when it's dismissed.
@@ -28,7 +29,16 @@ struct ScheduleView: View {
                 .allowsHitTesting(vm.composer.isVisible)
                 .accessibilityHidden(!vm.composer.isVisible)
         }
-        .task { await vm.load() }
+        // Today may have moved while the app was away, and coming back lets go of the kept Overdue Tasks.
+        .onChange(of: scenePhase, initial: true) {
+            if scenePhase == .active {
+                vm.refresh()
+            }
+        }
+        // Fires at midnight and on a time-zone change, either of which can change Today.
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            vm.refresh()
+        }
         .errorAlert(message: $vm.errorMessage)
     }
 
@@ -36,10 +46,13 @@ struct ScheduleView: View {
     private var content: some View {
         ZStack(alignment: .bottomTrailing) {
             List {
+                if !vm.schedule.overdue.isEmpty {
+                    overdueSection
+                }
                 ForEach(vm.schedule.days) { scheduleDay in
                     Section {
                         ForEach(scheduleDay.tasks) { task in
-                            TaskRowView(task: task, focusedComposerOpener: $focusedComposerOpener) {
+                            TaskRowView(task: task, showsDay: false, focusedComposerOpener: $focusedComposerOpener) {
                                 showComposer(editing: task)
                             }
                         }
@@ -62,6 +75,26 @@ struct ScheduleView: View {
             .padding(20)
             // Its own container, so the rotor's Containers moves between it and the List.
             .accessibilityElement(children: .contain)
+        }
+    }
+
+    private var overdueSection: some View {
+        Section {
+            ForEach(vm.schedule.overdue) { task in
+                TaskRowView(task: task, showsDay: true, focusedComposerOpener: $focusedComposerOpener) {
+                    showComposer(editing: task)
+                }
+            }
+        } header: {
+            // No "+": a Task can't be planned in the past.
+            HStack {
+                Text(.scheduleOverdue)
+                Spacer()
+            }
+            // On the stack, as the Day headers do: on the Text, `.primary` resolves against the header's grey.
+            .font(.subheadline.bold())
+            .foregroundStyle(.primary)
+            .textCase(nil)
         }
     }
 

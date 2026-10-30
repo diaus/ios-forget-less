@@ -103,6 +103,23 @@
         }
       }
     },
+    "schedule.overdue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overdue"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Прострочені"
+          }
+        }
+      }
+    },
     "task.add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -184,6 +201,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не виконано"
+          }
+        }
+      }
+    },
+    "task.nameOnDay" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%(name)@, %(day)@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%(name)@, %(day)@"
           }
         }
       }

@@ -38,7 +38,7 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
 
 ## Layout
 
-- **A type with more than one group of members marks each group with `// MARK: - <Group>`.** Stored properties and `init` lead the type unmarked. Each group after them opens with its MARK on its own line, a blank line before it and none after. Views use `Body`, `UI Components` (the subviews `body` composes), `Actions` and `Gestures`. A view model names its groups by what they drive (`Loading`, `Composer`). A test suite splits `Tests` from `Helpers`, and private helpers anywhere go under `Helpers`. A type with one group after its `init` (`TaskRowView`, `AddTask`, `FakeTodoTaskRepository`) has no MARKs.
+- **A type with more than one group of members marks each group with `// MARK: - <Group>`.** Stored properties and `init` lead the type unmarked. Each group after them opens with its MARK on its own line, a blank line before it and none after. Views use `Body`, `UI Components` (the subviews `body` composes), `Actions` and `Gestures`. A view model names its groups by what they drive (`Loading`, `Composer`). A test suite splits `Tests` from `Helpers`, and private helpers anywhere go under `Helpers`. A type with one group after its `init` (`AddTask`, `FakeTodoTaskRepository`) has no MARKs.
 
 ## Comments
 

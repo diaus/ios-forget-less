@@ -12,13 +12,19 @@ final class ScheduleViewModel {
     private(set) var schedule: Schedule
     var composer: ComposerState
     var errorMessage: String?
+    /// The Tasks completed from Overdue since the last refresh, which stay in it so a mis-tap can be undone.
+    @ObservationIgnored private var keepingOverdue: Set<UUID> = []
+    /// Counts the reloads started, so one that finishes late can tell a newer one has started.
+    @ObservationIgnored private var reloadCount = 0
 
     @ObservationIgnored private let repository: any TodoTaskRepository
+    @ObservationIgnored private let loadSchedule: LoadSchedule
     @ObservationIgnored private let addTask: AddTask
     @ObservationIgnored private let renameTask: RenameTask
 
     init(
         repository: any TodoTaskRepository = Container.shared.todoTaskRepository(),
+        loadSchedule: LoadSchedule = Container.shared.loadSchedule(),
         addTask: AddTask = Container.shared.addTask(),
         renameTask: RenameTask = Container.shared.renameTask()
     ) {
@@ -27,14 +33,17 @@ final class ScheduleViewModel {
         self.schedule = Schedule(tasks: [], today: today)
         self.composer = ComposerState(day: today)
         self.repository = repository
+        self.loadSchedule = loadSchedule
         self.addTask = addTask
         self.renameTask = renameTask
     }
 
     // MARK: - Loading
-    func load() async {
+    /// Brings the Schedule up to date with Today, letting go of the kept Overdue Tasks.
+    func refresh() {
         today = .today
-        await reloadSchedule()
+        keepingOverdue = []
+        Task { await reloadSchedule() }
     }
 
     // MARK: - Composer
@@ -89,6 +98,9 @@ final class ScheduleViewModel {
 
     // MARK: - Completion
     func toggleComplete(_ task: TodoTask) {
+        if schedule.overdue.contains(where: { $0.id == task.id }) {
+            keepingOverdue.insert(task.id)
+        }
         write { try await self.repository.setComplete(id: task.id, isComplete: !task.isComplete) }
     }
 
@@ -110,9 +122,13 @@ final class ScheduleViewModel {
     }
 
     private func reloadSchedule() async {
+        reloadCount += 1
+        let reload = reloadCount
         do {
-            let tasks = try await repository.tasks(onOrAfter: today)
-            schedule = Schedule(tasks: tasks, today: today)
+            let schedule = try await loadSchedule(today: today, keepingOverdue: keepingOverdue)
+            // A reload started later wins: one started before a refresh would bring back the old Today's Schedule.
+            guard reload == reloadCount else { return }
+            self.schedule = schedule
         } catch {
             errorMessage = error.userMessage
         }

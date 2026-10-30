@@ -43,7 +43,7 @@ extension Date {
         case .tomorrow: Color(.dayChipTomorrow)
         case .weekday: Color(.dayChipWeekday)
         case .later: Color(.dayChipLater)
-        case .past: Color(.dayChipPast)
+        case .past: Color(.overdueDay)
         }
     }
 }
