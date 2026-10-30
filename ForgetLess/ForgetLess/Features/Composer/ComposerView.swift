@@ -1,7 +1,7 @@
 import FactoryKit
 import SwiftUI
 
-/// The quick-add panel for Tasks.
+/// The quick-add panel for Tasks, which also renames one.
 struct ComposerView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     var isNameFocused: FocusState<Bool>.Binding
@@ -36,7 +36,7 @@ struct ComposerView: View {
                         .font(.title3)
                 }
                 .disabled(!vm.composer.canSubmit)
-                .accessibilityLabel(Text(.taskAdd))
+                .accessibilityLabel(Text(vm.composer.editedTask == nil ? .taskAdd : .taskSave))
             }
         }
         .padding(16)
@@ -56,9 +56,13 @@ struct ComposerView: View {
             onDismiss()
             return
         }
-        // Return would otherwise drop focus, and the panel stays up for the next Task.
-        isNameFocused.wrappedValue = true
         vm.submitComposer()
+        if vm.composer.isVisible {
+            // Return would otherwise drop focus, and the panel stays up for the next Task.
+            isNameFocused.wrappedValue = true
+        } else {
+            onDismiss()
+        }
     }
 
     // MARK: - Gestures

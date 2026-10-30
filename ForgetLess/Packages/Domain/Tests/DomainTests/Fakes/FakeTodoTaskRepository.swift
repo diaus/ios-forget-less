@@ -24,6 +24,11 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         tasks.append(task)
     }
 
+    func rename(id: UUID, name: String) {
+        guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
+        tasks[index].name = name
+    }
+
     func setComplete(id: UUID, isComplete: Bool) {
         guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
         tasks[index].isComplete = isComplete
