@@ -205,6 +205,23 @@
         }
       }
     },
+    "task.renamed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renamed “%(name)@”"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перейменовано «%(name)@»"
+          }
+        }
+      }
+    },
     "task.save" : {
       "extractionState" : "manual",
       "localizations" : {
