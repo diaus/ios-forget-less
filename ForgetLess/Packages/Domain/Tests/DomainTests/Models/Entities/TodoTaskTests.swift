@@ -18,6 +18,6 @@ struct TodoTaskTests {
 
     // MARK: - Helpers
     private func task(sortIndex: Int) -> TodoTask {
-        TodoTask(id: UUID(), name: "Buy milk", day: day, isComplete: false, sortIndex: sortIndex)
+        TodoTask(id: UUID(), name: "Buy milk", day: day, completeDay: nil, sortIndex: sortIndex)
     }
 }

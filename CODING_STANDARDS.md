@@ -26,7 +26,7 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
   - (b) composes more than one repository call;
   - (c) is shared by several view models.
 
-  Otherwise the view model calls the repository directly: no pass-through use cases. `AddTask` qualifies: it applies the name rule before creating. So does `LoadSchedule`, which composes the queries behind the Schedule. Set Complete and delete are single repository calls made directly. A rule that needs no I/O, such as the end-of-Day rule, is a pure Domain function or entity method. Use cases and view models call it, and it's tested without fakes. A repository calls it when the rule must read and write in one step, as `create(name:day:)` does with the end-of-Day rule, so two creates at once can't take the same place. If nearly all data access ends up going through use cases, route all of it that way for consistency.
+  Otherwise the view model calls the repository directly: no pass-through use cases. `AddTask` qualifies: it applies the name rule before creating. Set Complete and delete are single repository calls made directly. A rule that needs no I/O, such as the end-of-Day rule, is a pure Domain function or entity method. Use cases and view models call it, and it's tested without fakes. A repository calls it when the rule must read and write in one step, as `create(name:day:)` does with the end-of-Day rule, so two creates at once can't take the same place. If nearly all data access ends up going through use cases, route all of it that way for consistency.
 - **No speculative abstraction.** Add a protocol, wrapper or injection point only for a need the current spec has. View models read `Date.today`; use cases take `today` as a parameter, so there is no clock or `DateProvider` to inject. A two-case enum that only means yes/no is a `Bool`.
 
 ## Naming
@@ -64,7 +64,7 @@ Domain vocabulary lives in `GLOSSARY.md`, decisions in `docs/adr/`.
   - use a fake the code under test can never reach, so the assertion passes whatever the code does.
 - **Tests never depend on the machine's clock or time zone.** Pass `today`, never `Date.today`. Days are GMT midnights, so only the Today rule's tests pin a local time zone, on both sides of GMT.
 - **SwiftData fetches are unordered unless sorted.** Tests compare as sets or sort first. Code that needs an order sorts explicitly (by `sortIndex` within a Day).
-- Test names describe behaviour in glossary terms (`keepsACompletedOverdueTaskUntilRefresh`).
+- Test names describe behaviour in glossary terms (`keepsATaskCompletedFromOverdueUntilTodayRollsOver`).
 
 ## Blast radius
 

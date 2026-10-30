@@ -9,16 +9,13 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         tasks.filter { $0.day == day }
     }
 
-    func tasks(onOrAfter day: Date) -> [TodoTask] {
-        tasks.filter { $0.day >= day }
-    }
-
-    func incompleteTasks(before day: Date) -> [TodoTask] {
-        tasks.filter { $0.day < day && !$0.isComplete }
-    }
-
-    func tasks(ids: Set<UUID>) -> [TodoTask] {
-        tasks.filter { ids.contains($0.id) }
+    /// Sends the Tasks once, then ends.
+    func scheduleTasks(today: Date) -> AsyncStream<[TodoTask]> {
+        let scheduleTasks = tasks.filter { $0.day >= today || ($0.completeDay ?? .distantFuture) >= today }
+        return AsyncStream { continuation in
+            continuation.yield(scheduleTasks)
+            continuation.finish()
+        }
     }
 
     func create(name: String, day: Date) {
@@ -26,7 +23,7 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
             id: UUID(),
             name: name,
             day: day,
-            isComplete: false,
+            completeDay: nil,
             sortIndex: TodoTask.nextSortIndex(in: tasks(on: day))
         )
         tasks.append(task)
@@ -37,8 +34,8 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         tasks[index].name = name
     }
 
-    func setComplete(id: UUID, isComplete: Bool) {
+    func setComplete(id: UUID, isComplete: Bool, today: Date) {
         guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
-        tasks[index].isComplete = isComplete
+        tasks[index].completeDay = isComplete ? today : nil
     }
 }

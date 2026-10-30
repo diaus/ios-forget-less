@@ -36,7 +36,7 @@ struct ScheduleTests {
         let today = try day("2026-03-01")
         let tasks = [
             task("Much later", day: try day("2026-09-01"), sortIndex: 0),
-            task("Just after", day: try day("2026-06-09"), sortIndex: 1, isComplete: true),
+            task("Just after", day: try day("2026-06-09"), sortIndex: 1, completeDay: today),
             task("Also just after", day: try day("2026-06-09"), sortIndex: 0),
         ]
 
@@ -65,7 +65,7 @@ struct ScheduleTests {
         let lastYear = try day("2025-12-31")
         let tasks = [
             task("Yesterday's second", day: yesterday, sortIndex: 4),
-            task("Done yesterday", day: yesterday, sortIndex: 2, isComplete: true),
+            task("Done yesterday", day: yesterday, sortIndex: 2, completeDay: yesterday),
             task("Yesterday's first", day: yesterday, sortIndex: 1),
             task("Last year's", day: lastYear, sortIndex: 9),
             task("Today's", day: today, sortIndex: 0),
@@ -77,24 +77,35 @@ struct ScheduleTests {
         #expect(schedule.days.first?.tasks.map(\.name) == ["Today's"])
     }
 
-    @Test func aKeptOverdueTaskStaysInOverdueAfterItIsCompleted() throws {
+    @Test func aTaskCompletedFromOverdueOnTodayStaysInOverdue() throws {
         let today = try day("2026-03-01")
         let yesterday = try day("2026-02-28")
-        let kept = task("Completed from Overdue", day: yesterday, sortIndex: 1, isComplete: true)
         let tasks = [
-            kept,
-            task("Completed earlier", day: yesterday, sortIndex: 0, isComplete: true),
+            task("Completed from Overdue", day: yesterday, sortIndex: 1, completeDay: today),
             task("Still to do", day: yesterday, sortIndex: 2),
         ]
 
-        let schedule = Schedule(tasks: tasks, today: today, keepingOverdue: [kept.id])
+        let schedule = Schedule(tasks: tasks, today: today)
 
         #expect(schedule.overdue.map(\.name) == ["Completed from Overdue", "Still to do"])
     }
 
+    @Test func aTaskCompletedOnAnEarlierDayLeavesOverdue() throws {
+        let today = try day("2026-03-01")
+        let twoDaysAgo = try day("2026-02-27")
+        let tasks = [
+            task("Completed yesterday", day: twoDaysAgo, sortIndex: 0, completeDay: try day("2026-02-28")),
+            task("Still to do", day: twoDaysAgo, sortIndex: 1),
+        ]
+
+        let schedule = Schedule(tasks: tasks, today: today)
+
+        #expect(schedule.overdue.map(\.name) == ["Still to do"])
+    }
+
     // MARK: - Helpers
-    private func task(_ name: String, day: Date, sortIndex: Int, isComplete: Bool = false) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: day, isComplete: isComplete, sortIndex: sortIndex)
+    private func task(_ name: String, day: Date, sortIndex: Int, completeDay: Date? = nil) -> TodoTask {
+        TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: sortIndex)
     }
 
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.

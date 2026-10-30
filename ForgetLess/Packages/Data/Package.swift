@@ -13,6 +13,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../Domain"),
+        .package(path: "../Utils"),
         .package(url: "https://github.com/hmlongco/Factory.git", from: "3.5.0"),
     ],
     targets: [
@@ -20,6 +21,7 @@ let package = Package(
             name: "Data",
             dependencies: [
                 "Domain",
+                "Utils",
                 .product(name: "FactoryKit", package: "Factory"),
             ],
             swiftSettings: zeroWarnings

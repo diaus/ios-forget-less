@@ -12,13 +12,8 @@ final class ScheduleViewModel {
     private(set) var schedule: Schedule
     var composer: ComposerState
     var errorMessage: String?
-    /// The Tasks completed from Overdue since the last refresh, which stay in it so a mis-tap can be undone.
-    @ObservationIgnored private var keepingOverdue: Set<UUID> = []
-    /// Counts the reloads started, so one that finishes late can tell a newer one has started.
-    @ObservationIgnored private var reloadCount = 0
 
     @ObservationIgnored @Injected(\.todoTaskRepository) private var repository
-    @ObservationIgnored @Injected(\.loadSchedule) private var loadSchedule
     @ObservationIgnored @Injected(\.addTask) private var addTask
     @ObservationIgnored @Injected(\.renameTask) private var renameTask
 
@@ -30,11 +25,20 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Loading
-    /// Brings the Schedule up to date with Today, letting go of the kept Overdue Tasks.
+    /// Brings Today up to date.
     func refresh() {
         today = .today
-        keepingOverdue = []
-        Task { await reloadSchedule() }
+    }
+
+    /// Keeps the Schedule up to date with the stored Tasks for the current Today, until the calling task is cancelled.
+    func observeSchedule() async {
+        do {
+            for await tasks in try await repository.scheduleTasks(today: today) {
+                schedule = Schedule(tasks: tasks, today: today)
+            }
+        } catch {
+            errorMessage = error.userMessage
+        }
     }
 
     // MARK: - Composer
@@ -89,14 +93,11 @@ final class ScheduleViewModel {
 
     // MARK: - Completion
     func toggleComplete(_ task: TodoTask) {
-        if schedule.overdue.contains(where: { $0.id == task.id }) {
-            keepingOverdue.insert(task.id)
-        }
-        write { try await self.repository.setComplete(id: task.id, isComplete: !task.isComplete) }
+        write { try await self.repository.setComplete(id: task.id, isComplete: !task.isComplete, today: self.today) }
     }
 
     // MARK: - Helpers
-    /// Runs `operation`, then reloads the Schedule; on failure, runs `onFailure` and shows the error.
+    /// Runs `operation`; on failure, runs `onFailure` and shows the error.
     private func write(
         _ operation: @escaping @MainActor () async throws -> Void,
         onFailure: @escaping @MainActor () -> Void = {}
@@ -104,24 +105,10 @@ final class ScheduleViewModel {
         Task {
             do {
                 try await operation()
-                await reloadSchedule()
             } catch {
                 onFailure()
                 errorMessage = error.userMessage
             }
-        }
-    }
-
-    private func reloadSchedule() async {
-        reloadCount += 1
-        let reload = reloadCount
-        do {
-            let schedule = try await loadSchedule(today: today, keepingOverdue: keepingOverdue)
-            // A reload started later wins: one started before a refresh would bring back the old Today's Schedule.
-            guard reload == reloadCount else { return }
-            self.schedule = schedule
-        } catch {
-            errorMessage = error.userMessage
         }
     }
 
