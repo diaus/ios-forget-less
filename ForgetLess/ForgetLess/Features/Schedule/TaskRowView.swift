@@ -19,13 +19,14 @@ struct TaskRowView: View {
 
     // MARK: - Body
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 0) {
             Button { vm.toggleComplete(task) } label: {
                 Image(systemName: task.isComplete ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
                     // `circle` has one layer, so it takes the first style.
                     .foregroundStyle(task.isComplete ? .white : circleGray, circleGray)
             }
+            .padding(.trailing, 10)
             // Only the circle takes the tap, not the whole row: a row tap is for renaming.
             .buttonStyle(.borderless)
             .accessibilityLabel(accessibilityName)
@@ -33,8 +34,9 @@ struct TaskRowView: View {
             // The row's tap, for VoiceOver, which activates the circle.
             .accessibilityAction(named: Text(.taskRename), onRename)
             .accessibilityFocused(focusedComposerOpener, equals: .task(task.id))
-            VStack(alignment: .trailing, spacing: 2) {
+            Group {
                 Text(task.name)
+                    .lineLimit(2)
                     .strikethrough(task.isComplete)
                     .foregroundStyle(task.isComplete ? .secondary : .primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
