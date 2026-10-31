@@ -87,6 +87,25 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         try saveAndNotify()
     }
 
+    func move(id: UUID, to destination: MoveDestination) throws {
+        // Read and write without suspending, so two moves at once can't take the same place in the Day.
+        guard let model = try model(id: id) else { return }
+        let day = destination.day
+        let modelsOfDay = try modelContext.fetch(FetchDescriptor<TodoTaskModel>(
+            predicate: #Predicate { $0.day == day },
+            sortBy: Self.scheduleOrder
+        ))
+        let tasksOfDay = modelsOfDay.map { $0.toDomain() }
+        let order = TodoTask.order(afterMoving: model.toDomain(), to: destination, in: tasksOfDay)
+        var modelsByID = Dictionary(uniqueKeysWithValues: modelsOfDay.map { ($0.id, $0) })
+        modelsByID[model.id] = model
+        for (sortIndex, task) in order.enumerated() {
+            modelsByID[task.id]?.sortIndex = sortIndex
+        }
+        model.day = day
+        try saveAndNotify()
+    }
+
     func delete(id: UUID) throws {
         guard let model = try model(id: id) else { return }
         modelContext.delete(model)

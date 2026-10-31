@@ -43,6 +43,17 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         tasks[index].completeDay = isComplete ? today : nil
     }
 
+    func move(id: UUID, to destination: MoveDestination) {
+        guard let task = tasks.first(where: { $0.id == id }) else { return }
+        let order = TodoTask.order(afterMoving: task, to: destination, in: tasks(on: destination.day))
+        tasks.removeAll { $0.day == destination.day || $0.id == id }
+        for (sortIndex, var task) in order.enumerated() {
+            task.day = destination.day
+            task.sortIndex = sortIndex
+            tasks.append(task)
+        }
+    }
+
     func delete(id: UUID) {
         tasks.removeAll { $0.id == id }
     }

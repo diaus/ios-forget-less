@@ -247,8 +247,10 @@ struct TodoTaskRepositoryLiveTests {
         #expect(saves.withLock { $0 } == 2)
         try await repository.setComplete(id: task.id, isComplete: true, today: today)
         #expect(saves.withLock { $0 } == 3)
-        try await repository.delete(id: task.id)
+        try await repository.move(id: task.id, to: MoveDestination(day: today.addingDays(1), after: nil))
         #expect(saves.withLock { $0 } == 4)
+        try await repository.delete(id: task.id)
+        #expect(saves.withLock { $0 } == 5)
     }
 
     // MARK: - Helpers

@@ -162,12 +162,12 @@ struct ScheduleTests {
     }
 
     // MARK: - Helpers
-    private func task(_ name: String, day: Date, sortIndex: Int, completeDay: Date? = nil) -> TodoTask {
+    func task(_ name: String, day: Date, sortIndex: Int, completeDay: Date? = nil) -> TodoTask {
         TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: sortIndex)
     }
 
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.
-    private func day(_ yearMonthDay: String) throws -> Date {
+    func day(_ yearMonthDay: String) throws -> Date {
         try Date("\(yearMonthDay)T00:00:00Z", strategy: .iso8601)
     }
 }

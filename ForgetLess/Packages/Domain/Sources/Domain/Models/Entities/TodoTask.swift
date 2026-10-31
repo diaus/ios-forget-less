@@ -25,4 +25,24 @@ public struct TodoTask: Identifiable, Equatable, Sendable {
     public static func nextSortIndex(in tasksOfDay: [TodoTask]) -> Int {
         (tasksOfDay.map(\.sortIndex).max() ?? -1) + 1
     }
+
+    /// The order rule: the Tasks of `destination`'s Day, in order, once `task` is moved there. A destination after a
+    /// Task that isn't on the Day puts `task` at the end; a destination after `task` itself leaves it where it is.
+    /// - Parameter tasksOfDay: Every Task of `destination`'s Day in order, hidden ones included, `task` or not.
+    public static func order(
+        afterMoving task: TodoTask,
+        to destination: MoveDestination,
+        in tasksOfDay: [TodoTask]
+    ) -> [TodoTask] {
+        var order = tasksOfDay.filter { $0.id != task.id }
+        guard let after = destination.after else { return [task] + order }
+        // Filtering dropped `task` only if it was on the Day, where it then stays.
+        if after == task.id, order.count < tasksOfDay.count {
+            return tasksOfDay
+        }
+        // A Task deleted meanwhile is no longer on the Day.
+        let index = order.firstIndex { $0.id == after }.map { $0 + 1 } ?? order.endIndex
+        order.insert(task, at: index)
+        return order
+    }
 }

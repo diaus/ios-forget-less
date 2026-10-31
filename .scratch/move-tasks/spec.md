@@ -88,21 +88,21 @@ To make this possible, the Schedule list is rebuilt as a UIKit collection-view l
 
 ### Domain
 
-- **Place** is a new value type: a Day, plus the Task the moved Task goes right after, or none for first. A drop and a VoiceOver step each resolve to a Place. It names an existing Task rather than an index, so hidden Tasks need no special handling.
-- **The order rule** is a pure function beside the end-of-Day rule. Given every Task of the destination Day in order (hidden ones included, the moved Task excluded) and a Place, it returns the Day's new order, so that each Task's `sortIndex` can be its position from 0.
+- **`MoveDestination`** is a new value type: a Day, plus the Task the moved Task goes right after, or none for first. A drop and a VoiceOver step each resolve to a `MoveDestination`. It names an existing Task rather than an index, so hidden Tasks need no special handling.
+- **The order rule** is a pure function beside the end-of-Day rule. Given every Task of the destination Day in order (hidden ones included, the moved Task excluded) and a `MoveDestination`, it returns the Day's new order, so that each Task's `sortIndex` can be its position from 0.
   - "After A" puts the Task right after A, ahead of whatever followed A.
   - "First" puts it ahead of every Task.
   - If the named Task isn't on that Day, for example because it was deleted meanwhile, the Task goes to the end of the Day.
 - **The move rule** lives on `Schedule`, which already knows the sections:
   - **Overdue is never a destination.** Dropping an Overdue Task inside Overdue and dropping any other Task there are both no-ops, so the drag is cancelled with no write.
   - **Every listed Day is a destination.**
-  - **Steps for VoiceOver.** `Schedule` computes the Place one step above and one step below a Task among the Tasks it lists, or `nil` when there's none. It follows stories 34–38: hidden Tasks are skipped because `Schedule` already holds only the Tasks shown, a step at a Day's edge crosses into the neighbouring listed Day, empty Days are stops, an Overdue Task's only step is the top of Today, and nothing above the first Task of Today.
+  - **Steps for VoiceOver.** `Schedule` computes the `MoveDestination` one step above and one step below a Task among the Tasks it lists, or `nil` when there's none. It follows stories 34–38: hidden Tasks are skipped because `Schedule` already holds only the Tasks shown, a step at a Day's edge crosses into the neighbouring listed Day, empty Days are stops, an Overdue Task's only step is the top of Today, and nothing above the first Task of Today.
 - `TodoTask` is unchanged. Moving changes `day` and `sortIndex` and never `completeDay`.
 - **No use case.** Moving is a single repository call, so the view model calls the repository directly, as it does for set Complete and delete (`CODING_STANDARDS.md`'s use-case rule). The repository applies the order rule itself, as `create(name:day:)` applies the end-of-Day rule, so two moves at once can't take the same place. The view model checks the move rule on `Schedule` before writing.
 
 ### Data
 
-- `TodoTaskRepository` gains `move(id:to:)`, taking a Place. In one actor call with no suspension, and one notifying save, it:
+- `TodoTaskRepository` gains `move(id:to:)`, taking a `MoveDestination`. In one actor call with no suspension, and one notifying save, it:
   - reads the destination Day's Tasks,
   - applies the order rule,
   - sets the Task's Day,
@@ -121,14 +121,14 @@ To make this possible, the Schedule list is rebuilt as a UIKit collection-view l
   - Accessibility focus returning to a row or a header's "+" after the composer closes keeps working.
 - **The handle** is the list's reorder accessory, always visible while Move Tasks is on and not tied to editing mode. The prototype confirmed that it drags outside editing mode.
 - **Refusing a drop.** The collection view's target-index-path delegate method asks `Schedule`'s move rule. A drop into Overdue resolves to the Task's original index path, so no gap opens there and letting go returns the Task.
-- **On drop**, the view model works out the Place from the drop position: the Day of the destination section, and the Task shown just above, or none. It applies the move to its last observed Tasks at once, so the row doesn't snap back while the write is in flight, rebuilds the Schedule, and writes through the repository. The stream then confirms. On failure, the next stream element puts the Task back, and the error alert shows.
+- **On drop**, the view model works out the `MoveDestination` from the drop position: the Day of the destination section, and the Task shown just above, or none. It applies the move to its last observed Tasks at once, so the row doesn't snap back while the write is in flight, rebuilds the Schedule, and writes through the repository. The stream then confirms. On failure, the next stream element puts the Task back, and the error alert shows.
 - **Today rolling over during a drag** cancels the drag.
 - **The quick setting.**
   - The `ScheduleViewModel` holds `movesTasks`, stored in `UserDefaults` with a default of `true`, the same way it holds `showsComplete`.
   - The button is the second square in the quick settings bar, after Show Complete Tasks. Its `accessibilityRepresentation` is a `Toggle` labelled with a new catalog key for "Move Tasks".
 - **VoiceOver actions.**
   - "Move Up" and "Move Down" are named accessibility actions on the row's circle element, beside the existing Rename action.
-  - Each is present only while Move Tasks is on and the move rule returns a Place for that direction.
+  - Each is present only while Move Tasks is on and the move rule returns a `MoveDestination` for that direction.
   - After a step, the app announces the Task's Day, using the header's relative wording or short date.
   - All the new strings go through the String Catalog with `scripts/xcstrings.py`.
 - **Haptics.** A light impact when the row lifts, and a selection tick when the drag's destination section changes. If the prototype shows that the chosen approach can't support part of this list, simplify it rather than build around it.

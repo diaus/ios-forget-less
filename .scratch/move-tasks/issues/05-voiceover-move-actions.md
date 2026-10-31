@@ -3,8 +3,8 @@
 **What to build:** Moving without dragging, for VoiceOver users (spec stories 32–40).
 
 - The handle is hidden from VoiceOver.
-- While Move Tasks is on, the row's circle element gets the named actions "Move Up" and "Move Down", beside Rename. Each is present only when `Schedule`'s step for that direction returns a Place.
-- An action writes `move(id:to:)` with that Place, the same way a drop does, then announces the Task's new Day in the header's relative wording or short date.
+- While Move Tasks is on, the row's circle element gets the named actions "Move Up" and "Move Down", beside Rename. Each is present only when `Schedule`'s step for that direction returns a `MoveDestination`.
+- An action writes `move(id:to:)` with that `MoveDestination`, the same way a drop does, then announces the Task's new Day in the header's relative wording or short date.
 
 **Blocked by:** 04: Move Tasks
 

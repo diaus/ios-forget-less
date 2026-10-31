@@ -9,7 +9,7 @@
 - **Handles:** the `line.3.horizontal` reorder accessory on every row while Move Tasks is on, animated in and out. No handle and no moving while it's off.
 - **Drop:**
   - The target-index-path delegate asks `Schedule`'s move rule and sends a refused drop (into Overdue) back to the Task's original index path.
-  - On drop, the view model works out the Place (destination Day, and the Task shown just above it or none), applies the move to its last observed Tasks at once, and calls `move(id:to:)`.
+  - On drop, the view model works out the `MoveDestination` (destination Day, and the Task shown just above it or none), applies the move to its last observed Tasks at once, and calls `move(id:to:)`.
   - A failed write puts the Task back on the next stream element and shows the error alert.
 - **Feel:** a light haptic on lift and a selection tick on entering another Day, simplified if ticket 01 found part of this unworkable.
 - **Today rolling over** mid-drag cancels the drag.
