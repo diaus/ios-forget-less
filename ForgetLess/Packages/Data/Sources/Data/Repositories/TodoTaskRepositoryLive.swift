@@ -11,6 +11,8 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     /// Tells the open `scheduleTasks(today:)` streams that the store changed.
     private let notifier = ChangeNotifier()
     private let logger = Logger(subsystem: "ForgetLess.Data", category: "TodoTaskRepository")
+    /// The Schedule's order, which every list of Tasks the repository returns comes in.
+    private static let scheduleOrder = [SortDescriptor(\TodoTaskModel.day), SortDescriptor(\TodoTaskModel.sortIndex)]
 
     init(modelContainer: ModelContainer) {
         self.modelExecutor = DefaultSerialModelExecutor(modelContext: ModelContext(modelContainer))
@@ -19,7 +21,10 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
 
     // MARK: - TodoTaskRepository
     func tasks(on day: Date) throws -> [TodoTask] {
-        let descriptor = FetchDescriptor<TodoTaskModel>(predicate: #Predicate { $0.day == day })
+        let descriptor = FetchDescriptor<TodoTaskModel>(
+            predicate: #Predicate { $0.day == day },
+            sortBy: Self.scheduleOrder
+        )
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }
 
@@ -81,7 +86,8 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         // An Incomplete Task has no `completeDay`, so it counts as completed on no Day yet.
         let distantFuture = Date.distantFuture
         let descriptor = FetchDescriptor<TodoTaskModel>(
-            predicate: #Predicate { $0.day >= today || ($0.completeDay ?? distantFuture) >= today }
+            predicate: #Predicate { $0.day >= today || ($0.completeDay ?? distantFuture) >= today },
+            sortBy: Self.scheduleOrder
         )
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }

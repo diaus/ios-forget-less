@@ -18,20 +18,22 @@ public struct Schedule: Sendable {
     private static let windowDayCount = 100
 
     /// - Parameters:
+    ///   - tasks: In order of Day, then position within it, as the repository sends them.
     ///   - showsComplete: Whether Complete Tasks are listed.
     ///   - keptTaskIDs: Complete Tasks listed even while Complete Tasks are hidden, so a mis-tap can be undone.
     public init(tasks: [TodoTask], today: Date, showsComplete: Bool = true, keptTaskIDs: Set<UUID> = []) {
         let tasks = showsComplete ? tasks : tasks.filter { !$0.isComplete || keptTaskIDs.contains($0.id) }
-        overdue = tasks
-            // A Task completed from Overdue stays there until Today rolls over, so a mis-tap can be undone.
-            .filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }
-            .sorted { ($0.day, $0.sortIndex) < ($1.day, $1.sortIndex) }
+        // A Task completed from Overdue stays there until Today rolls over, so a mis-tap can be undone.
+        overdue = tasks.filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }
+        // Grouping keeps each Day's Tasks in the order given.
         let tasksByDay = Dictionary(grouping: tasks) { $0.day }
         let window = (0..<Self.windowDayCount).map { today.addingDays($0) }
         let afterWindow = today.addingDays(Self.windowDayCount)
-        let laterDays = tasksByDay.keys.filter { $0 >= afterWindow }.sorted()
-        days = (window + laterDays).map { day in
-            Day(day: day, tasks: tasksByDay[day, default: []].sorted { $0.sortIndex < $1.sortIndex })
+        var laterDays: [Date] = []
+        // The input is in Day order, so each Day's Tasks are next to each other and its first one adds it.
+        for task in tasks where task.day >= afterWindow && laterDays.last != task.day {
+            laterDays.append(task.day)
         }
+        days = (window + laterDays).map { day in Day(day: day, tasks: tasksByDay[day, default: []]) }
     }
 }

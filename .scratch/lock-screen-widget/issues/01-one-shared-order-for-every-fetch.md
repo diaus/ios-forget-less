@@ -14,8 +14,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] `tasks(on:)` and `scheduleTasks(today:)` return Tasks by Day, then position. Each Data test inserts Tasks out of order and asserts the order.
-- [ ] Both protocol doc comments state the order. `Schedule`'s `init` doc comment states its input contract.
-- [ ] `Schedule` has no sort of its own. `ScheduleTests` feed it ordered input and drop the cases that only checked its sorting. The grouping, window, Overdue and hiding cases still pass.
-- [ ] The Schedule screen lists Overdue (oldest Day first) and each Day's Tasks in the same order as before, confirmed by the UI check (`docs/agents/ui-check.md`) on iOS 27.
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] `tasks(on:)` and `scheduleTasks(today:)` return Tasks by Day, then position. Each Data test inserts Tasks out of order and asserts the order.
+- [x] Both protocol doc comments state the order. `Schedule`'s `init` doc comment states its input contract.
+- [x] `Schedule` has no sort of its own. `ScheduleTests` feed it ordered input and drop the cases that only checked its sorting. The grouping, window, Overdue and hiding cases still pass.
+- [x] The Schedule screen lists Overdue (oldest Day first) and each Day's Tasks in the same order as before, confirmed by the UI check (`docs/agents/ui-check.md`) on iOS 27.
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.

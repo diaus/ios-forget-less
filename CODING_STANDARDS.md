@@ -64,7 +64,7 @@ These are the judgement calls tooling can't make. Tooling already enforces these
   - use a fake the code under test can never reach, so the assertion passes whatever the code does.
 - **View models stay untested in v1** (spec). Logic in one that deserves a test moves to Domain.
 - **Tests never depend on the machine's clock or time zone.** Pass `today`, never `Date.today`. Days are GMT midnights, so only the Today rule's tests pin a local time zone, on both sides of GMT.
-- **SwiftData fetches are unordered unless sorted.** Tests compare as sets or sort first. Code that needs an order sorts explicitly (by `sortIndex` within a Day).
+- **SwiftData fetches are unordered unless sorted.** The repository's lists of Tasks are sorted in the query, by Day then `sortIndex`, as its protocol doc comments promise, so their tests assert that order and their callers rely on it. Any other fetch is compared as a set or sorted first.
 
 ## Blast radius (reviews)
 

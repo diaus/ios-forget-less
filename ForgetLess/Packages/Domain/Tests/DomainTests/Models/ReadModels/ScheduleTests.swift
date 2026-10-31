@@ -15,14 +15,14 @@ struct ScheduleTests {
         #expect(schedule.days.allSatisfy { $0.tasks.isEmpty })
     }
 
-    @Test func eachDayHoldsItsTasksOrderedBySortIndex() throws {
+    @Test func eachDayHoldsItsOwnTasks() throws {
         let today = try day("2026-03-01")
         let tomorrow = try day("2026-03-02")
         let tasks = [
-            task("Third", day: tomorrow, sortIndex: 7),
-            task("First", day: tomorrow, sortIndex: 0),
             task("Today's", day: today, sortIndex: 0),
+            task("First", day: tomorrow, sortIndex: 0),
             task("Second", day: tomorrow, sortIndex: 3),
+            task("Third", day: tomorrow, sortIndex: 7),
         ]
 
         let schedule = Schedule(tasks: tasks, today: today)
@@ -35,9 +35,9 @@ struct ScheduleTests {
     @Test func aDayAfterTheWindowAppearsOnlyWhenItHasTasks() throws {
         let today = try day("2026-03-01")
         let tasks = [
-            task("Much later", day: try day("2026-09-01"), sortIndex: 0),
-            task("Just after", day: try day("2026-06-09"), sortIndex: 1, completeDay: today),
             task("Also just after", day: try day("2026-06-09"), sortIndex: 0),
+            task("Just after", day: try day("2026-06-09"), sortIndex: 1, completeDay: today),
+            task("Much later", day: try day("2026-09-01"), sortIndex: 0),
         ]
 
         let schedule = Schedule(tasks: tasks, today: today)
@@ -59,15 +59,15 @@ struct ScheduleTests {
         #expect(schedule.days.last?.day == (try day("2027-04-08")))
     }
 
-    @Test func overdueHoldsOnlyIncompleteTasksBeforeTodayByDayThenSortIndex() throws {
+    @Test func overdueHoldsOnlyIncompleteTasksBeforeToday() throws {
         let today = try day("2026-03-01")
         let yesterday = try day("2026-02-28")
         let lastYear = try day("2025-12-31")
         let tasks = [
-            task("Yesterday's second", day: yesterday, sortIndex: 4),
-            task("Done yesterday", day: yesterday, sortIndex: 2, completeDay: yesterday),
-            task("Yesterday's first", day: yesterday, sortIndex: 1),
             task("Last year's", day: lastYear, sortIndex: 9),
+            task("Yesterday's first", day: yesterday, sortIndex: 1),
+            task("Done yesterday", day: yesterday, sortIndex: 2, completeDay: yesterday),
+            task("Yesterday's second", day: yesterday, sortIndex: 4),
             task("Today's", day: today, sortIndex: 0),
         ]
 

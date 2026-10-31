@@ -61,6 +61,23 @@ struct TodoTaskRepositoryLiveTests {
         #expect(tasksOnDay.map(\.day) == [days[1], days[1]])
     }
 
+    @Test func tasksOnADayComeBackByPosition() async throws {
+        let container = try Self.inMemoryContainer()
+        let day = try Self.day("2026-10-25")
+        try Self.insert(
+            [
+                Self.task("Third", day: day, sortIndex: 2),
+                Self.task("First", day: day, sortIndex: 0),
+                Self.task("Second", day: day, sortIndex: 1),
+            ],
+            into: container
+        )
+
+        let tasksOnDay = try await TodoTaskRepositoryLive(modelContainer: container).tasks(on: day)
+
+        #expect(tasksOnDay.map(\.name) == ["First", "Second", "Third"])
+    }
+
     @Test func scheduleTasksHoldTodayOnIncompleteBeforeTodayAndThoseCompletedOnToday() async throws {
         let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
         let lastYear = try Self.day("2025-12-31")
@@ -82,6 +99,33 @@ struct TodoTaskRepositoryLiveTests {
 
         let first = try #require(await scheduleTasks.next())
         #expect(Set(first.map(\.name)) == ["Overdue", "Completed today", "Today's", "Later"])
+    }
+
+    @Test func scheduleTasksComeBackByDayThenPosition() async throws {
+        let container = try Self.inMemoryContainer()
+        let lastYear = try Self.day("2025-12-31")
+        let yesterday = try Self.day("2026-10-24")
+        let today = try Self.day("2026-10-25")
+        let later = try Self.day("2027-03-01")
+        try Self.insert(
+            [
+                Self.task("Today's second", day: today, sortIndex: 1),
+                Self.task("Later", day: later, sortIndex: 0),
+                Self.task("Yesterday's second", day: yesterday, sortIndex: 1),
+                Self.task("Today's first", day: today, sortIndex: 0),
+                Self.task("Last year's", day: lastYear, sortIndex: 3),
+                Self.task("Yesterday's first", day: yesterday, sortIndex: 0),
+            ],
+            into: container
+        )
+
+        let repository = TodoTaskRepositoryLive(modelContainer: container)
+        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+
+        let first = try #require(await scheduleTasks.next())
+        #expect(first.map(\.name) == [
+            "Last year's", "Yesterday's first", "Yesterday's second", "Today's first", "Today's second", "Later",
+        ])
     }
 
     @Test(.timeLimit(.minutes(1)))
@@ -161,12 +205,12 @@ struct TodoTaskRepositoryLiveTests {
         try await repository.create(name: "Pay rent", day: nextDay)
         let created = try await repository.tasks(on: day)
         let task = try #require(created.first { $0.name == "Call mum" })
-        let others = created.filter { $0.id != task.id }.sorted { $0.sortIndex < $1.sortIndex }
+        let others = created.filter { $0.id != task.id }
 
         try await repository.delete(id: task.id)
         // A fresh repository on the same store, as after a relaunch.
         let relaunched = TodoTaskRepositoryLive(modelContainer: container)
-        let remaining = try await relaunched.tasks(on: day).sorted { $0.sortIndex < $1.sortIndex }
+        let remaining = try await relaunched.tasks(on: day)
         let remainingOnNextDay = try await relaunched.tasks(on: nextDay)
 
         #expect(remaining.map(\.name) == ["Buy milk", "Walk the dog"])
@@ -190,6 +234,19 @@ struct TodoTaskRepositoryLiveTests {
     // MARK: - Helpers
     private static func inMemoryContainer() throws -> ModelContainer {
         try ForgetLessModelContainer.make(inMemory: true)
+    }
+
+    /// Stores `tasks` as given, in the order given, so a test can set their positions.
+    private static func insert(_ tasks: [TodoTask], into container: ModelContainer) throws {
+        let context = ModelContext(container)
+        for task in tasks {
+            context.insert(TodoTaskModel(task))
+        }
+        try context.save()
+    }
+
+    private static func task(_ name: String, day: Date, sortIndex: Int) -> TodoTask {
+        TodoTask(id: UUID(), name: name, day: day, completeDay: nil, sortIndex: sortIndex)
     }
 
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.
