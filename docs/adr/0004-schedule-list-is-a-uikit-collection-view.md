@@ -6,7 +6,7 @@ status: accepted
 
 Moving a Task drags it by a handle that starts the drag on touch-down. The drop can land on any listed Day, including an empty one, and some drops are refused: nothing lands in Overdue except an Overdue Task going back where it was. Swipe to delete, renaming by tapping the row, and the complete circle keep working while the handles are shown, which they are by default. SwiftUI's `List` can't do this on iOS 18, so the Schedule list is a `UICollectionView` list, wrapped for SwiftUI, with its rows still drawn in SwiftUI. The always-visible reorder accessory starts the drag. The delegate's `targetIndexPathForMoveOfItemFromOriginalIndexPath:atCurrentIndexPath:toProposedIndexPath:` sends a refused drop back to where the Task started.
 
-A prototype confirmed it on iOS 27 and iOS 18 (`.scratch/move-tasks/issues/01-drag-prototype.md`): the accessory drags outside editing mode, a drop lands in an empty section, and the list auto-scrolls during a drag.
+A prototype confirmed it (`.scratch/move-tasks/issues/01-drag-prototype.md`): the accessory drags outside editing mode, a drop lands in an empty section, and the list auto-scrolls during a drag, on iOS 27 and iOS 18 alike.
 
 ## Considered Options
 
@@ -26,5 +26,5 @@ A prototype confirmed it on iOS 27 and iOS 18 (`.scratch/move-tasks/issues/01-dr
 ## Consequences
 
 - The list never proposes a drop into an empty section by itself. The target-index-path delegate sends the gap to an empty section when the lifted row is over that section's header.
-- The list keeps `contentInsetAdjustmentBehavior` at `.automatic` and adds only the quick settings bar's height as `contentInset`. With `.never`, iOS 18 hands the window's safe area to cells at the screen's edges, and their content stays shifted after they scroll away.
+- Wrapping a UIKit list under SwiftUI's safe area has pitfalls on iOS 18. The prototype's Comments record them and how it avoided them.
 - Once the deployment target reaches iOS 27, check whether SwiftUI's reordering has caught up. If it has, the list can go back to SwiftUI.

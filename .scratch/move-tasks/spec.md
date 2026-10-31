@@ -132,7 +132,7 @@ To make this possible, the Schedule list is rebuilt as a UIKit collection-view l
   - After a step, the app announces the Task's Day, using the header's relative wording or short date.
   - All the new strings go through the String Catalog with `scripts/xcstrings.py`.
 - **Haptics.** A light impact when the row lifts, and a selection tick when the drag's destination section changes. If the prototype shows that the chosen approach can't support part of this list, simplify it rather than build around it.
-- **Fallback.** If the prototype finds the reorder accessory only drags in editing mode, or can't drop into an empty section, or doesn't auto-scroll, research how existing apps and libraries solve this before choosing a fallback (ADR 0004). The known candidate is a zero-delay pan on the handle driving `beginInteractiveMovementForItem(at:)`, with the auto-scroll written by hand.
+- **Fallback.** Not needed. The prototype found that the reorder accessory drags outside editing mode, that a drop lands in an empty section once the target-index-path delegate sends the gap there, and that the list auto-scrolls (`issues/01`).
 
 ## Testing Decisions
 
