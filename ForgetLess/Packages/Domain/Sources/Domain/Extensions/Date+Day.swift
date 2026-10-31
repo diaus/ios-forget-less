@@ -7,7 +7,7 @@ public extension Date {
     }
 
     /// The Day `dayCount` Days after this one, or before it when negative.
-    internal func addingDays(_ dayCount: Int) -> Date {
+    func addingDays(_ dayCount: Int) -> Date {
         // Adding whole Days to a Day always names a Day.
         Calendar.gmt.date(byAdding: .day, value: dayCount, to: self)!
     }

@@ -79,3 +79,17 @@ struct ComposerView: View {
             }
     }
 }
+
+#Preview("Adding") {
+    @Previewable @FocusState var isNameFocused: Bool
+    ComposerView(isNameFocused: $isNameFocused) {}
+        .frame(maxHeight: .infinity, alignment: .bottom)
+}
+
+#Preview("Renaming") {
+    @Previewable @FocusState var isNameFocused: Bool
+    ComposerView(isNameFocused: $isNameFocused) {}
+        .frame(maxHeight: .infinity, alignment: .bottom)
+        // The view resolves the same shared view model.
+        .onAppear { Container.shared.scheduleViewModel().showComposer(editing: .previewIncomplete) }
+}

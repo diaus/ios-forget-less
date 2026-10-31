@@ -74,3 +74,12 @@ struct TaskRowView: View {
         showsDay ? Text(.taskNameOnDay(name: task.name, day: task.day.shortDate(today: vm.today))) : Text(task.name)
     }
 }
+
+#Preview {
+    @Previewable @AccessibilityFocusState var focusedComposerOpener: ScheduleView.ComposerOpener?
+    List {
+        TaskRowView(task: .previewOverdue, showsDay: true, focusedComposerOpener: $focusedComposerOpener) {}
+        TaskRowView(task: .previewIncomplete, showsDay: false, focusedComposerOpener: $focusedComposerOpener) {}
+        TaskRowView(task: .previewComplete, showsDay: false, focusedComposerOpener: $focusedComposerOpener) {}
+    }
+}
