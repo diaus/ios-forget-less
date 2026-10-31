@@ -21,7 +21,7 @@ An iPhone app with one screen: a scrolling list of Days from Today through the n
 5. As a user, I want an "Overdue" section above Today listing my Incomplete Tasks from earlier Days, oldest Day first, so that unfinished work is never lost.
 6. As a user, I want each Overdue row to show its own Day as a small red label (`20 Oct`) at the bottom trailing edge, so that I can tell how late it is.
 7. As a user, I want the Overdue section to have no "+", so that I can't plan a Task in the past.
-8. As a user, I want Tasks within a Day in the order I added them, so that the list is stable.
+8. As a user, I want Tasks within a Day in the order I added or moved them (see `.scratch/move-tasks/spec.md`), so that the list is stable.
 9. As a user, I want no navigation bar or title, just the list, the quick settings bar at the top trailing edge (story 30), and a red floating "+" at the bottom trailing corner, so that the screen stays calm.
 
 ### Completing
@@ -162,8 +162,8 @@ A good test exercises behaviour through a public interface and asserts on outcom
 
 ## Out of Scope
 
-- Date picker and moving a Task to another Day.
-- Reordering, projects (the screenshot's "Inbox"), labels, priorities, search.
+- Date picker.
+- Projects (the screenshot's "Inbox"), labels, priorities, search. (Moving a Task, within its Day or to another, is specced in `.scratch/move-tasks/spec.md`.)
 - Reminders and notifications, recurring Tasks.
 - Widgets, iCloud or any sync, accounts, export.
 - Archiving Complete Tasks, or hiding them other than through quick settings.

@@ -14,6 +14,10 @@ _Avoid_: Todo, item, reminder, entry
 The two states of a Task. A Task is Complete once the user has done it, and can be made Incomplete again.
 _Avoid_: Done, finished, checked, closed, open, pending
 
+**Move**:
+To give a Task a new place: a position on its own Day or on another. Moving never makes a Task Complete or Incomplete.
+_Avoid_: Drag, reorder, reschedule, postpone
+
 ### Days
 
 **Day**:
