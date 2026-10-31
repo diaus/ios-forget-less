@@ -14,7 +14,7 @@ Before exploring the codebase, read `GLOSSARY.md` and the ADRs in `docs/adr/` th
 
 ## Layout
 
-The project is `ForgetLess/ForgetLess.xcodeproj`, in a nested `ForgetLess/` folder beside the app (`ForgetLess/ForgetLess/`), its tests (`ForgetLess/ForgetLessTests/`) and the local packages (`ForgetLess/Packages/*`).
+The project is `ForgetLess/ForgetLess.xcodeproj`, in a nested `ForgetLess/` folder beside the app (`ForgetLess/ForgetLess/`), its tests (`ForgetLess/ForgetLessTests/`), the Lock Screen widget (`ForgetLess/ForgetLessWidget/`) and the local packages (`ForgetLess/Packages/*`).
 
 Before writing or reviewing code, read `CODING_STANDARDS.md`: it holds the review rules and where each new file goes. The v1 spec is `.scratch/forget-less-v1/spec.md`.
 

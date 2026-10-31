@@ -11,6 +11,10 @@
 		AA00000000000000000000C2 /* Data in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B2 /* Data */; };
 		AA00000000000000000000C3 /* FactoryKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B3 /* FactoryKit */; };
 		AA00000000000000000000C4 /* Utils in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000B5 /* Utils */; };
+		AA00000000000000000000ED /* ForgetLessWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000E1 /* ForgetLessWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AA00000000000000000000F1 /* Domain in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000F3 /* Domain */; };
+		AA00000000000000000000F2 /* Data in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000F4 /* Data */; };
+		AA00000000000000000000F7 /* Utils in Frameworks */ = {isa = PBXBuildFile; productRef = AA00000000000000000000F8 /* Utils */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -21,22 +25,70 @@
 			remoteGlobalIDString = 49107520308CB643003A7B4D;
 			remoteInfo = ForgetLess;
 		};
+		AA00000000000000000000EE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 49107519308CB643003A7B4D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA00000000000000000000E5;
+			remoteInfo = ForgetLessWidget;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA00000000000000000000EC /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				AA00000000000000000000ED /* ForgetLessWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		49107521308CB643003A7B4D /* ForgetLess.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ForgetLess.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4910752E308CB644003A7B4D /* ForgetLessTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ForgetLessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA00000000000000000000E1 /* ForgetLessWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ForgetLessWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		AA00000000000000000000E3 /* Exceptions for "ForgetLessWidget" folder in "ForgetLessWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = AA00000000000000000000E5 /* ForgetLessWidget */;
+		};
+		AA00000000000000000000E4 /* Exceptions for "ForgetLess" folder in "ForgetLessWidget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Localizable.xcstrings,
+			);
+			target = AA00000000000000000000E5 /* ForgetLessWidget */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		49107523308CB643003A7B4D /* ForgetLess */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AA00000000000000000000E4 /* Exceptions for "ForgetLess" folder in "ForgetLessWidget" target */,
+			);
 			path = ForgetLess;
 			sourceTree = "<group>";
 		};
 		49107531308CB644003A7B4D /* ForgetLessTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ForgetLessTests;
+			sourceTree = "<group>";
+		};
+		AA00000000000000000000E2 /* ForgetLessWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AA00000000000000000000E3 /* Exceptions for "ForgetLessWidget" folder in "ForgetLessWidget" target */,
+			);
+			path = ForgetLessWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -56,6 +108,14 @@
 			files = (
 			);
 		};
+		AA00000000000000000000E7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				AA00000000000000000000F1 /* Domain in Frameworks */,
+				AA00000000000000000000F2 /* Data in Frameworks */,
+				AA00000000000000000000F7 /* Utils in Frameworks */,
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -64,6 +124,7 @@
 			children = (
 				49107523308CB643003A7B4D /* ForgetLess */,
 				49107531308CB644003A7B4D /* ForgetLessTests */,
+				AA00000000000000000000E2 /* ForgetLessWidget */,
 				49107522308CB643003A7B4D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -73,6 +134,7 @@
 			children = (
 				49107521308CB643003A7B4D /* ForgetLess.app */,
 				4910752E308CB644003A7B4D /* ForgetLessTests.xctest */,
+				AA00000000000000000000E1 /* ForgetLessWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,11 +149,13 @@
 				4910751D308CB643003A7B4D /* Sources */,
 				4910751E308CB643003A7B4D /* Frameworks */,
 				4910751F308CB643003A7B4D /* Resources */,
+				AA00000000000000000000EC /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				AA00000000000000000000D1 /* PBXTargetDependency */,
+				AA00000000000000000000EF /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				49107523308CB643003A7B4D /* ForgetLess */,
@@ -128,6 +192,32 @@
 			productReference = 4910752E308CB644003A7B4D /* ForgetLessTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		AA00000000000000000000E5 /* ForgetLessWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA00000000000000000000E9 /* Build configuration list for PBXNativeTarget "ForgetLessWidget" */;
+			buildPhases = (
+				AA00000000000000000000E6 /* Sources */,
+				AA00000000000000000000E7 /* Frameworks */,
+				AA00000000000000000000E8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA00000000000000000000F5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				AA00000000000000000000E2 /* ForgetLessWidget */,
+			);
+			name = ForgetLessWidget;
+			packageProductDependencies = (
+				AA00000000000000000000F3 /* Domain */,
+				AA00000000000000000000F4 /* Data */,
+				AA00000000000000000000F8 /* Utils */,
+			);
+			productName = ForgetLessWidget;
+			productReference = AA00000000000000000000E1 /* ForgetLessWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -144,6 +234,9 @@
 					4910752D308CB644003A7B4D = {
 						CreatedOnToolsVersion = 27.1;
 						TestTargetID = 49107520308CB643003A7B4D;
+					};
+					AA00000000000000000000E5 = {
+						CreatedOnToolsVersion = 27.1;
 					};
 				};
 			};
@@ -171,6 +264,7 @@
 			targets = (
 				49107520308CB643003A7B4D /* ForgetLess */,
 				4910752D308CB644003A7B4D /* ForgetLessTests */,
+				AA00000000000000000000E5 /* ForgetLessWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -182,6 +276,11 @@
 			);
 		};
 		4910752C308CB644003A7B4D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		AA00000000000000000000E8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -199,6 +298,11 @@
 			files = (
 			);
 		};
+		AA00000000000000000000E6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -210,6 +314,15 @@
 		AA00000000000000000000D1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			productRef = AA00000000000000000000B4 /* SwiftLintBuildToolPlugin */;
+		};
+		AA00000000000000000000EF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA00000000000000000000E5 /* ForgetLessWidget */;
+			targetProxy = AA00000000000000000000EE /* PBXContainerItemProxy */;
+		};
+		AA00000000000000000000F5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = AA00000000000000000000F6 /* SwiftLintBuildToolPlugin */;
 		};
 /* End PBXTargetDependency section */
 
@@ -455,6 +568,70 @@
 			};
 			name = Release;
 		};
+		AA00000000000000000000EA /* Debug configuration for PBXNativeTarget "ForgetLessWidget" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ForgetLessWidget/ForgetLessWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ForgetLessWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ForgetLess;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrew.ForgetLess.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AA00000000000000000000EB /* Release configuration for PBXNativeTarget "ForgetLessWidget" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ForgetLessWidget/ForgetLessWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CP7QJ3G8V3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ForgetLessWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ForgetLess;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.andrew.ForgetLess.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -479,6 +656,14 @@
 			buildConfigurations = (
 				49107544308CB644003A7B4D /* Debug configuration for PBXNativeTarget "ForgetLessTests" */,
 				49107545308CB644003A7B4D /* Release configuration for PBXNativeTarget "ForgetLessTests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		AA00000000000000000000E9 /* Build configuration list for PBXNativeTarget "ForgetLessWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA00000000000000000000EA /* Debug configuration for PBXNativeTarget "ForgetLessWidget" */,
+				AA00000000000000000000EB /* Release configuration for PBXNativeTarget "ForgetLessWidget" */,
 			);
 			defaultConfigurationName = Release;
 		};
@@ -538,6 +723,23 @@
 			productName = "plugin:SwiftLintBuildToolPlugin";
 		};
 		AA00000000000000000000B5 /* Utils */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Utils;
+		};
+		AA00000000000000000000F3 /* Domain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Domain;
+		};
+		AA00000000000000000000F4 /* Data */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Data;
+		};
+		AA00000000000000000000F6 /* SwiftLintBuildToolPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA00000000000000000000A4 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
+			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		AA00000000000000000000F8 /* Utils */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Utils;
 		};

@@ -25,6 +25,24 @@ struct DateDayTests {
         #expect(try day(yearMonthDay).isInSameYear(as: try day("2026-10-25")) == isInSameYear)
     }
 
+    @Test(arguments: [
+        ("2026-10-24", "2026-10-25", RelativeDay.beforeToday),
+        ("2025-03-01", "2026-10-25", RelativeDay.beforeToday),
+        ("2026-10-25", "2026-10-25", RelativeDay.today),
+        ("2026-10-26", "2026-10-25", RelativeDay.tomorrow),
+        ("2026-10-27", "2026-10-25", RelativeDay.later),
+        ("2026-12-31", "2027-01-01", RelativeDay.beforeToday),
+        ("2027-01-01", "2026-12-31", RelativeDay.tomorrow),
+        ("2027-01-02", "2026-12-31", RelativeDay.later),
+    ])
+    func aDaySitsBeforeTodayOnTodayOnTomorrowOrLater(
+        yearMonthDay: String,
+        today: String,
+        relativeDay: RelativeDay
+    ) throws {
+        #expect(try day(yearMonthDay).relativeDay(today: try day(today)) == relativeDay)
+    }
+
     // MARK: - Helpers
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.
     private func day(_ yearMonthDay: String) throws -> Date {

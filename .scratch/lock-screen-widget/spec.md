@@ -124,7 +124,7 @@ Two settings choose whether Overdue Tasks (on by default) and Tomorrow's Tasks (
   - **Text and padding:** the font size is fixed whatever the count, sized so 4 rows fill the widget's height. Padding is minimal.
 - **Symbols:**
   - The empty state is `checklist.unchecked` with a `checkmark` badge. The unreadable state is `checklist.unchecked` with an `exclamationmark.triangle` badge.
-  - Each badge is about 60% of the checklist's size, centred on its top-right corner. The composed symbol is centred in the widget, at about two-thirds of its height.
+  - Each badge is as large as the checklist, centred on its top-right corner, with the checklist cut away around it. The composed symbol is centred in the widget, at about two-thirds of its height.
   - The sizes are tuned with `RenderPreview` and agreed with the user.
 - **Interaction and appearance:**
   - There's no widget URL: a tap opens the app as it was.
@@ -163,7 +163,7 @@ A good test exercises behaviour through a public interface and asserts on outcom
 - **Done:**
   - `build_sim`, `test_sim` and `scripts/check.sh` pass.
   - The app's UI check on iOS 27 confirms the Schedule still lists Tasks in the same order.
-  - The widget on a real Lock Screen can't be driven by the tools, so that check is reported as skipped unless the user runs it.
+  - The widget is checked on the simulator's Lock Screen on iOS 27, as `docs/agents/ui-check.md` describes: added from the gallery, and updated after an app write. The midnight entry is checked by booting the simulator in a time zone whose midnight is minutes away.
 
 ## Out of Scope
 

@@ -252,12 +252,12 @@ struct TodoTaskRepositoryLiveTests {
     }
 
     // MARK: - Helpers
-    private static func inMemoryContainer() throws -> ModelContainer {
+    static func inMemoryContainer() throws -> ModelContainer {
         try ForgetLessModelContainer.makeInMemory()
     }
 
     /// Stores `tasks` as given, in the order given, so a test can set their positions.
-    private static func insert(_ tasks: [TodoTask], into container: ModelContainer) throws {
+    static func insert(_ tasks: [TodoTask], into container: ModelContainer) throws {
         let context = ModelContext(container)
         for task in tasks {
             context.insert(TodoTaskModel(task))
@@ -265,12 +265,12 @@ struct TodoTaskRepositoryLiveTests {
         try context.save()
     }
 
-    private static func task(_ name: String, day: Date, sortIndex: Int) -> TodoTask {
+    static func task(_ name: String, day: Date, sortIndex: Int) -> TodoTask {
         TodoTask(id: UUID(), name: name, day: day, completeDay: nil, sortIndex: sortIndex)
     }
 
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.
-    private static func day(_ yearMonthDay: String) throws -> Date {
+    static func day(_ yearMonthDay: String) throws -> Date {
         try Date("\(yearMonthDay)T00:00:00Z", strategy: .iso8601)
     }
 }

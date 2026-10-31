@@ -18,6 +18,10 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         }
     }
 
+    func incompleteTasks(from firstDay: Date?, through lastDay: Date) -> [TodoTask] {
+        tasks.filter { !$0.isComplete && $0.day >= (firstDay ?? .distantPast) && $0.day <= lastDay }
+    }
+
     func create(name: String, day: Date) {
         let task = TodoTask(
             id: UUID(),

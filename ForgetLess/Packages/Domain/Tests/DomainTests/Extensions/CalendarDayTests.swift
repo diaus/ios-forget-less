@@ -24,4 +24,19 @@ struct CalendarDayTests {
 
         #expect(day == (try Date("\(yearMonthDay)T00:00:00Z", strategy: .iso8601)))
     }
+
+    @Test(arguments: [
+        (-4 * 3600, "2026-10-25T23:30:00-04:00", "2026-10-26T00:00:00-04:00"),
+        (-4 * 3600, "2026-10-25T00:00:00-04:00", "2026-10-26T00:00:00-04:00"),
+        (2 * 3600, "2026-10-25T00:30:00+02:00", "2026-10-26T00:00:00+02:00"),
+        (2 * 3600, "2026-12-31T23:59:00+02:00", "2027-01-01T00:00:00+02:00"),
+    ])
+    func theNextRolloverIsTheNextLocalMidnight(secondsFromGMT: Int, moment: String, rollover: String) throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: secondsFromGMT)!
+
+        let nextRollover = calendar.nextRollover(after: try Date(moment, strategy: .iso8601))
+
+        #expect(nextRollover == (try Date(rollover, strategy: .iso8601)))
+    }
 }

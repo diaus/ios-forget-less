@@ -53,6 +53,15 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         return stream
     }
 
+    func incompleteTasks(from firstDay: Date?, through lastDay: Date) throws -> [TodoTask] {
+        let firstDay = firstDay ?? .distantPast
+        let descriptor = FetchDescriptor<TodoTaskModel>(
+            predicate: #Predicate { $0.completeDay == nil && $0.day >= firstDay && $0.day <= lastDay },
+            sortBy: Self.scheduleOrder
+        )
+        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+    }
+
     func create(name: String, day: Date) throws {
         // Read and insert without suspending, so two creates at once can't take the same place in the Day.
         let task = TodoTask(

@@ -20,6 +20,16 @@ The check passes once every behaviour the change touches is confirmed this way.
 - **Relaunch** with `xcrun simctl terminate`/`launch <udid> com.andrew.ForgetLess`: `stop_app_sim` and `launch_app_sim` need a bundle ID the session defaults lack.
 - **Background and return.** The `home` button is dropped like an early tap. Launch Settings (`xcrun simctl launch <udid> com.apple.Preferences`), then the app again; the same process id shows it came back rather than relaunched.
 
+## Lock Screen widget
+
+The simulator's Lock Screen can be driven, so a widget check is not skipped for lack of a device.
+
+- **Lock and wake.** MobileBuildMCP's `button lock` is dropped like `home`. Press it through one axe session that waits for the HID services, as `scripts/sim-tap.sh` does: `"$axe" batch --udid <udid> --step "touch -x 1 -y 1 --up" --step "sleep 0.5" --step "button lock" --step "sleep 1"`, with `axe` found the way that script finds it. Once to lock, once more to wake to the Lock Screen. Swipes and long presses go through the same kind of batch (`swipe --start-x … --end-y …`, or `touch --down`, `sleep`, `touch --up`).
+- **Add the widget.** Long-press the middle of the Lock Screen (about 1.8 s), tap Customise (`sim-tap.sh`), then the editor's "Add Widget", "ForgetLess", the widget's tile, and its card's close button. These have elementRefs in `snapshot_ui`. Dismiss the gallery by dragging its handle down. A tap above the gallery lands on the clock. Tap Done at the top right. iOS 27's editor shows the tall clock with widgets at the bottom once a widget is placed. The widget's settings sheet opens when you tap the placed widget in the editor.
+- **See it.** Confirm the widget from a screenshot (`xcrun simctl io <udid> screenshot`), since `snapshot_ui` doesn't describe widget content. `snapshot_ui` keeps reading the app launched by `build_run_sim`, even while SpringBoard or another app is in front, so outside the editor, tap by coordinates.
+- **Update after a save.** Save in the app, then lock. iOS lets one reload through per foreground session and runs the rest when the app goes to the background, so lock before judging.
+- **Midnight.** Settings has no Date & Time page, so move the simulator's time zone instead. Boot it with a `TZ` whose midnight is a few minutes away: `xcrun simctl shutdown <udid>`, then `SIMCTL_CHILD_TZ=GMT+HHMM xcrun simctl boot <udid>`, then `xcrun simctl bootstatus <udid> -b`. Work out HHMM from `date -u` (a whole number of minutes is fine). Every process then runs in that zone, the Lock Screen clock and the widget extension included, and chronod rebuilds the timeline at boot. `launchctl setenv TZ` doesn't work: it never reaches the widget extension. Lock, take a screenshot after midnight, then boot again without `SIMCTL_CHILD_TZ` to put the Mac's zone back.
+
 ## Time-based states
 
 A check is never skipped because a state needs a past Day or another time. Set it up directly:

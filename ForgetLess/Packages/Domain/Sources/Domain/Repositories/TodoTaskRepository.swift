@@ -8,6 +8,9 @@ public protocol TodoTaskRepository: Sendable {
     /// after every change, until the consumer stops iterating. Throws when the first fetch fails; a later fetch that
     /// fails sends nothing.
     func scheduleTasks(today: Date) async throws -> AsyncStream<[TodoTask]>
+    /// The Incomplete Tasks whose Day is from `firstDay` through `lastDay`, with no lower bound when `firstDay` is nil,
+    /// in order of Day, then position within it.
+    func incompleteTasks(from firstDay: Date?, through lastDay: Date) async throws -> [TodoTask]
     /// Creates an Incomplete Task at the end of `day`.
     func create(name: String, day: Date) async throws
     /// Gives the Task with `id` a new name; does nothing when no Task has `id`.

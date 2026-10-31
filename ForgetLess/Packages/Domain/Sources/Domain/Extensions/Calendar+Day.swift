@@ -15,4 +15,10 @@ public extension Calendar {
         // A year/month/day taken from the same calendar system always names a Day in it.
         return gmt.date(from: dateComponents([.era, .year, .month, .day], from: moment))!
     }
+
+    /// The moment Today next rolls over after `moment`, in this calendar.
+    internal func nextRollover(after moment: Date) -> Date {
+        // Every moment falls in a day, which has an end.
+        dateInterval(of: .day, for: moment)!.end
+    }
 }

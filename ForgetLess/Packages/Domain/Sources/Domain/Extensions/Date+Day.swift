@@ -3,7 +3,17 @@ import Foundation
 public extension Date {
     /// Today, by the device's calendar (ADR 0001).
     static var today: Date {
-        Calendar.current.day(containing: .now)
+        today(at: .now)
+    }
+
+    /// Today as it is at `moment`, by the device's calendar.
+    static func today(at moment: Date) -> Date {
+        Calendar.current.day(containing: moment)
+    }
+
+    /// The moment Today next rolls over after `moment`, by the device's calendar.
+    static func nextRollover(after moment: Date) -> Date {
+        Calendar.current.nextRollover(after: moment)
     }
 
     /// The Day `dayCount` Days after this one, or before it when negative.
@@ -16,6 +26,15 @@ public extension Date {
     func dayCount(from day: Date) -> Int {
         // Two Days are always a whole number of Days apart.
         Calendar.gmt.dateComponents([.day], from: day, to: self).day!
+    }
+
+    func relativeDay(today: Date) -> RelativeDay {
+        switch dayCount(from: today) {
+        case ..<0: .beforeToday
+        case 0: .today
+        case 1: .tomorrow
+        default: .later
+        }
     }
 
     /// Whether this Day is in the same year as `day`.

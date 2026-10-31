@@ -10,15 +10,16 @@ These are the judgement calls tooling can't make. Tooling already enforces these
 - **Layers.** Domain imports neither SwiftData nor SwiftUI, so it doesn't depend on the storage or the UI chosen. Only Data imports SwiftData.
 - **Injection.** The app resolves its dependencies through Factory's property wrappers: a view holds its view model with `@InjectedObservable(\.key)`, and a view model holds each repository and use case as `@ObservationIgnored @Injected(\.key) private var`, so its `init` sets up only its own state. Domain and Data types take their dependencies as `init` parameters, which their factory passes, so Domain stays free of Factory.
 - **Utils is project-independent.** It holds helpers another project could reuse (a concurrency primitive, a Foundation extension). It imports only the standard library and Apple's system frameworks: no Domain, no Data, no third-party package. The glossary lint rule skips it.
-- **A Task's Day is a `Date` at 00:00 GMT everywhere** (ADR 0001). Data stores and queries it as given. The local calendar is read only for Today, which is Domain's `Date.today`. A new Day operation is a helper in Domain's `Date+Day`, and Days are formatted in GMT (`Date.FormatStyle(calendar: .gmt, timeZone: .gmt)`).
+- **A Task's Day is a `Date` at 00:00 GMT everywhere** (ADR 0001). Data stores and queries it as given. The local calendar is read only for Today and when it rolls over, in Domain's `Date+Day` (`Date.today`, `today(at:)`, `nextRollover(after:)`). A new Day operation is a helper in Domain's `Date+Day`, and Days are formatted in GMT (`Date.FormatStyle(calendar: .gmt, timeZone: .gmt)`).
 - **Every write goes through the repository's notifying save** (ADR 0002), or open streams miss it.
 - **Folders by role.** A new file goes in the folder for its role:
   - Domain: `Models/`, `Repositories/` (protocols), `UseCases/`, `Errors/`, `Extensions/`. `Models/` splits by DDD building block:
     - `Entities/`: a stored record with its own ID (`TodoTask`).
-    - `ValueObjects/`: a value without an ID, equal by its fields.
+    - `ValueObjects/`: a value without an ID, equal by its fields (`RelativeDay`).
     - `ReadModels/`: computed for a screen, never stored (`Schedule`).
   - Data: `Repositories/` (the concrete repositories only), `Infrastructure/` (generic SwiftData helpers the repositories share), `Mapping/` (model ↔ domain), `Schema/V<n>/`, `DI/` (Factory wiring), `Errors/`.
   - App: `App/`, `Composition/` (Factory wiring), `Features/<Feature>/` (a view and its view model), `Shared/{Components,Extensions,Modifiers,Preview}/`.
+  - Widget (`ForgetLessWidget/`): the bundle and each widget at the top, then `Configuration/` (its App Intent settings), `Timeline/` (the timeline provider, its entry and what the widget shows), `Views/` (each with its previews), `Preview/` (sample entries the previews share).
   - Mixed folders get split.
 - **A use case exists only when an operation does at least one of these:**
   - (a) applies a business rule beyond passing values through;
