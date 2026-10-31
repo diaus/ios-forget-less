@@ -14,7 +14,7 @@ The Overdue section only gives Tasks up. An Overdue Task can be moved to Today o
 
 VoiceOver users get "Move Up" and "Move Down" actions that step a Task one place at a time.
 
-To make this possible, the Schedule list is rebuilt as a UIKit collection-view list, wrapped for SwiftUI (ADR 0004, `proposed` until a prototype confirms it).
+To make this possible, the Schedule list is rebuilt as a UIKit collection-view list, wrapped for SwiftUI (ADR 0004, confirmed by the drag prototype in `issues/01`).
 
 ## User Stories
 
@@ -119,7 +119,7 @@ To make this possible, the Schedule list is rebuilt as a UIKit collection-view l
   - Swipe-to-delete moves to the list's native trailing swipe actions, with no full swipe and a confirmation before deleting.
   - It must look the same as the SwiftUI `List` it replaces: same section style, separators inset to the text, the bottom content margin under the floating "+", the quick settings bar above it (`safeAreaBar` with its scroll edge effect on iOS 26+, `safeAreaInset` with `.bar` on iOS 18), and the default list animation when rows change.
   - Accessibility focus returning to a row or a header's "+" after the composer closes keeps working.
-- **The handle** is the list's reorder accessory, always visible while Move Tasks is on and not tied to editing mode. Whether that works is the prototype's first question.
+- **The handle** is the list's reorder accessory, always visible while Move Tasks is on and not tied to editing mode. The prototype confirmed that it drags outside editing mode.
 - **Refusing a drop.** The collection view's target-index-path delegate method asks `Schedule`'s move rule. A drop into Overdue resolves to the Task's original index path, so no gap opens there and letting go returns the Task.
 - **On drop**, the view model works out the Place from the drop position: the Day of the destination section, and the Task shown just above, or none. It applies the move to its last observed Tasks at once, so the row doesn't snap back while the write is in flight, rebuilds the Schedule, and writes through the repository. The stream then confirms. On failure, the next stream element puts the Task back, and the error alert shows.
 - **Today rolling over during a drag** cancels the drag.

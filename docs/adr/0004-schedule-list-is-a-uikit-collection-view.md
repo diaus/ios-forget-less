@@ -1,12 +1,12 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # The Schedule list is a UIKit collection view, so Tasks can be moved across Days
 
 Moving a Task drags it by a handle that starts the drag on touch-down. The drop can land on any listed Day, including an empty one, and some drops are refused: nothing lands in Overdue except an Overdue Task going back where it was. Swipe to delete, renaming by tapping the row, and the complete circle keep working while the handles are shown, which they are by default. SwiftUI's `List` can't do this on iOS 18, so the Schedule list is a `UICollectionView` list, wrapped for SwiftUI, with its rows still drawn in SwiftUI. The always-visible reorder accessory starts the drag. The delegate's `targetIndexPathForMoveOfItemFromOriginalIndexPath:atCurrentIndexPath:toProposedIndexPath:` sends a refused drop back to where the Task started.
 
-Status stays `proposed` until a prototype confirms three things: the accessory drags outside editing mode, a drop lands in an empty section, and the list auto-scrolls during a drag.
+A prototype confirmed it on iOS 27 and iOS 18 (`.scratch/move-tasks/issues/01-drag-prototype.md`): the accessory drags outside editing mode, a drop lands in an empty section, and the list auto-scrolls during a drag.
 
 ## Considered Options
 
@@ -25,5 +25,6 @@ Status stays `proposed` until a prototype confirms three things: the accessory d
 
 ## Consequences
 
-- If the prototype fails any of the three checks, don't pick a fallback straight away. First research how existing apps and libraries move rows across sections from a handle that starts on touch-down. One known fallback is a zero-delay pan on the handle that drives `beginInteractiveMovementForItem(at:)`, with the edge auto-scroll written by hand.
+- The list never proposes a drop into an empty section by itself. The target-index-path delegate sends the gap to an empty section when the lifted row is over that section's header.
+- The list keeps `contentInsetAdjustmentBehavior` at `.automatic` and adds only the quick settings bar's height as `contentInset`. With `.never`, iOS 18 hands the window's safe area to cells at the screen's edges, and their content stays shifted after they scroll away.
 - Once the deployment target reaches iOS 27, check whether SwiftUI's reordering has caught up. If it has, the list can go back to SwiftUI.
