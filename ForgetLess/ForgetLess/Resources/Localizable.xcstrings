@@ -171,6 +171,23 @@
         }
       }
     },
+    "schedule.showCompleteTasks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Complete Tasks"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати виконані завдання"
+          }
+        }
+      }
+    },
     "task.add" : {
       "extractionState" : "manual",
       "localizations" : {

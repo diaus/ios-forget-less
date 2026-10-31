@@ -12,6 +12,23 @@ final class ScheduleViewModel {
     private(set) var schedule: Schedule
     var composer: ComposerState
     var errorMessage: String?
+    /// Whether the Schedule lists Complete Tasks. Kept across launches.
+    var showsComplete: Bool {
+        didSet {
+            UserDefaults.standard.set(showsComplete, forKey: Self.showsCompleteKey)
+            releaseKeptTasks()
+            rebuildSchedule()
+        }
+    }
+    /// The Tasks the Schedule was last observed with.
+    private var tasks: [TodoTask] = []
+    /// Tasks completed while Complete Tasks are hidden that the Schedule still lists, so a mis-tap can be undone.
+    private(set) var keptTaskIDs: Set<UUID> = []
+    @ObservationIgnored private var keptTaskTimers: [UUID: Task<Void, Never>] = [:]
+
+    private static let showsCompleteKey = "showsCompleteTasks"
+    /// How long a Task completed while Complete Tasks are hidden stays listed, so a mis-tap can be undone.
+    private static let keptDuration = Duration.seconds(2)
 
     @ObservationIgnored @Injected(\.todoTaskRepository) private var repository
     @ObservationIgnored @Injected(\.addTask) private var addTask
@@ -22,6 +39,7 @@ final class ScheduleViewModel {
         self.today = today
         self.schedule = Schedule(tasks: [], today: today)
         self.composer = ComposerState(day: today)
+        self.showsComplete = UserDefaults.standard.object(forKey: Self.showsCompleteKey) as? Bool ?? true
     }
 
     // MARK: - Loading
@@ -34,7 +52,8 @@ final class ScheduleViewModel {
     func observeSchedule() async {
         do {
             for await tasks in try await repository.scheduleTasks(today: today) {
-                schedule = Schedule(tasks: tasks, today: today)
+                self.tasks = tasks
+                rebuildSchedule()
             }
         } catch {
             errorMessage = error.userMessage
@@ -93,7 +112,14 @@ final class ScheduleViewModel {
 
     // MARK: - Completion
     func toggleComplete(_ task: TodoTask) {
-        write { try await self.repository.setComplete(id: task.id, isComplete: !task.isComplete, today: self.today) }
+        let isComplete = !task.isComplete
+        if isComplete && !showsComplete {
+            keep(task.id)
+        } else {
+            // Stays kept, so no rebuild drops it before the Tasks observed hold it Incomplete.
+            keptTaskTimers.removeValue(forKey: task.id)?.cancel()
+        }
+        write { try await self.repository.setComplete(id: task.id, isComplete: isComplete, today: self.today) }
     }
 
     // MARK: - Deletion
@@ -102,6 +128,29 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Helpers
+    /// Gives the Task with `id` its grace period while Complete Tasks are hidden.
+    private func keep(_ id: UUID) {
+        keptTaskIDs.insert(id)
+        keptTaskTimers[id]?.cancel()
+        keptTaskTimers[id] = Task {
+            try? await Task.sleep(for: Self.keptDuration)
+            guard !Task.isCancelled else { return }
+            keptTaskTimers[id] = nil
+            keptTaskIDs.remove(id)
+            rebuildSchedule()
+        }
+    }
+
+    private func releaseKeptTasks() {
+        keptTaskTimers.values.forEach { $0.cancel() }
+        keptTaskTimers = [:]
+        keptTaskIDs = []
+    }
+
+    private func rebuildSchedule() {
+        schedule = Schedule(tasks: tasks, today: today, showsComplete: showsComplete, keptTaskIDs: keptTaskIDs)
+    }
+
     /// Runs `operation`; on failure, runs `onFailure` and shows the error.
     private func write(
         _ operation: @escaping @MainActor () async throws -> Void,

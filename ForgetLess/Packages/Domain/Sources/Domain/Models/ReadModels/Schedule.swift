@@ -17,7 +17,11 @@ public struct Schedule: Sendable {
     /// How many Days the window holds, Today included.
     private static let windowDayCount = 100
 
-    public init(tasks: [TodoTask], today: Date) {
+    /// - Parameters:
+    ///   - showsComplete: Whether Complete Tasks are listed.
+    ///   - keptTaskIDs: Complete Tasks listed even while Complete Tasks are hidden, so a mis-tap can be undone.
+    public init(tasks: [TodoTask], today: Date, showsComplete: Bool = true, keptTaskIDs: Set<UUID> = []) {
+        let tasks = showsComplete ? tasks : tasks.filter { !$0.isComplete || keptTaskIDs.contains($0.id) }
         overdue = tasks
             // A Task completed from Overdue stays there until Today rolls over, so a mis-tap can be undone.
             .filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }

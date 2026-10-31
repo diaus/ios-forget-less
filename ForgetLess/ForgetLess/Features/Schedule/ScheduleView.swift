@@ -57,37 +57,56 @@ struct ScheduleView: View {
     // MARK: - UI Components
     private var content: some View {
         ZStack(alignment: .bottomTrailing) {
-            List {
-                if !vm.schedule.overdue.isEmpty {
-                    overdueSection
-                }
-                ForEach(vm.schedule.days) { scheduleDay in
-                    Section {
-                        ForEach(scheduleDay.tasks) { task in
-                            TaskRowView(task: task, showsDay: false, focusedComposerOpener: $focusedComposerOpener) {
-                                showComposer(editing: task)
-                            }
-                        }
-                    } header: {
-                        dayHeader(scheduleDay)
-                    }
+            // Above the list rather than in it, so quick settings stay one tap away wherever it's scrolled.
+            if #available(iOS 26, *) {
+                scheduleList.safeAreaBar(edge: .top, alignment: .trailing) { QuickSettingsView() }
+            } else {
+                scheduleList.safeAreaInset(edge: .top, alignment: .trailing, spacing: 0) {
+                    QuickSettingsView()
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .background(.bar)
                 }
             }
-            // Room under the last row, so the floating "+" never covers it.
-            .contentMargins(.bottom, 88, for: .scrollContent)
-            Button { showComposer(on: vm.today, from: .floating) } label: {
-                Image(systemName: "plus")
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 56, height: 56)
-                    .background(.tint, in: .circle)
-            }
-            .accessibilityLabel(Text(.taskAdd))
-            .accessibilityFocused($focusedComposerOpener, equals: .floating)
-            .padding(20)
-            // Its own container, so the rotor's Containers moves between it and the List.
-            .accessibilityElement(children: .contain)
+            addFloatingButton
         }
+    }
+
+    private var addFloatingButton: some View {
+        Button { showComposer(on: vm.today, from: .floating) } label: {
+            Image(systemName: "plus")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(.white)
+                .frame(width: 56, height: 56)
+                .background(.tint, in: .circle)
+        }
+        .accessibilityLabel(Text(.taskAdd))
+        .accessibilityFocused($focusedComposerOpener, equals: .floating)
+        .padding(20)
+        // Its own container, so the rotor's Containers moves between it and the List.
+        .accessibilityElement(children: .contain)
+    }
+
+    private var scheduleList: some View {
+        List {
+            if !vm.schedule.overdue.isEmpty {
+                overdueSection
+            }
+            ForEach(vm.schedule.days) { scheduleDay in
+                Section {
+                    ForEach(scheduleDay.tasks) { task in
+                        TaskRowView(task: task, showsDay: false, focusedComposerOpener: $focusedComposerOpener) {
+                            showComposer(editing: task)
+                        }
+                    }
+                } header: {
+                    dayHeader(scheduleDay)
+                }
+            }
+        }
+        // Room under the last row, so the floating "+" never covers it.
+        .contentMargins(.bottom, 88, for: .scrollContent)
+        // A Task completed while Complete Tasks are hidden leaves when its grace period ends.
+        .animation(.default, value: vm.keptTaskIDs)
     }
 
     private var overdueSection: some View {

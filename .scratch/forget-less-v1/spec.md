@@ -8,28 +8,28 @@ The user wants a plain, fast todo list for planning what to do on which day. The
 
 ## Solution
 
-An iPhone app with one screen: a scrolling list of Days from Today through the next 99 Days. Overdue Tasks sit in a section above Today. Each Day has a header with a "+", and a red floating "+" adds to Today. Adding or editing happens in a quick-add composer pinned above the keyboard, which comes up together with the panel. A Task is completed by tapping its circle, renamed by tapping its row, and deleted by swiping left. The look follows the reference screenshot without the "Inbox" project label.
+An iPhone app with one screen: a scrolling list of Days from Today through the next 99 Days. Overdue Tasks sit in a section above Today. Each Day has a header with a "+", and a red floating "+" adds to Today. Adding or editing happens in a quick-add composer pinned above the keyboard, which comes up together with the panel. A Task is completed by tapping its circle, renamed by tapping its row, and deleted by swiping left. A quick settings bar fixed at the top trailing edge shows or hides Complete Tasks. The look follows the reference screenshot without the "Inbox" project label.
 
 ## User Stories
 
 ### The list
 
 1. As a user, I want one list of Day sections from Today through Today + 99, every Day shown even when it has no Tasks, so that I can plan ahead without navigating.
-2. As a user, I want a Task planned beyond Today + 99 to still appear under its own Day header after the window (empty Days between are not shown), so that nothing I planned is hidden.
+2. As a user, I want a Task planned beyond Today + 99 to still appear under its own Day header after the window (empty Days between are not shown), so that nothing I planned is hidden. While Complete Tasks are hidden, a Day here whose Tasks are all hidden isn't listed (story 34).
 3. As a user, I want each Day header to read `25 Oct · Today · Sunday`, `26 Oct · Tomorrow · Monday` or `27 Oct · Tuesday`, with the year added when it isn't the current year (`3 Jan 2027 · Sunday`), formatted for the device locale, so that I always know which Day I'm looking at.
-4. As a user, I want a Day header and its "+" in bold primary colour when the Day has any Task (Complete or not), and in grey when it has none, so that busy Days stand out.
+4. As a user, I want a Day header and its "+" in bold primary colour when the Day shows any Task (Complete or not), and in grey when it shows none, so that busy Days stand out. A Day whose Tasks are all hidden (story 34) is grey.
 5. As a user, I want an "Overdue" section above Today listing my Incomplete Tasks from earlier Days, oldest Day first, so that unfinished work is never lost.
 6. As a user, I want each Overdue row to show its own Day as a small red label (`20 Oct`) at the bottom trailing edge, so that I can tell how late it is.
 7. As a user, I want the Overdue section to have no "+", so that I can't plan a Task in the past.
 8. As a user, I want Tasks within a Day in the order I added them, so that the list is stable.
-9. As a user, I want no navigation bar or title, just the list and a red floating "+" at the bottom trailing corner, so that the screen stays calm.
+9. As a user, I want no navigation bar or title, just the list, the quick settings bar at the top trailing edge (story 30), and a red floating "+" at the bottom trailing corner, so that the screen stays calm.
 
 ### Completing
 
 10. As a user, I want to tap a Task's circle to make it Complete and tap again to make it Incomplete, so that a mis-tap is reversible.
 11. As a user, I want a Complete Task shown with a filled grey check circle and its name struck through and greyed, so that done and not-done are obvious at a glance.
-12. As a user, I want a Task to keep its place when I complete it, so that the list doesn't jump under my finger.
-13. As a user, I want a Task I complete from the Overdue section to stay there (struck through) until Today rolls over, so that I can undo a mis-tap.
+12. As a user, I want a Task to keep its place when I complete it, so that the list doesn't jump under my finger. While Complete Tasks are hidden, it keeps its place only for the grace period (story 33).
+13. As a user, I want a Task I complete from the Overdue section to stay there (struck through) until Today rolls over while Complete Tasks are shown, so that I can undo a mis-tap.
 
 ### Adding
 
@@ -56,6 +56,15 @@ An iPhone app with one screen: a scrolling list of Days from Today through the n
 28. As a user, I want a Task's Day never to move when I travel across time zones, so that my plan stays as I made it.
 29. As a user, I want the app to follow the system light/dark appearance, with the reference screenshot as the dark rendering and red as the accent, so that it fits the rest of my phone.
 
+### Quick settings
+
+30. As a user, I want a bar of square icon buttons fixed at the top trailing edge, which stays put while the list scrolls under it, so that quick settings are one tap away. For now it holds one button.
+31. As a user, I want that button to show or hide Complete Tasks, drawn as `checklist.checked` while they're shown and `checklist.unchecked` while they're hidden, in the same neutral square either way, with rows animating in and out when I tap it, so that the icon tells me the current state.
+32. As a user, I want Complete Tasks shown by default and my choice kept across launches, so that the list stays the way I left it.
+33. As a user, I want a Task I complete while Complete Tasks are hidden to stay, struck through, for 2 seconds before it animates out, and to stay for good if I make it Incomplete within that time, so that I can undo a mis-tap.
+34. As a user, I want hiding Complete Tasks to hide every Complete Task, including those completed from Overdue on Today, and to leave out the Overdue section and any Day after the window when nothing in it is left to show, so that the list holds only what's still to do.
+35. As a VoiceOver user, I want the button read as a toggle labelled "Show Complete Tasks" with its on/off value, so that I know what it does and its state.
+
 ## Implementation Decisions
 
 ### Project
@@ -74,6 +83,7 @@ An iPhone app with one screen: a scrolling list of Days from Today through the n
 - **Name rule** (pure function in Domain): trim whitespace and newlines; an empty result throws `DomainError.emptyName`. Single line, no length limit.
 - **End-of-Day rule** (pure function in Domain): `TodoTask.nextSortIndex(in tasksOfDay:)` is the highest `sortIndex` + 1, or 0 for an empty Day. Gaps are allowed.
 - **Schedule** (a read model, never stored): the Overdue Tasks (by Day ascending, then `sortIndex`) and one entry per Day from Today through Today + 99, followed by an entry for each later Day that has Tasks. Each entry holds its Tasks ordered by `sortIndex`. Building it is a pure Domain function of the Tasks and Today.
+  - It also takes `showsComplete: Bool` and `keptTaskIDs: Set<UUID>`, the Complete Tasks still in their grace period (story 33). With `showsComplete` false, it drops every Complete Task not in `keptTaskIDs`, before deciding which later Days to list. Each entry then holds only the Tasks shown, so the header weight follows them.
 - There is no `Day` type and no clock. Today is a parameter (`today: Date`, 00:00 GMT). Domain computes it as `Date.today`, the one place the local calendar is read, and the view model reads it.
 
 ### Use cases
@@ -112,6 +122,13 @@ Per the use-case rule in `CODING_STANDARDS.md`:
   - A dim layer behind the panel catches the tap-outside dismissal, and a downward drag on the panel dismisses too.
   - The Day chip is display-only: there's no date picker in v1.
 - **Day chip category**: Today, Tomorrow, weekday (before Today + 7), later, or past (an Overdue Task being edited: short date in red). It's a pure function of the Day and Today, mapped to label and colour in `Shared/Extensions/`. Colours are asset-catalog colours with light and dark variants.
+- **Quick settings** (stories 30–35):
+  - The bar is `QuickSettingsView`, trailing-aligned above the list, so the list starts below it and scrolls under it: `safeAreaBar(edge: .top)` on iOS 26+, whose scroll edge effect blurs what's under it, and `safeAreaInset(edge: .top)` with the `.bar` material on iOS 18.
+  - Each setting is a 36 pt rounded-square icon button, 8 pt apart: Liquid Glass on iOS 26+, a neutral `.fill.tertiary` square on iOS 18 (not `.bordered`, which tints it with the accent). The square looks the same in both states; only the glyph changes.
+  - Show Complete Tasks is a button whose `accessibilityRepresentation` is a `Toggle` labelled `schedule.showCompleteTasks` ("Show Complete Tasks" / «Показувати виконані завдання»), so VoiceOver reads it as a switch.
+  - `ScheduleViewModel` holds the choice, stored in `UserDefaults` (default `true`), not in the Task store. It reads and writes `UserDefaults` itself, since `@AppStorage` doesn't work inside an `@Observable` type. It keeps the last Tasks the stream sent and rebuilds the Schedule when they, Today, the choice or `keptTaskIDs` change.
+  - Completing a Task while Complete Tasks are hidden adds it to `keptTaskIDs` and starts a 2-second timer per Task, which then removes it. Making the Task Incomplete cancels its timer but leaves it kept, so a rebuild before the write lands can't drop it; changing the choice clears every kept Task. The removal and the toggle animate with the list's default animation.
+  - Data and the repository stream are unchanged (ADR 0002).
 - **Rows**: the circle is an empty grey ring, or a filled grey circle with a white checkmark when Complete. Separators are inset to the text. Swipe actions have `allowsFullSwipe: false`.
 - Errors reach the user through `error.userMessage` and `.errorAlert(message:)`, as in PillsTracker.
 
@@ -131,6 +148,7 @@ A good test exercises behaviour through a public interface and asserts on outcom
     - Tasks are ordered within a Day;
     - a Task completed from Overdue on Today stays, and one completed on an earlier Day leaves;
     - the window crosses a year boundary;
+    - with Complete Tasks hidden: Complete Tasks leave every Day and Overdue, except those in `keptTaskIDs`; a later Day with only hidden Tasks isn't listed; a window Day with only hidden Tasks stays, with no Tasks;
   - `AddTask`: creates the Task with the trimmed name and refuses an empty name, against a fake repository;
 - **Data**, against an in-memory `ModelContainer`:
   - round trip of every field;
@@ -148,7 +166,7 @@ A good test exercises behaviour through a public interface and asserts on outcom
 - Reordering, projects (the screenshot's "Inbox"), labels, priorities, search.
 - Reminders and notifications, recurring Tasks.
 - Widgets, iCloud or any sync, accounts, export.
-- Auto-hiding or archiving Complete Tasks.
+- Archiving Complete Tasks, or hiding them other than through quick settings.
 
 ## Further Notes
 
@@ -162,3 +180,4 @@ A good test exercises behaviour through a public interface and asserts on outcom
   6. Composer add and edit, with discard confirmation.
   7. Swipe to delete.
   8. Ukrainian strings and the light-mode colour pass.
+  9. Quick settings: show or hide Complete Tasks.
