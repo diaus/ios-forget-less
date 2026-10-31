@@ -188,7 +188,7 @@ struct ScheduleView: View {
 
     // MARK: - Helpers
     /// What showed the composer: a "+", or a Task's row.
-    enum ComposerOpener: Hashable {
+    nonisolated enum ComposerOpener: Hashable {
         case floating
         case day(Date)
         case task(UUID)
@@ -201,6 +201,6 @@ struct ScheduleView: View {
     }
 }
 
-#Preview {
+#Preview(traits: .sampleTasks) {
     ScheduleView()
 }

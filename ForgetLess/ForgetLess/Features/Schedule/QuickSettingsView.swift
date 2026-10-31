@@ -38,3 +38,7 @@ private extension View {
         }
     }
 }
+
+#Preview(traits: .sizeThatFitsLayout) {
+    QuickSettingsView()
+}
