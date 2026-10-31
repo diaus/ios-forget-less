@@ -4,7 +4,7 @@ import Testing
 
 struct ForgetLessModelContainerTests {
     @Test func anInMemoryContainerOpensWithTheSchemaAndSaves() throws {
-        let container = try ForgetLessModelContainer.make(inMemory: true)
+        let container = try ForgetLessModelContainer.makeInMemory()
 
         try ModelContext(container).save()
         #expect(container.configurations.allSatisfy { $0.isStoredInMemoryOnly })

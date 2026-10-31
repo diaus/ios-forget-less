@@ -10,13 +10,16 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     nonisolated let modelContainer: ModelContainer
     /// Tells the open `scheduleTasks(today:)` streams that the store changed.
     private let notifier = ChangeNotifier()
+    /// Runs after every successful save, for readers in another process, such as the widget (ADR 0003).
+    private let afterStoreSave: @Sendable () -> Void
     private let logger = Logger(subsystem: "ForgetLess.Data", category: "TodoTaskRepository")
     /// The Schedule's order, which every list of Tasks the repository returns comes in.
     private static let scheduleOrder = [SortDescriptor(\TodoTaskModel.day), SortDescriptor(\TodoTaskModel.sortIndex)]
 
-    init(modelContainer: ModelContainer) {
+    init(modelContainer: ModelContainer, afterStoreSave: @escaping @Sendable () -> Void = {}) {
         self.modelExecutor = DefaultSerialModelExecutor(modelContext: ModelContext(modelContainer))
         self.modelContainer = modelContainer
+        self.afterStoreSave = afterStoreSave
     }
 
     // MARK: - TodoTaskRepository
@@ -106,5 +109,6 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
             throw error
         }
         notifier.notify()
+        afterStoreSave()
     }
 }

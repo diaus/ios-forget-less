@@ -28,7 +28,10 @@ let package = Package(
         ),
         .testTarget(
             name: "DataTests",
-            dependencies: ["Data"],
+            dependencies: [
+                "Data",
+                .product(name: "FactoryKit", package: "Factory"),
+            ],
             swiftSettings: zeroWarnings
         ),
     ],

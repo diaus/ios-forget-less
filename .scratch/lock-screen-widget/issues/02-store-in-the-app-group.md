@@ -17,8 +17,12 @@
 **Status:** ready-for-agent
 
 - [ ] After a fresh install, the store file is in the App Group container, and adding, completing, renaming and deleting Tasks all work, confirmed by the UI check on iOS 27.
-- [ ] The read-only reader returns nothing when no store exists, and reads the app's Tasks once it does. A Data test covers both.
-- [ ] Data tests: the hook runs once for each successful create, rename, setComplete and delete, and never when a save fails.
-- [ ] The app wires the hook to the widget reload; Data doesn't import WidgetKit.
+- [x] The read-only reader returns nothing when no store exists, and reads the app's Tasks once it does. A Data test covers both.
+- [x] Data tests: the hook runs once for each successful create, rename, setComplete and delete, and never when a save fails.
+- [x] The app wires the hook to the widget reload; Data doesn't import WidgetKit.
 - [ ] `docs/agents/ui-check.md` describes the new store location, and its past-Day setup works against it.
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+
+## Comments
+
+- The UI check was skipped at the user's request, so the fresh-install box and the past-Day half of the `ui-check.md` box stay unticked. The doc now names the App Group container; its `simctl` lookup hasn't been tried in the simulator yet.
