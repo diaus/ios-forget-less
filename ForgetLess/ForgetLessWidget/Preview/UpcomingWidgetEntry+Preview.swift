@@ -9,16 +9,17 @@ extension UpcomingWidgetEntry {
     ]
 
     /// The first `taskCount` sample Tasks, all on Today.
-    static func preview(taskCount count: Int) -> UpcomingWidgetEntry {
+    static func preview(taskCount count: Int, showsTwoColumns: Bool = true) -> UpcomingWidgetEntry {
         let today = Date.today
         let tasks = previewNames.prefix(count).enumerated().map { index, name in
             TodoTask(id: UUID(), name: name, day: today, completeDay: nil, sortIndex: index)
         }
-        return UpcomingWidgetEntry(date: .now, content: UpcomingWidgetContent(tasks: tasks, today: today))
+        let content = UpcomingWidgetContent(tasks: tasks, today: today, showsTwoColumns: showsTwoColumns)
+        return UpcomingWidgetEntry(date: .now, content: content)
     }
 
     /// Long names on every kind of Day, so each marker meets a cut name.
-    static func previewLongNames(count: Int) -> UpcomingWidgetEntry {
+    static func previewLongNames(count: Int, cutEnding: CutEnding = .verticalEllipsis) -> UpcomingWidgetEntry {
         let today = Date.today
         let days = [today.addingDays(-1), today, today.addingDays(1)]
         let tasks = (0..<count).map { index in
@@ -31,7 +32,8 @@ extension UpcomingWidgetEntry {
             )
         }
         .sorted { $0.day < $1.day }
-        return UpcomingWidgetEntry(date: .now, content: UpcomingWidgetContent(tasks: tasks, today: today))
+        let content = UpcomingWidgetContent(tasks: tasks, today: today, showsTwoColumns: true)
+        return UpcomingWidgetEntry(date: .now, content: content, cutEnding: cutEnding)
     }
 
     /// The Tasks the repository returns with these settings, from a sample of Overdue, Today's and Tomorrow's Tasks.
@@ -51,6 +53,9 @@ extension UpcomingWidgetEntry {
             case .later: false
             }
         }
-        return UpcomingWidgetEntry(date: .now, content: UpcomingWidgetContent(tasks: listed, today: today))
+        return UpcomingWidgetEntry(
+            date: .now,
+            content: UpcomingWidgetContent(tasks: listed, today: today, showsTwoColumns: true)
+        )
     }
 }

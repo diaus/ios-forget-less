@@ -8,8 +8,8 @@ struct UpcomingRowView: View {
     let font: UIFont
     /// The width the widget cuts the row to itself; nil leaves the cut to the system.
     let cutWidth: CGFloat?
-
-    private static let cutEnding = "⋮"
+    /// What ends a name the widget cuts itself.
+    let cutEnding: CutEnding
 
     // MARK: - Body
     var body: some View {
@@ -20,7 +20,8 @@ struct UpcomingRowView: View {
                     .fixedSize()
             }
             if let cutWidth {
-                Text(verbatim: Self.name(row.name, cutToFit: cutWidth - markerWidth, font: font))
+                let name = Self.name(row.name, cutToFit: cutWidth - markerWidth, font: font, ending: cutEnding.text)
+                Text(verbatim: name)
                     .font(Font(font))
                     // Already cut to fit, so the system never adds its own "…".
                     .fixedSize()
@@ -49,8 +50,8 @@ struct UpcomingRowView: View {
         marker.map { Self.width(of: $0, font: markerFont) } ?? 0
     }
 
-    /// `name` whole when it fits in `width`, or else its longest start that fits followed by "⋮".
-    private static func name(_ name: String, cutToFit width: CGFloat, font: UIFont) -> String {
+    /// `name` whole when it fits in `width`, or else its longest start that fits followed by `ending`.
+    private static func name(_ name: String, cutToFit width: CGFloat, font: UIFont, ending: String) -> String {
         guard Self.width(of: name, font: font) > width else { return name }
         let characters = Array(name)
         // Binary search for the longest start that fits with the ending.
@@ -58,7 +59,7 @@ struct UpcomingRowView: View {
         var tooLong = characters.count
         while tooLong - fitting > 1 {
             let count = (fitting + tooLong) / 2
-            let cut = String(characters[..<count]) + cutEnding
+            let cut = String(characters[..<count]) + ending
             if Self.width(of: cut, font: font) <= width {
                 fitting = count
             } else {
@@ -67,7 +68,7 @@ struct UpcomingRowView: View {
         }
         let start = String(characters[..<fitting])
         // A word cut before its space would read as a whole word, so the space goes too.
-        return String(start.reversed().drop { $0.isWhitespace }.reversed()) + cutEnding
+        return String(start.reversed().drop { $0.isWhitespace }.reversed()) + ending
     }
 
     private static func width(of text: String, font: UIFont) -> CGFloat {
@@ -87,8 +88,20 @@ struct UpcomingRowView: View {
     UpcomingWidgetEntry.previewLongNames(count: 3)
 }
 
-#Preview("Long names, two columns", as: .accessoryRectangular) {
+#Preview("Long names, two columns, ⋮", as: .accessoryRectangular) {
     UpcomingWidget()
 } timeline: {
-    UpcomingWidgetEntry.previewLongNames(count: 6)
+    UpcomingWidgetEntry.previewLongNames(count: 6, cutEnding: .verticalEllipsis)
+}
+
+#Preview("Long names, two columns, …", as: .accessoryRectangular) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.previewLongNames(count: 6, cutEnding: .ellipsis)
+}
+
+#Preview("Long names, two columns, no mark", as: .accessoryRectangular) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.previewLongNames(count: 6, cutEnding: .empty)
 }

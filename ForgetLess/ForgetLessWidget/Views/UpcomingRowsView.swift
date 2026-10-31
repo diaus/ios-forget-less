@@ -6,9 +6,9 @@ import WidgetKit
 /// The Tasks the widget lists, in the Schedule's order.
 struct UpcomingRowsView: View {
     let rows: [UpcomingRow]
+    let cutEnding: CutEnding
 
-    /// The most rows a column holds.
-    private static let columnRowCount = 4
+    private static let columnRowCount = UpcomingWidgetContent.columnRowCount
     private static let columnSpacing: CGFloat = 1
     private static let lineWidth: CGFloat = 1
     private static let lineDash: [CGFloat] = [2, 4]
@@ -54,7 +54,7 @@ struct UpcomingRowsView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(rows) { row in
-                UpcomingRowView(row: row, font: font, cutWidth: cutWidth)
+                UpcomingRowView(row: row, font: font, cutWidth: cutWidth, cutEnding: cutEnding)
                     .frame(height: rowHeight)
             }
         }
@@ -102,4 +102,10 @@ struct UpcomingRowsView: View {
     UpcomingWidget()
 } timeline: {
     UpcomingWidgetEntry.preview(taskCount: 11)
+}
+
+#Preview("Two columns off, 8 Tasks, the first 4 listed", as: .accessoryRectangular) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(taskCount: 8, showsTwoColumns: false)
 }

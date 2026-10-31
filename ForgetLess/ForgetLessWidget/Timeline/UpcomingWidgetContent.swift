@@ -7,18 +7,21 @@ nonisolated enum UpcomingWidgetContent: Hashable {
     case empty
     /// The store couldn't be read.
     case unreadable
-    /// One row per Task, never empty and never more than `maxRowCount`.
+    /// One row per Task, never empty and never more than two columns of `columnRowCount`.
     case rows([UpcomingRow])
 
-    static let maxRowCount = 8
+    /// The most rows a column holds.
+    static let columnRowCount = 4
 
-    /// The rows for `tasks`, given in the Schedule's order, keeping only the first `maxRowCount`.
-    init(tasks: [TodoTask], today: Date) {
+    /// The rows for `tasks`, given in the Schedule's order, keeping only as many as fit in one column, or in two when
+    /// `showsTwoColumns`.
+    init(tasks: [TodoTask], today: Date, showsTwoColumns: Bool) {
         guard !tasks.isEmpty else {
             self = .empty
             return
         }
-        self = .rows(tasks.prefix(Self.maxRowCount).map { UpcomingRow(task: $0, today: today) })
+        let maxRowCount = Self.columnRowCount * (showsTwoColumns ? 2 : 1)
+        self = .rows(tasks.prefix(maxRowCount).map { UpcomingRow(task: $0, today: today) })
     }
 }
 

@@ -11,7 +11,7 @@ struct UpcomingWidget: Widget {
             intent: UpcomingWidgetIntent.self,
             provider: UpcomingTimelineProvider()
         ) { entry in
-            UpcomingWidgetView(content: entry.content)
+            UpcomingWidgetView(content: entry.content, cutEnding: entry.cutEnding)
                 .containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(Text(.widgetTitle))

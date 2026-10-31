@@ -375,6 +375,40 @@
         }
       }
     },
+    "widget.cutEnding" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Truncation Mark"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Знак обрізання"
+          }
+        }
+      }
+    },
+    "widget.cutEnding.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Немає"
+          }
+        }
+      }
+    },
     "widget.description" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -422,6 +456,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показувати завдання на завтра"
+          }
+        }
+      }
+    },
+    "widget.showTwoColumns" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Two Columns"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати дві колонки"
           }
         }
       }

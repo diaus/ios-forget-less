@@ -4,6 +4,7 @@ import WidgetKit
 /// What the widget shows on the Lock Screen.
 struct UpcomingWidgetView: View {
     let content: UpcomingWidgetContent
+    let cutEnding: CutEnding
 
     var body: some View {
         switch content {
@@ -12,7 +13,7 @@ struct UpcomingWidgetView: View {
         case .unreadable:
             StateSymbolView(badgeSystemName: "exclamationmark.triangle")
         case .rows(let rows):
-            UpcomingRowsView(rows: rows)
+            UpcomingRowsView(rows: rows, cutEnding: cutEnding)
         }
     }
 }

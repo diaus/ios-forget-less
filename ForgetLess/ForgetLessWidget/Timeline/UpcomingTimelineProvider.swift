@@ -48,13 +48,17 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
                     from: configuration.showsOverdueTasks ? nil : today,
                     through: configuration.showsTomorrowTasks ? today.addingDays(1) : today
                 )
-                content = UpcomingWidgetContent(tasks: tasks, today: today)
+                content = UpcomingWidgetContent(
+                    tasks: tasks,
+                    today: today,
+                    showsTwoColumns: configuration.showsTwoColumns
+                )
             } else {
                 content = .empty
             }
         } catch {
             content = .unreadable
         }
-        return UpcomingWidgetEntry(date: moment, content: content)
+        return UpcomingWidgetEntry(date: moment, content: content, cutEnding: configuration.cutEnding)
     }
 }
