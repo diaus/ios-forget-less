@@ -103,6 +103,64 @@ struct ScheduleTests {
         #expect(schedule.overdue.map(\.name) == ["Still to do"])
     }
 
+    @Test func hidingCompleteTasksDropsThemFromEveryDayAndOverdue() throws {
+        let today = try day("2026-03-01")
+        let yesterday = try day("2026-02-28")
+        let tasks = [
+            task("Completed from Overdue", day: yesterday, sortIndex: 0, completeDay: today),
+            task("Overdue", day: yesterday, sortIndex: 1),
+            task("Completed today", day: today, sortIndex: 0, completeDay: today),
+            task("To do today", day: today, sortIndex: 1),
+        ]
+
+        let schedule = Schedule(tasks: tasks, today: today, showsComplete: false, keptTaskIDs: [])
+
+        #expect(schedule.overdue.map(\.name) == ["Overdue"])
+        #expect(schedule.days.first?.tasks.map(\.name) == ["To do today"])
+    }
+
+    @Test func aKeptTaskStaysWhileCompleteTasksAreHidden() throws {
+        let today = try day("2026-03-01")
+        let yesterday = try day("2026-02-28")
+        let keptFromOverdue = task("Just completed from Overdue", day: yesterday, sortIndex: 0, completeDay: today)
+        let kept = task("Just completed", day: today, sortIndex: 0, completeDay: today)
+        let tasks = [keptFromOverdue, kept, task("Completed earlier", day: today, sortIndex: 1, completeDay: today)]
+
+        let schedule = Schedule(
+            tasks: tasks, today: today, showsComplete: false, keptTaskIDs: [keptFromOverdue.id, kept.id]
+        )
+
+        #expect(schedule.overdue.map(\.name) == ["Just completed from Overdue"])
+        #expect(schedule.days.first?.tasks.map(\.name) == ["Just completed"])
+    }
+
+    @Test func aDayAfterTheWindowWithOnlyHiddenTasksIsNotListed() throws {
+        let today = try day("2026-03-01")
+        let tasks = [
+            task("Completed ahead", day: try day("2026-07-01"), sortIndex: 0, completeDay: today),
+            task("Still to do", day: try day("2026-09-01"), sortIndex: 0),
+        ]
+
+        let schedule = Schedule(tasks: tasks, today: today, showsComplete: false, keptTaskIDs: [])
+
+        #expect(schedule.days.dropFirst(100).map(\.day) == [try day("2026-09-01")])
+    }
+
+    @Test func aDayInTheWindowWithOnlyHiddenTasksStaysListedWithNoTasks() throws {
+        let today = try day("2026-03-01")
+        let tomorrow = try day("2026-03-02")
+
+        let schedule = Schedule(
+            tasks: [task("Completed ahead", day: tomorrow, sortIndex: 0, completeDay: today)],
+            today: today,
+            showsComplete: false,
+            keptTaskIDs: []
+        )
+
+        #expect(schedule.days[1].day == tomorrow)
+        #expect(schedule.days[1].tasks.isEmpty)
+    }
+
     // MARK: - Helpers
     private func task(_ name: String, day: Date, sortIndex: Int, completeDay: Date? = nil) -> TodoTask {
         TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: sortIndex)
