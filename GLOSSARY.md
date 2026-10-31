@@ -23,6 +23,9 @@ _Avoid_: Date (for the concept), due date, deadline
 **Today**:
 The Day it is now on the device. Rolls over at local midnight.
 
+**Tomorrow**:
+The Day after Today.
+
 **Overdue**:
 Describes an Incomplete Task whose Day is before Today.
 _Avoid_: Late, missed, past due
