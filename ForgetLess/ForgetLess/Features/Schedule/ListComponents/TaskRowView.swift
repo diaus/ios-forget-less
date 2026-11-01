@@ -8,8 +8,8 @@ struct TaskRowView: View {
     let task: TodoTask
     /// Whether the row names its Day, which its section header doesn't.
     let showsDay: Bool
-    /// Asks the owner to show the composer on this Task, to rename it.
-    let onRename: () -> Void
+    /// Asks the owner to show the composer on this Task, to edit it.
+    let onEdit: () -> Void
 
     /// The circle's grey, which keeps a white checkmark legible in both appearances.
     private let circleGray = Color(uiColor: .systemGray)
@@ -24,14 +24,14 @@ struct TaskRowView: View {
                     .foregroundStyle(task.isComplete ? .white : circleGray, circleGray)
             }
             .padding(.trailing, 10)
-            // Only the circle takes the tap, not the whole row: a row tap is for renaming.
+            // Only the circle takes the tap, not the whole row: a row tap is for editing.
             .buttonStyle(.borderless)
             .accessibilityLabel(accessibilityName)
             .accessibilityValue(Text(task.isComplete ? .taskComplete : .taskIncomplete))
-            // Listed after Rename, which comes first as the row's tap.
+            // Listed after Edit, which comes first as the row's tap.
             .accessibilityActions { moveActions }
             // The row's tap, for VoiceOver, which activates the circle.
-            .accessibilityAction(named: Text(.taskRename), onRename)
+            .accessibilityAction(named: Text(.taskEdit), onEdit)
             .accessibilityFocused(returningTo: .task(task.id))
             Group {
                 Text(task.name)
@@ -51,7 +51,7 @@ struct TaskRowView: View {
         // The whole row's width takes the tap, not just the name.
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(.rect)
-        .onTapGesture(perform: onRename)
+        .onTapGesture(perform: onEdit)
     }
 
     // MARK: - UI Components

@@ -59,6 +59,25 @@ final class ScheduleCollectionView: UICollectionView {
         }
     }
 
+    // MARK: - Scrolling
+    /// Scrolls, animated, just far enough to show the row at `indexPath` in full; does nothing when it shows already.
+    func scrollToShowRow(at indexPath: IndexPath) {
+        // Laid out first, so a row the last snapshot just placed has its frame.
+        layoutIfNeeded()
+        guard let row = layoutAttributesForItem(at: indexPath)?.frame else { return }
+        let insets = adjustedContentInset
+        let offsetY: CGFloat
+        if row.minY < contentOffset.y + insets.top {
+            offsetY = row.minY - insets.top
+        } else if row.maxY > contentOffset.y + bounds.height - insets.bottom {
+            offsetY = row.maxY - bounds.height + insets.bottom
+        } else {
+            return
+        }
+        let maxOffsetY = max(-insets.top, contentSize.height + insets.bottom - bounds.height)
+        setContentOffset(CGPoint(x: contentOffset.x, y: min(max(offsetY, -insets.top), maxOffsetY)), animated: true)
+    }
+
     // MARK: - Helpers
     private func applyContentInsets() {
         // The scroll view keeps adjusting for UIKit's own safe area (`.automatic`), and only the rest is added here.

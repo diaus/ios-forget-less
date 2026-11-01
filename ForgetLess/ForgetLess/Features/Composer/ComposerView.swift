@@ -1,7 +1,7 @@
 import FactoryKit
 import SwiftUI
 
-/// The quick-add panel for Tasks, which also renames one.
+/// The quick-add panel for Tasks, which also edits one: renames it, or Moves it to another Day.
 struct ComposerView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     var isNameFocused: FocusState<Bool>.Binding
@@ -10,9 +10,17 @@ struct ComposerView: View {
 
     // Animated reset, so a drag short of dismissing settles back instead of jumping.
     @GestureState(resetTransaction: Transaction(animation: .spring)) private var dragOffset: CGFloat = 0
+    /// Whether the Day was last stepped forward.
+    @State private var isDaySteppedForward = true
+    /// Counts the Day steps, for a haptic on each.
+    @State private var dayStepCount = 0
+    /// Counts the steps refused before Today, for a bounce and a haptic on each.
+    @State private var refusedDayStepCount = 0
 
     /// How far a drag must go to dismiss the panel.
     private let dismissDistance: CGFloat = 60
+    /// How far a swipe on the Day chip must go to step its Day.
+    private let dayStepDistance: CGFloat = 24
 
     // MARK: - Body
     var body: some View {
@@ -26,12 +34,7 @@ struct ComposerView: View {
             .keyboardType(.twitter)
             .onSubmit(submit)
             HStack {
-                Text(vm.composer.day.dayChipLabel(today: vm.today))
-                    .font(.subheadline)
-                    .foregroundStyle(vm.composer.day.dayChipColor(today: vm.today))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(.fill.tertiary, in: .capsule)
+                dayChip
                 Spacer()
                 Button(action: submit) {
                     Image(systemName: "arrowtriangle.right.fill")
@@ -52,7 +55,63 @@ struct ComposerView: View {
         .accessibilityAction(.escape, onDismiss)
     }
 
+    // MARK: - UI Components
+    private var dayChip: some View {
+        let label = vm.composer.day.dayChipLabel(today: vm.today)
+        // A container of its own, so a step slides the label within the capsule rather than the whole capsule.
+        return ZStack {
+            Text(label)
+                .foregroundStyle(vm.composer.day.dayChipColor(today: vm.today))
+                // A new identity per Day, so a step slides the old label out and the new one in.
+                .id(vm.composer.day)
+                .transition(.push(from: isDaySteppedForward ? .trailing : .leading))
+        }
+            .font(.subheadline)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(.fill.tertiary, in: .capsule)
+            .clipShape(.capsule)
+            .keyframeAnimator(initialValue: 0, trigger: refusedDayStepCount) { chip, offset in
+                chip.offset(x: offset)
+            } keyframes: { _ in
+                // Nudged the way the swipe went, toward the Days it can't reach.
+                SpringKeyframe(isDaySteppedForward ? -8 : 8, duration: 0.1)
+                SpringKeyframe(0, duration: 0.3)
+            }
+            .contentShape(.capsule)
+            .simultaneousGesture(dayStepSwipe)
+            .sensoryFeedback(.selection, trigger: dayStepCount)
+            .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.5), trigger: refusedDayStepCount)
+            .accessibilityElement()
+            .accessibilityLabel(Text(.composerDay))
+            .accessibilityValue(label)
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: stepDay(forward: true)
+                case .decrement: stepDay(forward: false)
+                @unknown default: break
+                }
+            }
+    }
+
     // MARK: - Actions
+    private func stepDay(forward: Bool) {
+        guard forward == isDaySteppedForward else {
+            // A label leaves with the transition it was last drawn with, so a turn is drawn first, then stepped.
+            isDaySteppedForward = forward
+            Task { stepDay(forward: forward) }
+            return
+        }
+        let isStepped = withAnimation(.snappy(duration: 0.25)) {
+            vm.stepComposerDay(forward: forward)
+        }
+        if isStepped {
+            dayStepCount += 1
+        } else {
+            refusedDayStepCount += 1
+        }
+    }
+
     private func submit() {
         switch vm.submitComposer() {
         case .added:
@@ -72,9 +131,25 @@ struct ComposerView: View {
                 offset = value.translation.height
             }
             .onEnded { value in
+                // Mostly down, so a sideways swipe on the Day chip only steps its Day.
+                guard value.translation.height > abs(value.translation.width) else { return }
                 let isFlung = value.predictedEndTranslation.height > dismissDistance * 2
                 if value.translation.height > dismissDistance || isFlung {
                     onDismiss()
+                }
+            }
+    }
+
+    /// A swipe left steps to the next Day, and a swipe right to the one before, as a calendar pages.
+    private var dayStepSwipe: some Gesture {
+        DragGesture()
+            .onEnded { value in
+                let width = value.translation.width
+                // Mostly sideways, so a drag down from the chip only dismisses.
+                guard abs(width) > abs(value.translation.height) else { return }
+                let isFlung = abs(value.predictedEndTranslation.width) > dayStepDistance * 2
+                if abs(width) > dayStepDistance || isFlung {
+                    stepDay(forward: width < 0)
                 }
             }
     }
@@ -86,7 +161,7 @@ struct ComposerView: View {
         .frame(maxHeight: .infinity, alignment: .bottom)
 }
 
-#Preview("Renaming") {
+#Preview("Editing") {
     @Previewable @FocusState var isNameFocused: Bool
     ComposerView(isNameFocused: $isNameFocused) {}
         .frame(maxHeight: .infinity, alignment: .bottom)

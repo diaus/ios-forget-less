@@ -12,6 +12,8 @@ final class ScheduleViewModel {
     private(set) var schedule: Schedule
     var composer: ComposerState
     let composerOpenerFocus = ComposerOpenerFocus()
+    /// The Day the list last asked to bring into view.
+    private(set) var dayReveal: DayReveal?
     var errorMessage: String?
     /// Whether the Schedule lists Complete Tasks. Kept across launches.
     var showsComplete: Bool {
@@ -70,26 +72,59 @@ final class ScheduleViewModel {
     // MARK: - Composer
     /// Shows the composer on `day`, to add a Task. VoiceOver goes back to `opener` when it closes.
     func showComposer(on day: Date, from opener: ComposerOpener) {
-        composer.day = day
+        composer.start(on: day)
         composer.isVisible = true
         composerOpenerFocus.opener = opener
     }
 
-    /// Shows the composer filled in with `task`, to rename it.
+    /// Shows the composer filled in with `task`, to edit it.
     func showComposer(editing task: TodoTask) {
         composer.editedTask = task
         composer.taskName = task.name
-        composer.day = task.day
+        composer.start(on: task.day)
         composer.isVisible = true
         composerOpenerFocus.opener = .task(task.id)
     }
 
-    /// Hides the composer and drops what's typed, so the next add starts blank. VoiceOver goes back to what showed it.
+    /// Hides the composer and drops what's typed, so the next add starts blank. VoiceOver goes back to what showed it,
+    /// and the list brings a Day stepped to into view.
     func dismissComposer() {
+        if composer.revealsDayOnDismiss {
+            dayReveal = DayReveal(day: composer.day)
+        }
+        let editedTaskID = composer.editedTask?.id
         composer.isVisible = false
         composer.editedTask = nil
         composer.taskName = ""
         composerOpenerFocus.returnToOpener()
+        if let editedTaskID {
+            // A Complete Task listed while Complete Tasks are hidden gets its grace period afresh, to be seen.
+            if !showsComplete, tasks.contains(where: { $0.id == editedTaskID && $0.isComplete }) {
+                keep(editedTaskID, for: UserDefaults.standard.keptDuration)
+            }
+            rebuildSchedule()
+        }
+    }
+
+    /// Steps the composer's Day one Day forward, or back, never before Today; an edited Task moves to the end of that
+    /// Day at once. Returns whether the Day changed.
+    @discardableResult
+    func stepComposerDay(forward: Bool) -> Bool {
+        let shownDay = composer.day
+        guard let day = forward ? shownDay.nextDayToPlan(today: today) : shownDay.previousDayToPlan(today: today)
+        else { return false }
+        if let task = composer.editedTask {
+            guard schedule.canMove(task, toDay: day) else { return false }
+            saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id), onFailure: {
+                // Back to the Day the store holds, as the list is.
+                if let stored = self.observedTasks.first(where: { $0.id == task.id }),
+                   self.composer.editedTask?.id == task.id {
+                    self.composer.day = stored.day
+                }
+            })
+        }
+        composer.step(to: day)
+        return true
     }
 
     /// Saves the typed name: adds a Task to the composer's Day, or renames the Task being edited. Returns `nil` and
@@ -109,6 +144,7 @@ final class ScheduleViewModel {
         let day = composer.day
         // Cleared at once, so a second submit before the write lands adds nothing.
         composer.taskName = ""
+        composer.daysAddedTo.insert(day)
         write {
             try await self.addTask(name: name, day: day)
             postAnnouncement(.taskAdded(name: name))
@@ -161,6 +197,17 @@ final class ScheduleViewModel {
             rebuildSchedule()
             return
         }
+        saveMove(task, to: destination, onSaved: onSaved)
+    }
+
+    /// Moves `task` to `destination`, which the move rule allows, and runs `onSaved` once the store has it, or
+    /// `onFailure` once the Task is back where the store holds it.
+    private func saveMove(
+        _ task: TodoTask,
+        to destination: MoveDestination,
+        onSaved: @escaping @MainActor () -> Void = {},
+        onFailure: @escaping @MainActor () -> Void = {}
+    ) {
         // Moved at once, so the row stays where it was dropped while the write is in flight.
         tasks = tasks.movingTask(id: task.id, to: destination)
         rebuildSchedule()
@@ -171,6 +218,7 @@ final class ScheduleViewModel {
             // Nothing was saved, so the store's last Tasks put the Task back.
             self.tasks = self.observedTasks
             self.rebuildSchedule()
+            onFailure()
         }
     }
 
@@ -199,7 +247,9 @@ final class ScheduleViewModel {
     }
 
     private func rebuildSchedule() {
-        schedule = Schedule(tasks: tasks, today: today, showsComplete: showsComplete, keptTaskIDs: keptTaskIDs)
+        // The edited Task stays listed until the composer closes, even past its grace period, so it's seen as it moves.
+        let listedTaskIDs = keptTaskIDs.union([composer.editedTask?.id].compactMap { $0 })
+        schedule = Schedule(tasks: tasks, today: today, showsComplete: showsComplete, keptTaskIDs: listedTaskIDs)
     }
 
     /// Runs `operation`; on failure, runs `onFailure` and shows the error.

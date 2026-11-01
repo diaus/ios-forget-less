@@ -91,7 +91,7 @@ struct ScheduleView: View {
             ScheduleListView(
                 safeAreaInsets: proxy.safeAreaInsets,
                 onAdd: { day in showComposer(on: day, from: .day(day)) },
-                onRename: showComposer(editing:)
+                onEdit: showComposer(editing:)
             )
             .ignoresSafeArea()
             // A Task completed while Complete Tasks are hidden leaves when its grace period ends.

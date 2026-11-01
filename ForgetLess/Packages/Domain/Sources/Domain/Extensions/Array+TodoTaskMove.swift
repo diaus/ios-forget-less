@@ -9,4 +9,10 @@ public extension Array where Element == TodoTask {
         let otherDays = filter { $0.day != destination.day && $0.id != id }
         return (otherDays + tasksOfDay).sorted { ($0.day, $0.sortIndex) < ($1.day, $1.sortIndex) }
     }
+
+    /// Where the Task with `id` goes to be last on `day`, after every other Task there, Complete or not.
+    /// - Parameter self: In order of Day, then position within it.
+    func destinationAtEnd(of day: Date, forTaskWithID id: UUID) -> MoveDestination {
+        MoveDestination(day: day, after: last { $0.day == day && $0.id != id }?.id)
+    }
 }

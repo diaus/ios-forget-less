@@ -48,6 +48,32 @@ struct ArrayTodoTaskMoveTests {
         #expect(moved.map(\.completeDay) == [today])
     }
 
+    @Test func aTaskMovedToTheEndOfADayGoesAfterEveryTaskThereCompleteOrNot() throws {
+        let today = try day("2026-03-01")
+        let tomorrow = try day("2026-03-02")
+        let tasks = [
+            task("Buy milk", day: today, sortIndex: 0),
+            task("Walk the dog", day: tomorrow, sortIndex: 0),
+            task("Pay rent", day: tomorrow, sortIndex: 1, completeDay: today),
+            task("Call mum", day: try day("2026-03-03"), sortIndex: 0),
+        ]
+
+        let destination = tasks.destinationAtEnd(of: tomorrow, forTaskWithID: tasks[0].id)
+        let moved = tasks.movingTask(id: tasks[0].id, to: destination)
+
+        #expect(moved.map(\.name) == ["Walk the dog", "Pay rent", "Buy milk", "Call mum"])
+    }
+
+    @Test func aTaskMovedToTheEndOfAnEmptyDayIsItsOnlyTask() throws {
+        let today = try day("2026-03-01")
+        let emptyDay = try day("2026-09-02")
+        let tasks = [task("Buy milk", day: today, sortIndex: 0)]
+
+        let destination = tasks.destinationAtEnd(of: emptyDay, forTaskWithID: tasks[0].id)
+
+        #expect(destination == MoveDestination(day: emptyDay, after: nil))
+    }
+
     // MARK: - Helpers
     private func task(_ name: String, day: Date, sortIndex: Int, completeDay: Date? = nil) -> TodoTask {
         TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: sortIndex)

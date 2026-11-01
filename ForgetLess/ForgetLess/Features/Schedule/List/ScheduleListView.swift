@@ -9,8 +9,8 @@ struct ScheduleListView: UIViewRepresentable {
     let safeAreaInsets: EdgeInsets
     /// Asks the owner to show the composer on a Day, to add a Task.
     let onAdd: (Date) -> Void
-    /// Asks the owner to show the composer on a Task, to rename it.
-    let onRename: (TodoTask) -> Void
+    /// Asks the owner to show the composer on a Task, to edit it.
+    let onEdit: (TodoTask) -> Void
 
     func makeCoordinator() -> ScheduleListController {
         ScheduleListController(listView: self)
@@ -30,6 +30,7 @@ struct ScheduleListView: UIViewRepresentable {
             movesTasks: vm.movesTasks,
             animated: context.transaction.animation != nil
         )
+        context.coordinator.reveal(vm.dayReveal)
         collectionView.targetContentInsets = UIEdgeInsets(
             top: safeAreaInsets.top,
             left: 0,

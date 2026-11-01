@@ -30,6 +30,8 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     private var schedule = Schedule(tasks: [], today: .today)
     private var movesTasks = false
     private let rowMove = TaskRowMove()
+    /// The reveal last carried out, so each is carried out once.
+    private var lastReveal: DayReveal?
 
     init(listView: ScheduleListView) {
         self.listView = listView
@@ -91,6 +93,20 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         reconfigureVisibleHeaders()
     }
 
+    /// Brings the last Task of `reveal`'s Day into view, unless `reveal` was carried out before.
+    func reveal(_ reveal: DayReveal?) {
+        guard let reveal, reveal != lastReveal else { return }
+        lastReveal = reveal
+        guard let dataSource else { return }
+        let section = Section.day(reveal.day)
+        let snapshot = dataSource.snapshot()
+        // Asking a snapshot for a section it lacks raises an exception.
+        guard snapshot.indexOfSection(section) != nil,
+              let lastTaskID = snapshot.itemIdentifiers(inSection: section).last,
+              let indexPath = dataSource.indexPath(for: lastTaskID) else { return }
+        collectionView.scrollToShowRow(at: indexPath)
+    }
+
     // MARK: - Configuration
     private func makeLayout() -> UICollectionViewLayout {
         var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
@@ -145,7 +161,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         guard let task = tasks[id] else { return }
         cell.contentConfiguration = UIHostingConfiguration {
             TaskRowView(task: task, showsDay: overdueTaskIDs.contains(id)) { [weak self] in
-                self?.rename(id)
+                self?.edit(id)
             }
         }
         cell.accessories = movesTasks ? [.reorder(displayed: .always)] : []
@@ -239,13 +255,13 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
     // MARK: - Row Actions
     func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
-        // Rows take taps in SwiftUI, never as a selection: a row tap is for renaming.
+        // Rows take taps in SwiftUI, never as a selection: a row tap is for editing.
         false
     }
 
-    private func rename(_ id: TodoTask.ID) {
+    private func edit(_ id: TodoTask.ID) {
         if let task = tasks[id] {
-            listView.onRename(task)
+            listView.onEdit(task)
         }
     }
 

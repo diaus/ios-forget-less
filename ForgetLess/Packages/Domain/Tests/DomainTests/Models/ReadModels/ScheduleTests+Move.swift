@@ -71,6 +71,35 @@ extension ScheduleTests {
         #expect(!schedule.canMove(completed, to: MoveDestination(day: today.addingDays(1), after: nil)))
     }
 
+    @Test func aTaskCanMoveToAnyDayFromTodayOnListedOrNot() throws {
+        let today = try day("2026-03-01")
+        let todays = task("Call mum", day: today, sortIndex: 0)
+        let schedule = Schedule(tasks: [todays], today: today)
+
+        #expect(schedule.canMove(todays, toDay: today))
+        #expect(schedule.canMove(todays, toDay: today.addingDays(3)))
+        #expect(schedule.canMove(todays, toDay: try day("2026-09-02")))
+    }
+
+    @Test func anOverdueTaskCanMoveToTodayButNeverToADayBeforeIt() throws {
+        let today = try day("2026-03-01")
+        let yesterday = try day("2026-02-28")
+        let overdue = task("Buy milk", day: try day("2026-02-20"), sortIndex: 0)
+        let schedule = Schedule(tasks: [overdue], today: today)
+
+        #expect(schedule.canMove(overdue, toDay: today))
+        #expect(!schedule.canMove(overdue, toDay: yesterday))
+        #expect(!schedule.canMove(overdue, toDay: overdue.day))
+    }
+
+    @Test func aHiddenCompleteTaskCantMoveToADay() throws {
+        let today = try day("2026-03-01")
+        let completed = task("Buy milk", day: today, sortIndex: 0, completeDay: today)
+        let schedule = Schedule(tasks: [completed], today: today, showsComplete: false)
+
+        #expect(!schedule.canMove(completed, toDay: today.addingDays(1)))
+    }
+
     // MARK: - Steps
     @Test func aStepWithinADayMovesATaskOnePlaceAmongItsDaysTasks() throws {
         let today = try day("2026-03-01")

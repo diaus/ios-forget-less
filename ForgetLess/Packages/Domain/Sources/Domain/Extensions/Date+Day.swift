@@ -28,6 +28,16 @@ public extension Date {
         Calendar.gmt.dateComponents([.day], from: day, to: self).day!
     }
 
+    /// The Day after this one that a Task can be planned for, which is Today for a Day before Today.
+    func nextDayToPlan(today: Date) -> Date {
+        max(addingDays(1), today)
+    }
+
+    /// The Day before this one that a Task can be planned for, or `nil` when there's none before Today.
+    func previousDayToPlan(today: Date) -> Date? {
+        self > today ? addingDays(-1) : nil
+    }
+
     func relativeDay(today: Date) -> RelativeDay {
         switch dayCount(from: today) {
         case ..<0: .beforeToday

@@ -83,6 +83,36 @@ struct DateDayTests {
         #expect(try day(yearMonthDay).relativeDay(today: try day(today)) == relativeDay)
     }
 
+    @Test(arguments: [
+        ("2026-10-25", "2026-10-25", "2026-10-26"),
+        ("2026-10-31", "2026-10-25", "2026-11-01"),
+        ("2026-12-31", "2026-10-25", "2027-01-01"),
+        ("2026-10-24", "2026-10-25", "2026-10-25"),
+        ("2026-09-01", "2026-10-25", "2026-10-25"),
+    ])
+    func theNextDayToPlanIsTheDayAfterOrTodayFromBeforeToday(
+        yearMonthDay: String,
+        today: String,
+        nextDay: String
+    ) throws {
+        #expect(try day(yearMonthDay).nextDayToPlan(today: try day(today)) == (try day(nextDay)))
+    }
+
+    @Test(arguments: [
+        ("2026-10-26", "2026-10-25", "2026-10-25"),
+        ("2027-01-01", "2026-10-25", "2026-12-31"),
+        ("2026-10-25", "2026-10-25", nil),
+        ("2026-10-24", "2026-10-25", nil),
+    ])
+    func thePreviousDayToPlanIsTheDayBeforeButNeverBeforeToday(
+        yearMonthDay: String,
+        today: String,
+        previousDay: String?
+    ) throws {
+        let expected = try previousDay.map(day)
+        #expect(try day(yearMonthDay).previousDayToPlan(today: try day(today)) == expected)
+    }
+
     // MARK: - Helpers
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.
     private func day(_ yearMonthDay: String) throws -> Date {

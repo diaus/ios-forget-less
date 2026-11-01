@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "composer.day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "День"
+          }
+        }
+      }
+    },
     "composer.discard" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -460,6 +477,23 @@
         }
       }
     },
+    "task.edit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Редагувати"
+          }
+        }
+      }
+    },
     "task.incomplete" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -524,23 +558,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%(name)@, %(day)@"
-          }
-        }
-      }
-    },
-    "task.rename" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rename"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Перейменувати"
           }
         }
       }

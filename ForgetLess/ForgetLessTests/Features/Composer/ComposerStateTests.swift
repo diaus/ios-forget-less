@@ -5,7 +5,7 @@ import Testing
 
 @MainActor
 struct ComposerStateTests {
-    /// Any Day: the rule doesn't read it.
+    /// Any Day: the rules read it only against Days stepped from it.
     private let day = Date(timeIntervalSince1970: 0)
 
     @Test(arguments: [
@@ -26,11 +26,49 @@ struct ComposerStateTests {
         ("  ", true),
         ("Buy bread", true),
     ])
-    func whileRenamingOnlyATrimmedNameOtherThanTheSavedOneIsAChange(taskName: String, hasChanges: Bool) {
+    func whileEditingOnlyATrimmedNameOtherThanTheSavedOneIsAChange(taskName: String, hasChanges: Bool) {
         var composer = ComposerState(day: day)
         composer.editedTask = TodoTask(id: UUID(), name: "Buy milk", day: day, completeDay: nil, sortIndex: 0)
         composer.taskName = taskName
 
         #expect(composer.hasChanges == hasChanges)
+    }
+
+    @Test func whileAddingADayIsRevealedOnlyOnceSteppedToAndAddedTo() {
+        let friday = day.addingDays(4)
+        var composer = ComposerState(day: day)
+        composer.daysAddedTo.insert(day)
+        #expect(!composer.revealsDayOnDismiss)
+
+        composer.step(to: friday)
+        #expect(!composer.revealsDayOnDismiss)
+
+        composer.daysAddedTo.insert(friday)
+        #expect(composer.revealsDayOnDismiss)
+
+        composer.step(to: friday.addingDays(1))
+        #expect(!composer.revealsDayOnDismiss)
+
+        composer.step(to: friday)
+        #expect(composer.revealsDayOnDismiss)
+    }
+
+    @Test func whileEditingADayIsRevealedOnceSteppedTo() {
+        var composer = ComposerState(day: day)
+        composer.editedTask = TodoTask(id: UUID(), name: "Buy milk", day: day, completeDay: nil, sortIndex: 0)
+        #expect(!composer.revealsDayOnDismiss)
+
+        composer.step(to: day.addingDays(1))
+        #expect(composer.revealsDayOnDismiss)
+    }
+
+    @Test func startingAfreshForgetsStepsAndAdds() {
+        var composer = ComposerState(day: day)
+        composer.step(to: day.addingDays(1))
+        composer.daysAddedTo.insert(day.addingDays(1))
+
+        composer.start(on: day.addingDays(1))
+
+        #expect(!composer.revealsDayOnDismiss)
     }
 }
