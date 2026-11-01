@@ -1,23 +1,16 @@
 import Domain
+import FactoryKit
 import SwiftUI
 
 /// The Schedule's list of Days and their Tasks.
 struct ScheduleListView: UIViewRepresentable {
-    let schedule: Schedule
-    let today: Date
-    /// Whether rows show their handle and can be moved.
-    let movesTasks: Bool
-    let composerOpenerFocus: ComposerOpenerFocus
+    @InjectedObservable(\.scheduleViewModel) private var vm
     /// The safe area the list's content clears, which a wrapped view doesn't get on its own.
     let safeAreaInsets: EdgeInsets
     /// Asks the owner to show the composer on a Day, to add a Task.
     let onAdd: (Date) -> Void
     /// Asks the owner to show the composer on a Task, to rename it.
     let onRename: (TodoTask) -> Void
-    /// Deletes a Task the user has confirmed.
-    let onDelete: (TodoTask) -> Void
-    /// Moves a Task the user has dropped.
-    let onMove: (TodoTask, MoveDestination) -> Void
 
     func makeCoordinator() -> ScheduleListController {
         ScheduleListController(listView: self)
@@ -29,11 +22,12 @@ struct ScheduleListView: UIViewRepresentable {
 
     func updateUIView(_ collectionView: ScheduleCollectionView, context: Context) {
         context.coordinator.listView = self
-        // Animated only when SwiftUI animates the change, as its `List` did.
+        // Read here, so SwiftUI updates the list when they change. Animated only when SwiftUI animates the change, as
+        // its `List` did.
         context.coordinator.show(
-            schedule,
-            today: today,
-            movesTasks: movesTasks,
+            vm.schedule,
+            today: vm.today,
+            movesTasks: vm.movesTasks,
             animated: context.transaction.animation != nil
         )
         collectionView.targetContentInsets = UIEdgeInsets(

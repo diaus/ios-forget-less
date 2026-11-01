@@ -8,7 +8,6 @@ struct TaskRowView: View {
     let task: TodoTask
     /// Whether the row names its Day, which its section header doesn't.
     let showsDay: Bool
-    let composerOpenerFocus: ComposerOpenerFocus
     /// Asks the owner to show the composer on this Task, to rename it.
     let onRename: () -> Void
 
@@ -33,7 +32,7 @@ struct TaskRowView: View {
             .accessibilityActions { moveActions }
             // The row's tap, for VoiceOver, which activates the circle.
             .accessibilityAction(named: Text(.taskRename), onRename)
-            .accessibilityFocused(returningTo: .task(task.id), from: composerOpenerFocus)
+            .accessibilityFocused(returningTo: .task(task.id))
             Group {
                 Text(task.name)
                     .lineLimit(2)
@@ -76,10 +75,9 @@ struct TaskRowView: View {
 }
 
 #Preview {
-    let composerOpenerFocus = ComposerOpenerFocus()
     List {
-        TaskRowView(task: .previewOverdue, showsDay: true, composerOpenerFocus: composerOpenerFocus) {}
-        TaskRowView(task: .previewIncomplete, showsDay: false, composerOpenerFocus: composerOpenerFocus) {}
-        TaskRowView(task: .previewComplete, showsDay: false, composerOpenerFocus: composerOpenerFocus) {}
+        TaskRowView(task: .previewOverdue, showsDay: true) {}
+        TaskRowView(task: .previewIncomplete, showsDay: false) {}
+        TaskRowView(task: .previewComplete, showsDay: false) {}
     }
 }

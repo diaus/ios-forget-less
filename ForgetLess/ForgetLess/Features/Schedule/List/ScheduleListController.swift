@@ -1,4 +1,5 @@
 import Domain
+import FactoryKit
 import SwiftUI
 import UIKit
 
@@ -15,8 +16,9 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     final class DayHeaderCell: UICollectionViewListCell {}
 
     let collectionView = ScheduleCollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    /// The list as SwiftUI last described it, for the actions the rows and headers call.
+    /// The list as SwiftUI last described it, for the composer its rows and headers show.
     var listView: ScheduleListView
+    @Injected(\.scheduleViewModel) private var vm
     private var dataSource: UICollectionViewDiffableDataSource<Section, TodoTask.ID>?
     /// The Tasks the list shows.
     private var tasks: [TodoTask.ID: TodoTask] = [:]
@@ -141,13 +143,8 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
     private func configure(_ cell: UICollectionViewListCell, id: TodoTask.ID) {
         guard let task = tasks[id] else { return }
-        let composerOpenerFocus = listView.composerOpenerFocus
         cell.contentConfiguration = UIHostingConfiguration {
-            TaskRowView(
-                task: task,
-                showsDay: overdueTaskIDs.contains(id),
-                composerOpenerFocus: composerOpenerFocus
-            ) { [weak self] in
+            TaskRowView(task: task, showsDay: overdueTaskIDs.contains(id)) { [weak self] in
                 self?.rename(id)
             }
         }
@@ -160,16 +157,9 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     private func configure(_ header: DayHeaderCell, section: Int) {
         guard case let .day(day) = dataSource?.sectionIdentifier(for: section),
               let scheduleDay = scheduleDays[day] else { return }
-        let today = today
-        let composerOpenerFocus = listView.composerOpenerFocus
         let onAdd = { [weak self] in self?.listView.onAdd(day) ?? () }
         header.contentConfiguration = UIHostingConfiguration {
-            DayHeaderView(
-                scheduleDay: scheduleDay,
-                today: today,
-                composerOpenerFocus: composerOpenerFocus,
-                onAdd: onAdd
-            )
+            DayHeaderView(scheduleDay: scheduleDay, onAdd: onAdd)
         }
         // Weeks delimiter line
         .background {
@@ -229,7 +219,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
               let task = tasks[id],
               case let .day(day)? = finalSnapshot.sectionIdentifier(containingItem: id),
               let index = finalSnapshot.itemIdentifiers(inSection: .day(day)).firstIndex(of: id) else { return }
-        listView.onMove(task, schedule.destination(forDropOf: task, on: day, at: index))
+        vm.move(task, to: schedule.destination(forDropOf: task, on: day, at: index))
     }
 
     /// The move rule's answer for the row with `id` dropped at `indexPath`.
@@ -290,7 +280,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             preferredStyle: .actionSheet
         )
         alert.addAction(UIAlertAction(title: String(localized: .taskDelete), style: .destructive) { [weak self] _ in
-            self?.listView.onDelete(task)
+            self?.vm.delete(task)
         })
         alert.addAction(UIAlertAction(title: String(localized: .taskDeleteCancel), style: .cancel))
         // Pointing at the row, as the dialog did when SwiftUI drew it.

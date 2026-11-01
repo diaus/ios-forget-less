@@ -7,7 +7,6 @@ struct ScheduleView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var isComposerNameFocused: Bool
-    @State private var composerOpenerFocus = ComposerOpenerFocus()
     @State private var isConfirmingDiscard = false
 
     // MARK: - Body
@@ -80,7 +79,7 @@ struct ScheduleView: View {
                 .background(.tint, in: .circle)
         }
         .accessibilityLabel(Text(.taskAdd))
-        .accessibilityFocused(returningTo: .floating, from: composerOpenerFocus)
+        .accessibilityFocused(returningTo: .floating)
         .padding(20)
         // Its own container, so the rotor's Containers moves between it and the list.
         .accessibilityElement(children: .contain)
@@ -90,15 +89,9 @@ struct ScheduleView: View {
         // A wrapped view gets no safe area of its own, so it's read here and passed in. The list runs under the bar.
         GeometryReader { proxy in
             ScheduleListView(
-                schedule: vm.schedule,
-                today: vm.today,
-                movesTasks: vm.movesTasks,
-                composerOpenerFocus: composerOpenerFocus,
                 safeAreaInsets: proxy.safeAreaInsets,
                 onAdd: { day in showComposer(on: day, from: .day(day)) },
-                onRename: showComposer(editing:),
-                onDelete: vm.delete,
-                onMove: vm.move
+                onRename: showComposer(editing:)
             )
             .ignoresSafeArea()
             // A Task completed while Complete Tasks are hidden leaves when its grace period ends.
@@ -108,19 +101,18 @@ struct ScheduleView: View {
 
     // MARK: - Actions
     private func showComposer(on day: Date, from opener: ComposerOpener) {
-        vm.showComposer(on: day)
-        focusComposer(from: opener)
+        vm.showComposer(on: day, from: opener)
+        focusComposer()
     }
 
     private func showComposer(editing task: TodoTask) {
         vm.showComposer(editing: task)
-        focusComposer(from: .task(task.id))
+        focusComposer()
     }
 
     /// Called in the same action that shows the panel, so the keyboard starts in the same frame.
-    private func focusComposer(from opener: ComposerOpener) {
+    private func focusComposer() {
         isComposerNameFocused = true
-        composerOpenerFocus.opener = opener
     }
 
     /// Dismisses the composer, first asking whether to discard any change.
@@ -141,7 +133,6 @@ struct ScheduleView: View {
     private func dismissComposer() {
         vm.dismissComposer()
         isComposerNameFocused = false
-        composerOpenerFocus.returnToOpener()
     }
 
     // MARK: - Helpers

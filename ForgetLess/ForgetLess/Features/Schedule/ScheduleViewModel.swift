@@ -11,6 +11,7 @@ final class ScheduleViewModel {
     private(set) var today: Date
     private(set) var schedule: Schedule
     var composer: ComposerState
+    let composerOpenerFocus = ComposerOpenerFocus()
     var errorMessage: String?
     /// Whether the Schedule lists Complete Tasks. Kept across launches.
     var showsComplete: Bool {
@@ -67,9 +68,11 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Composer
-    func showComposer(on day: Date) {
+    /// Shows the composer on `day`, to add a Task. VoiceOver goes back to `opener` when it closes.
+    func showComposer(on day: Date, from opener: ComposerOpener) {
         composer.day = day
         composer.isVisible = true
+        composerOpenerFocus.opener = opener
     }
 
     /// Shows the composer filled in with `task`, to rename it.
@@ -78,13 +81,15 @@ final class ScheduleViewModel {
         composer.taskName = task.name
         composer.day = task.day
         composer.isVisible = true
+        composerOpenerFocus.opener = .task(task.id)
     }
 
-    /// Hides the composer and drops what's typed, so the next add starts blank.
+    /// Hides the composer and drops what's typed, so the next add starts blank. VoiceOver goes back to what showed it.
     func dismissComposer() {
         composer.isVisible = false
         composer.editedTask = nil
         composer.taskName = ""
+        composerOpenerFocus.returnToOpener()
     }
 
     /// Saves the typed name: adds a Task to the composer's Day, or renames the Task being edited. Returns `nil` and
