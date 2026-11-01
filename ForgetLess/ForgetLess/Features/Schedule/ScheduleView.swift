@@ -48,7 +48,11 @@ struct ScheduleView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
             vm.refresh()
         }
-        .sheet(isPresented: $vm.isDayPickerVisible, onDismiss: vm.dayPickerDidClose) {
+        // Bound by hand: the picker's state is `nil` while it's closed.
+        .sheet(
+            isPresented: Binding { vm.dayPicker?.isVisible ?? false } set: { vm.dayPicker?.isVisible = $0 },
+            onDismiss: vm.dayPickerDidClose
+        ) {
             DayPickerView()
                 .presentationDetents([.medium, .large])
         }

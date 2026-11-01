@@ -24,7 +24,7 @@ struct DayPickerView: View {
             .toolbar {
                 // Both in the tint: on iOS 26 a toolbar button's text is otherwise primary.
                 ToolbarItem(placement: .cancellationAction) {
-                    Button { vm.isDayPickerVisible = false } label: {
+                    Button { vm.dayPicker?.isVisible = false } label: {
                         Text(.dayPickerCancel).foregroundStyle(.tint)
                     }
                 }

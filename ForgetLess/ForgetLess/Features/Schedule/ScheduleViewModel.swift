@@ -13,7 +13,6 @@ final class ScheduleViewModel {
     var composer: ComposerState
     /// The Day picker's choice; `nil` once it has closed. Kept until then, so the sheet keeps its content as it goes.
     var dayPicker: DayPickerState?
-    var isDayPickerVisible = false
     /// How many Incomplete Tasks each Day holds; a Day with none has no entry.
     private(set) var incompleteTaskCountsByDay: [Date: Int] = [:]
     let composerOpenerFocus = ComposerOpenerFocus()
@@ -167,13 +166,13 @@ final class ScheduleViewModel {
     /// Shows the Day picker, to move `task` to the end of another Day.
     func showDayPicker(for task: TodoTask) {
         dayPicker = DayPickerState(task: task, today: today)
-        isDayPickerVisible = true
+        dayPicker?.isVisible = true
     }
 
     /// Moves the Task to the end of the chosen Day, unless it's already there, and closes the Day picker.
     /// VoiceOver says the new Day once the move is saved.
     func confirmDayPicker() {
-        isDayPickerVisible = false
+        dayPicker?.isVisible = false
         guard let dayPicker, let task = tasks.first(where: { $0.id == dayPicker.taskID }),
               let day = dayPicker.dayToMove(task), schedule.canMove(task, toDay: day) else { return }
         let dayName = day.relativeNameOrShortDate(today: today)

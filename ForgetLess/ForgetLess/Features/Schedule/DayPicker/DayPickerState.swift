@@ -3,6 +3,7 @@ import Foundation
 
 /// The Day picker's choice of a Day for the Task being moved.
 struct DayPickerState {
+    var isVisible = false
     let taskID: UUID
     private(set) var today: Date
     /// `nil` while nothing is chosen.
