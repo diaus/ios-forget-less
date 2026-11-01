@@ -74,4 +74,21 @@ public extension Date {
     var isFirstDayOfMonth: Bool {
         Calendar.gmt.component(.day, from: self) == 1
     }
+
+    /// How many Days of its week come before this Day, for weeks that start on `firstWeekday`.
+    internal func dayCountIntoWeek(firstWeekday: Int) -> Int {
+        (Calendar.gmt.component(.weekday, from: self) - firstWeekday + 7) % 7
+    }
+
+    /// The 1st of this Day's month.
+    internal var firstDayOfMonth: Date {
+        // Every Day falls in a month.
+        Calendar.gmt.dateInterval(of: .month, for: self)!.start
+    }
+
+    /// The Day `monthCount` months after this one, or before it when negative, on the last Day of a shorter month.
+    internal func addingMonths(_ monthCount: Int) -> Date {
+        // Adding whole months to a Day always names a Day.
+        Calendar.gmt.date(byAdding: .month, value: monthCount, to: self)!
+    }
 }
