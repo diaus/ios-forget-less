@@ -88,13 +88,24 @@ struct TodoTaskTests {
         #expect(order.map(\.name) == ["Buy milk", "Pay rent", "Call mum", "Walk the dog"])
     }
 
+    @Test func theOrderRuleNumbersTheDayFromZeroWithTheMovedTaskOnIt() {
+        let tasksOfDay = [task("Buy milk", sortIndex: 3), task("Call mum", sortIndex: 7)]
+        let moved = TodoTask(id: UUID(), name: "Pay rent", day: day.addingDays(1), completeDay: nil, sortIndex: 5)
+
+        let order = TodoTask.order(afterMoving: moved, to: destination(after: tasksOfDay[0]), in: tasksOfDay)
+
+        #expect(order.map(\.name) == ["Buy milk", "Pay rent", "Call mum"])
+        #expect(order.map(\.sortIndex) == [0, 1, 2])
+        #expect(order.allSatisfy { $0.day == day })
+    }
+
     // MARK: - Helpers
     private func task(sortIndex: Int) -> TodoTask {
         TodoTask(id: UUID(), name: "Buy milk", day: day, completeDay: nil, sortIndex: sortIndex)
     }
 
-    private func task(_ name: String, completeDay: Date? = nil) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: 0)
+    private func task(_ name: String, completeDay: Date? = nil, sortIndex: Int = 0) -> TodoTask {
+        TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: sortIndex)
     }
 
     private func destination(after task: TodoTask?) -> MoveDestination {

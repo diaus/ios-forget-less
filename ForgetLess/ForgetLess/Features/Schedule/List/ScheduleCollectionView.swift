@@ -27,6 +27,21 @@ final class ScheduleCollectionView: UICollectionView {
         lastAdjustedTop = adjustedContentInset.top
     }
 
+    // MARK: - Headers
+    /// The one of `sections` whose header band holds `point`, in content coordinates.
+    func section(withHeaderAt point: CGPoint, among sections: [Int]) -> Int? {
+        let kind = UICollectionView.elementKindSectionHeader
+        return sections.first { section in
+            let indexPath = IndexPath(item: 0, section: section)
+            guard let header = layoutAttributesForSupplementaryElement(ofKind: kind, at: indexPath) else {
+                return false
+            }
+            // Half a header's height either side, so a lifted row finds the band easily.
+            let band = header.frame.insetBy(dx: 0, dy: -header.frame.height / 2)
+            return band.minY...band.maxY ~= point.y
+        }
+    }
+
     // MARK: - Helpers
     private func applyContentInsets() {
         // The scroll view keeps adjusting for UIKit's own safe area (`.automatic`), and only the rest is added here.

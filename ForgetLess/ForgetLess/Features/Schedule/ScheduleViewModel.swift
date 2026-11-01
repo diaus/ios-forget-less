@@ -20,13 +20,22 @@ final class ScheduleViewModel {
             rebuildSchedule()
         }
     }
-    /// The Tasks the Schedule was last observed with.
+    /// Whether Tasks can be moved. Kept across launches.
+    var movesTasks: Bool {
+        didSet {
+            UserDefaults.standard.set(movesTasks, forKey: Self.movesTasksKey)
+        }
+    }
+    /// The Tasks the Schedule lists, with any move not yet confirmed by the store already made.
     private var tasks: [TodoTask] = []
+    /// The Tasks last observed in the store.
+    private var observedTasks: [TodoTask] = []
     /// Tasks completed while Complete Tasks are hidden that the Schedule still lists, so a mis-tap can be undone.
     private(set) var keptTaskIDs: Set<UUID> = []
     @ObservationIgnored private var keptTaskTimers: [UUID: Task<Void, Never>] = [:]
 
     private static let showsCompleteKey = "showsCompleteTasks"
+    private static let movesTasksKey = "movesTasks"
     /// How long a Task completed while Complete Tasks are hidden stays listed, so a mis-tap can be undone.
     private static let keptDuration = Duration.seconds(2)
 
@@ -40,6 +49,7 @@ final class ScheduleViewModel {
         self.schedule = Schedule(tasks: [], today: today)
         self.composer = ComposerState(day: today)
         self.showsComplete = UserDefaults.standard.object(forKey: Self.showsCompleteKey) as? Bool ?? true
+        self.movesTasks = UserDefaults.standard.object(forKey: Self.movesTasksKey) as? Bool ?? true
     }
 
     // MARK: - Loading
@@ -52,6 +62,7 @@ final class ScheduleViewModel {
     func observeSchedule() async {
         do {
             for await tasks in try await repository.scheduleTasks(today: today) {
+                observedTasks = tasks
                 self.tasks = tasks
                 rebuildSchedule()
             }
@@ -120,6 +131,26 @@ final class ScheduleViewModel {
             keptTaskTimers.removeValue(forKey: task.id)?.cancel()
         }
         write { try await self.repository.setComplete(id: task.id, isComplete: isComplete, today: self.today) }
+    }
+
+    // MARK: - Moving
+    /// Moves `task` to `destination`, or lists it where it was when the move rule refuses that.
+    func move(_ task: TodoTask, to destination: MoveDestination) {
+        guard schedule.canMove(task, to: destination) else {
+            // Rebuilt all the same, so a list that already moved the row puts it back.
+            rebuildSchedule()
+            return
+        }
+        // Moved at once, so the row stays where it was dropped while the write is in flight.
+        tasks = tasks.movingTask(id: task.id, to: destination)
+        rebuildSchedule()
+        write {
+            try await self.repository.move(id: task.id, to: destination)
+        } onFailure: {
+            // Nothing was saved, so the store's last Tasks put the Task back.
+            self.tasks = self.observedTasks
+            self.rebuildSchedule()
+        }
     }
 
     // MARK: - Deletion

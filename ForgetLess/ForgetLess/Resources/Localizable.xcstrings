@@ -154,6 +154,23 @@
         }
       }
     },
+    "schedule.moveTasks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move Tasks"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переміщувати завдання"
+          }
+        }
+      }
+    },
     "schedule.overdue" : {
       "extractionState" : "manual",
       "localizations" : {

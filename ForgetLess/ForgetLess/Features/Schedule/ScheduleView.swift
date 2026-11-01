@@ -90,11 +90,13 @@ struct ScheduleView: View {
             ScheduleListView(
                 schedule: vm.schedule,
                 today: vm.today,
+                movesTasks: vm.movesTasks,
                 composerOpenerFocus: composerOpenerFocus,
                 safeAreaInsets: proxy.safeAreaInsets,
                 onAdd: { day in showComposer(on: day, from: .day(day)) },
                 onRename: showComposer(editing:),
-                onDelete: vm.delete
+                onDelete: vm.delete,
+                onMove: vm.move
             )
             .ignoresSafeArea()
             // A Task completed while Complete Tasks are hidden leaves when its grace period ends.

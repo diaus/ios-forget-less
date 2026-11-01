@@ -5,6 +5,8 @@ import SwiftUI
 struct ScheduleListView: UIViewRepresentable {
     let schedule: Schedule
     let today: Date
+    /// Whether rows show their handle and can be moved.
+    let movesTasks: Bool
     let composerOpenerFocus: ComposerOpenerFocus
     /// The safe area the list's content clears, which a wrapped view doesn't get on its own.
     let safeAreaInsets: EdgeInsets
@@ -14,6 +16,8 @@ struct ScheduleListView: UIViewRepresentable {
     let onRename: (TodoTask) -> Void
     /// Deletes a Task the user has confirmed.
     let onDelete: (TodoTask) -> Void
+    /// Moves a Task the user has dropped.
+    let onMove: (TodoTask, MoveDestination) -> Void
 
     func makeCoordinator() -> ScheduleListController {
         ScheduleListController(listView: self)
@@ -26,7 +30,12 @@ struct ScheduleListView: UIViewRepresentable {
     func updateUIView(_ collectionView: ScheduleCollectionView, context: Context) {
         context.coordinator.listView = self
         // Animated only when SwiftUI animates the change, as its `List` did.
-        context.coordinator.show(schedule, today: today, animated: context.transaction.animation != nil)
+        context.coordinator.show(
+            schedule,
+            today: today,
+            movesTasks: movesTasks,
+            animated: context.transaction.animation != nil
+        )
         collectionView.targetContentInsets = UIEdgeInsets(
             top: safeAreaInsets.top,
             left: 0,

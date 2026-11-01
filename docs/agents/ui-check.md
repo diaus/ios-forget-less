@@ -13,6 +13,7 @@ The check passes once every behaviour the change touches is confirmed this way.
 ## Simulator workarounds
 
 - **Small controls.** An elementRef tap hits the element's centre. When that misses, tap the control's point with `scripts/sim-tap.sh X Y`, then `snapshot_ui`.
+- **Moving a row.** Drag its handle with `"$axe" drag --start-x X --start-y Y --end-x X --end-y Y2 --duration 2 --steps 100 --udid <udid>`, with `axe` found as `scripts/sim-tap.sh` finds it, then read the rows back with `axe describe-ui`. `axe drag` sends a touch-move event per step, which the list needs to place the gap. `axe swipe`'s steps are too coarse: a drop onto an empty Day's header can miss. A drop near the bottom of the list auto-scrolls.
 - **Keys.** Press a key with `scripts/sim-tap.sh --key CODE` (Return is 40): `key_press` is dropped the same way as an early tap.
 - **Typing.** While the software keyboard shows, type by tapping its keys. `type_text` sends hardware-keyboard events, which hide the software keyboard until the user toggles it back with ⌥⌘K in Xcode's Device Hub while a field has focus. Once it's hidden (the snapshot lists no keys), type with `type_text`.
 - **Autocorrect.** Type dictionary words: a pending autocorrect suggestion takes the next Return or button tap.

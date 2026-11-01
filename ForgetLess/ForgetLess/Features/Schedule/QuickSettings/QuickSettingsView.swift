@@ -16,6 +16,14 @@ struct QuickSettingsView: View {
             .accessibilityRepresentation {
                 Toggle(isOn: $vm.showsComplete.animation()) { Text(.scheduleShowCompleteTasks) }
             }
+            Button { withAnimation { vm.movesTasks.toggle() } } label: {
+                Image(systemName: vm.movesTasks ? "lock.open" : "lock")
+                    .quickSettingSquare()
+            }
+            .buttonStyle(.plain)
+            .accessibilityRepresentation {
+                Toggle(isOn: $vm.movesTasks.animation()) { Text(.scheduleMoveTasks) }
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)

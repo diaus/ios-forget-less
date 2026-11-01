@@ -24,6 +24,10 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     /// The Days the list shows.
     private var scheduleDays: [Date: Schedule.Day] = [:]
     private var today = Date.today
+    /// The Schedule the list shows, which the move rule answers for.
+    private var schedule = Schedule(tasks: [], today: .today)
+    private var movesTasks = false
+    private let rowMove = TaskRowMove()
 
     init(listView: ScheduleListView) {
         self.listView = listView
@@ -36,7 +40,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
     // MARK: - Showing
     /// Shows `schedule`, animating the change when `animated` and it isn't the first.
-    func show(_ schedule: Schedule, today: Date, animated: Bool) {
+    func show(_ schedule: Schedule, today: Date, movesTasks: Bool, animated: Bool) {
         guard let dataSource else { return }
         var snapshot = NSDiffableDataSourceSnapshot<Section, TodoTask.ID>()
         if !schedule.overdue.isEmpty {
@@ -57,16 +61,26 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             tasks[id] != nil && overdueTaskIDs.contains(id) != newOverdueTaskIDs.contains(id)
         }
         // SwiftUI updates the list whenever the screen changes, the composer included, mostly with nothing new.
-        if !isFirst, changedTaskIDs.isEmpty, overdueChangedTaskIDs.isEmpty, today == self.today,
+        let movesTasksChanged = movesTasks != self.movesTasks
+        if !isFirst, changedTaskIDs.isEmpty, overdueChangedTaskIDs.isEmpty, today == self.today, !movesTasksChanged,
            Self.sameRows(snapshot, shownSnapshot) {
             return
+        }
+        if rowMove.taskID != nil {
+            // Rows can't change under a lifted one, and a new Today changes where it can land: the move is cancelled.
+            collectionView.cancelInteractiveMovement()
+            rowMove.end()
         }
         tasks = Dictionary(shownTasks.map { ($0.id, $0) }) { first, _ in first }
         overdueTaskIDs = newOverdueTaskIDs
         scheduleDays = Dictionary(schedule.days.map { ($0.day, $0) }) { first, _ in first }
         self.today = today
-        // Rows are keyed by Task ID, so a renamed or completed Task is redrawn in place.
-        snapshot.reconfigureItems(changedTaskIDs.filter { !overdueChangedTaskIDs.contains($0) })
+        self.schedule = schedule
+        self.movesTasks = movesTasks
+        // Rows are keyed by Task ID, so a renamed or completed Task is redrawn in place, and every row shows or hides
+        // its handle.
+        let reconfiguredTaskIDs = movesTasksChanged ? snapshot.itemIdentifiers : changedTaskIDs
+        snapshot.reconfigureItems(reconfiguredTaskIDs.filter { !overdueChangedTaskIDs.contains($0) })
         // Reloaded rather than reconfigured: a reconfigured row that also changes section lays out its new Day but
         // isn't redrawn until it scrolls.
         snapshot.reloadItems(overdueChangedTaskIDs)
@@ -114,6 +128,11 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
                 collectionView.dequeueConfiguredReusableSupplementary(using: dayHeaderRegistration, for: indexPath)
             }
         }
+        // Off, no row moves, not even from a long press.
+        dataSource.reorderingHandlers.canReorderItem = { [weak self] _ in self?.movesTasks ?? false }
+        dataSource.reorderingHandlers.didReorder = { [weak self] transaction in
+            self?.didMove(transaction)
+        }
         self.dataSource = dataSource
     }
 
@@ -128,6 +147,10 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             ) { [weak self] in
                 self?.rename(id)
             }
+        }
+        cell.accessories = movesTasks ? [.reorder(displayed: .always)] : []
+        cell.configurationUpdateHandler = { [weak self] _, state in
+            self?.rowStateChanged(state, id: id)
         }
     }
 
@@ -154,6 +177,62 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             if let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath) as? DayHeaderCell {
                 configure(header, section: indexPath.section)
             }
+        }
+    }
+
+    // MARK: - Moving
+    func collectionView(
+        _ collectionView: UICollectionView,
+        targetIndexPathForMoveOfItemFromOriginalIndexPath originalIndexPath: IndexPath,
+        atCurrentIndexPath currentIndexPath: IndexPath,
+        toProposedIndexPath proposedIndexPath: IndexPath
+    ) -> IndexPath {
+        // The list never proposes an empty Day by itself, so a row held over one's header is sent there.
+        let liftedRow = collectionView.visibleCells.first { cell in
+            (cell as? UICollectionViewListCell)?.configurationState.isReordering == true
+        }
+        let emptySection = liftedRow.flatMap { row in
+            self.collectionView.section(withHeaderAt: row.center, among: emptySections)
+        }
+        let proposed = emptySection.map { IndexPath(item: 0, section: $0) } ?? proposedIndexPath
+        let isAccepted = dataSource?.itemIdentifier(for: originalIndexPath).map { canMove($0, to: proposed) } ?? false
+        rowMove.tickOnEntering(isAccepted ? proposed.section : nil, startedIn: originalIndexPath.section)
+        // Refused, no gap opens, and letting go puts the row back where it started.
+        return isAccepted ? proposed : originalIndexPath
+    }
+
+    private func rowStateChanged(_ state: UICellConfigurationState, id: TodoTask.ID) {
+        if state.isReordering {
+            rowMove.lift(id)
+        } else if rowMove.taskID == id {
+            rowMove.end()
+        }
+    }
+
+    private func didMove(_ transaction: NSDiffableDataSourceTransaction<Section, TodoTask.ID>) {
+        rowMove.end()
+        let finalSnapshot = transaction.finalSnapshot
+        guard case let .insert(_, id, _)? = transaction.difference.insertions.first,
+              let task = tasks[id],
+              case let .day(day)? = finalSnapshot.sectionIdentifier(containingItem: id),
+              let index = finalSnapshot.itemIdentifiers(inSection: .day(day)).firstIndex(of: id) else { return }
+        listView.onMove(task, schedule.destination(forDropOf: task, on: day, at: index))
+    }
+
+    /// The move rule's answer for the row with `id` dropped at `indexPath`.
+    private func canMove(_ id: TodoTask.ID, to indexPath: IndexPath) -> Bool {
+        // Overdue has no Day to give a Task.
+        guard let task = tasks[id], case let .day(day)? = dataSource?.sectionIdentifier(for: indexPath.section) else {
+            return false
+        }
+        return schedule.canMove(task, droppedOn: day, at: indexPath.item)
+    }
+
+    /// The sections of the Days with no Task listed.
+    private var emptySections: [Int] {
+        guard let snapshot = dataSource?.snapshot() else { return [] }
+        return snapshot.sectionIdentifiers.indices.filter { index in
+            snapshot.numberOfItems(inSection: snapshot.sectionIdentifiers[index]) == 0
         }
     }
 

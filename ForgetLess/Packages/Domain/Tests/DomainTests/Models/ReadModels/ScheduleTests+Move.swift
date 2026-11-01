@@ -181,4 +181,54 @@ extension ScheduleTests {
         #expect(schedule.destinationOneStepDown(for: first) == MoveDestination(day: today, after: last.id))
         #expect(schedule.destinationOneStepUp(for: tomorrows) == MoveDestination(day: today, after: last.id))
     }
+
+    // MARK: - Drops
+    @Test func aTaskDroppedLowerInItsOwnDayGoesAfterTheTaskShownAboveIt() throws {
+        let today = try day("2026-03-01")
+        let tasks = ["Buy milk", "Call mum", "Walk the dog"].enumerated().map { index, name in
+            task(name, day: today, sortIndex: index)
+        }
+        let schedule = Schedule(tasks: tasks, today: today)
+
+        // Dropped third: below "Call mum" and "Walk the dog" once it's lifted out.
+        let destination = schedule.destination(forDropOf: tasks[0], on: today, at: 2)
+
+        #expect(destination == MoveDestination(day: today, after: tasks[2].id))
+    }
+
+    @Test func aTaskDroppedAtTheTopOfADayGoesFirst() throws {
+        let today = try day("2026-03-01")
+        let tomorrow = try day("2026-03-02")
+        let todays = task("Buy milk", day: today, sortIndex: 0)
+        let tomorrows = task("Call mum", day: tomorrow, sortIndex: 0)
+        let schedule = Schedule(tasks: [todays, tomorrows], today: today)
+
+        let destination = schedule.destination(forDropOf: todays, on: tomorrow, at: 0)
+
+        #expect(destination == MoveDestination(day: tomorrow, after: nil))
+    }
+
+    @Test func aTaskCanBeDroppedOnAListedDayButNotOnAnUnlistedOne() throws {
+        let today = try day("2026-03-01")
+        let todays = task("Buy milk", day: today, sortIndex: 0)
+        let tomorrows = task("Call mum", day: try day("2026-03-02"), sortIndex: 0)
+        let schedule = Schedule(tasks: [todays, tomorrows], today: today)
+
+        #expect(schedule.canMove(todays, droppedOn: tomorrows.day, at: 1))
+        #expect(!schedule.canMove(todays, droppedOn: try day("2026-09-01"), at: 0))
+    }
+
+    @Test func aTaskDroppedBetweenTwoShownTasksGoesAfterTheUpperOneWhileCompleteTasksAreHidden() throws {
+        let today = try day("2026-03-01")
+        let tomorrow = try day("2026-03-02")
+        let upper = task("Buy milk", day: today, sortIndex: 0)
+        let hidden = task("Call mum", day: today, sortIndex: 1, completeDay: today)
+        let lower = task("Walk the dog", day: today, sortIndex: 2)
+        let tomorrows = task("Pay rent", day: tomorrow, sortIndex: 0)
+        let schedule = Schedule(tasks: [upper, hidden, lower, tomorrows], today: today, showsComplete: false)
+
+        let destination = schedule.destination(forDropOf: tomorrows, on: today, at: 1)
+
+        #expect(destination == MoveDestination(day: today, after: upper.id))
+    }
 }

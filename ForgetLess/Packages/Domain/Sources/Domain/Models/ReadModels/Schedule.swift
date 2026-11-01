@@ -70,6 +70,18 @@ public struct Schedule: Sendable {
         return MoveDestination(day: days[dayIndex + 1].day, after: nil)
     }
 
+    /// The move rule for a drop: whether `task` can be dropped on `day` at `index` among the Tasks listed there,
+    /// counted without `task`.
+    public func canMove(_ task: TodoTask, droppedOn day: Date, at index: Int) -> Bool {
+        canMove(task, to: destination(forDropOf: task, on: day, at: index))
+    }
+
+    /// Where `task` goes when dropped on `day` at `index` among the Tasks listed there, counted without `task`.
+    public func destination(forDropOf task: TodoTask, on day: Date, at index: Int) -> MoveDestination {
+        let others = days.first { $0.day == day }?.tasks.filter { $0.id != task.id } ?? []
+        return MoveDestination(day: day, after: index > 0 ? others[index - 1].id : nil)
+    }
+
     // MARK: - Helpers
     private func position(of task: TodoTask) -> (dayIndex: Int, taskIndex: Int)? {
         for (dayIndex, day) in days.enumerated() {

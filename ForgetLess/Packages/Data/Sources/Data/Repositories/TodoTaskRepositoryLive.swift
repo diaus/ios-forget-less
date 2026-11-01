@@ -99,10 +99,10 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         let order = TodoTask.order(afterMoving: model.toDomain(), to: destination, in: tasksOfDay)
         var modelsByID = Dictionary(uniqueKeysWithValues: modelsOfDay.map { ($0.id, $0) })
         modelsByID[model.id] = model
-        for (sortIndex, task) in order.enumerated() {
-            modelsByID[task.id]?.sortIndex = sortIndex
+        for task in order {
+            modelsByID[task.id]?.day = task.day
+            modelsByID[task.id]?.sortIndex = task.sortIndex
         }
-        model.day = day
         try saveAndNotify()
     }
 
