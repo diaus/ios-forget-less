@@ -111,8 +111,10 @@ struct DayPickerView: View {
     private func summaryLine(_ dayPicker: DayPickerState) -> some View {
         Group {
             if let day = dayPicker.chosenDay {
-                let count = String(localized: .dayPickerTaskCount(count: vm.incompleteTaskCountsByDay[day] ?? 0))
-                Text([day.weekdayAndShortDate(today: dayPicker.today), count].joined(separator: " · "))
+                let taskCount = String(localized: .dayPickerTaskCount(count: vm.incompleteTaskCountsByDay[day] ?? 0))
+                Text(.dayPickerSummary(
+                    weekday: day.shortWeekday, day: day.shortDate(today: dayPicker.today), taskCount: taskCount
+                ))
             } else {
                 Text(.dayPickerPrompt)
             }

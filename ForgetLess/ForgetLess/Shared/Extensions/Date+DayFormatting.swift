@@ -34,11 +34,6 @@ extension Date {
         formatted(Date.FormatStyle(calendar: .gmt, timeZone: .gmt).day().month(.abbreviated), today: today)
     }
 
-    /// This Day's short date, led by its weekday's short name.
-    func weekdayAndShortDate(today: Date) -> String {
-        "\(shortWeekday) \(shortDate(today: today))"
-    }
-
     // MARK: - Full Date
     /// This Day in full, weekday and year included, as VoiceOver reads it.
     var fullDate: String {

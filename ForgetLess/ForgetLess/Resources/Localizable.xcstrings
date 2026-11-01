@@ -171,6 +171,23 @@
         }
       }
     },
+    "dayPicker.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%(weekday)@ %(day)@ · %(taskCount)@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%(weekday)@ %(day)@ · %(taskCount)@"
+          }
+        }
+      }
+    },
     "dayPicker.taskCount" : {
       "extractionState" : "manual",
       "localizations" : {
