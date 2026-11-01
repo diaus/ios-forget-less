@@ -12,12 +12,11 @@ struct DayPickerState {
     init(task: TodoTask, today: Date) {
         self.task = task
         self.today = today
-        self.chosenDay = task.day >= today ? task.day : nil
+        self.chosenDay = task.day.canBePlanned(today: today) ? task.day : nil
     }
 
-    /// Whether `day` can be chosen: a Task is never planned before Today.
     func canChoose(_ day: Date) -> Bool {
-        day >= today
+        day.canBePlanned(today: today)
     }
 
     /// Chooses `day`, unless it can't be chosen.

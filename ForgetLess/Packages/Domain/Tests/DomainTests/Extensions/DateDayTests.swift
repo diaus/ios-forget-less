@@ -16,6 +16,17 @@ struct DateDayTests {
     }
 
     @Test(arguments: [
+        ("2026-10-25", true),
+        ("2026-10-26", true),
+        ("2031-10-25", true),
+        ("2026-10-24", false),
+        ("2025-12-31", false),
+    ])
+    func aTaskCanBePlannedForTodayAndLaterButNeverBeforeToday(yearMonthDay: String, canBePlanned: Bool) throws {
+        #expect(try day(yearMonthDay).canBePlanned(today: try day("2026-10-25")) == canBePlanned)
+    }
+
+    @Test(arguments: [
         ("2026-01-01", true),
         ("2026-12-31", true),
         ("2027-01-01", false),

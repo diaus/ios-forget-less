@@ -28,6 +28,11 @@ public extension Date {
         Calendar.gmt.dateComponents([.day], from: day, to: self).day!
     }
 
+    /// Whether a Task can be planned for this Day: never before Today.
+    func canBePlanned(today: Date) -> Bool {
+        self >= today
+    }
+
     /// The Day after this one that a Task can be planned for, which is Today for a Day before Today.
     func nextDayToPlan(today: Date) -> Date {
         max(addingDays(1), today)
