@@ -103,10 +103,7 @@ final class ScheduleViewModel {
         composer.taskName = ""
         composerOpenerFocus.returnToOpener()
         if let editedTaskID {
-            // A Complete Task listed while Complete Tasks are hidden gets its grace period afresh, to be seen.
-            if !showsComplete, tasks.contains(where: { $0.id == editedTaskID && $0.isComplete }) {
-                keep(editedTaskID, for: UserDefaults.standard.keptDuration)
-            }
+            restartGracePeriod(of: editedTaskID)
             rebuildSchedule()
         }
     }
@@ -175,20 +172,14 @@ final class ScheduleViewModel {
         dayPicker?.isVisible = false
         guard let dayPicker, let task = tasks.first(where: { $0.id == dayPicker.taskID }),
               let day = dayPicker.dayToMove(task), schedule.canMove(task, toDay: day) else { return }
-        let dayName = day.relativeNameOrShortDate(today: today)
-        saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id)) {
-            postAnnouncement(dayName)
-        }
+        saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id), onSaved: dayAnnouncement(day))
     }
 
     /// Ends the Day picker once its sheet has closed, however it closed.
     func dayPickerDidClose() {
         guard let id = dayPicker?.taskID else { return }
         dayPicker = nil
-        // A Complete Task listed while Complete Tasks are hidden gets its grace period afresh, to be seen.
-        if !showsComplete, tasks.contains(where: { $0.id == id && $0.isComplete }) {
-            keep(id, for: UserDefaults.standard.keptDuration)
-        }
+        restartGracePeriod(of: id)
         rebuildSchedule()
     }
 
@@ -212,10 +203,7 @@ final class ScheduleViewModel {
 
     /// Moves `task` to `destination`, and has VoiceOver say its new Day once the move is saved.
     func moveAnnouncingDay(_ task: TodoTask, to destination: MoveDestination) {
-        let day = destination.day.relativeNameOrShortDate(today: today)
-        move(task, to: destination) {
-            postAnnouncement(day)
-        }
+        move(task, to: destination, onSaved: dayAnnouncement(destination.day))
     }
 
     // MARK: - Deletion
@@ -273,6 +261,20 @@ final class ScheduleViewModel {
             keptTaskIDs.remove(id)
             rebuildSchedule()
         }
+    }
+
+    /// Gives the Task with `id`, listed while the composer or the Day picker had it, its grace period afresh when it's
+    /// Complete and Complete Tasks are hidden, so it's seen before it leaves.
+    private func restartGracePeriod(of id: UUID) {
+        if !showsComplete, tasks.contains(where: { $0.id == id && $0.isComplete }) {
+            keep(id, for: UserDefaults.standard.keptDuration)
+        }
+    }
+
+    /// Has VoiceOver say `day`, named as it is now, when called: once a move to it is saved.
+    private func dayAnnouncement(_ day: Date) -> @MainActor () -> Void {
+        let dayName = day.relativeNameOrShortDate(today: today)
+        return { postAnnouncement(dayName) }
     }
 
     private func releaseKeptTasks() {
