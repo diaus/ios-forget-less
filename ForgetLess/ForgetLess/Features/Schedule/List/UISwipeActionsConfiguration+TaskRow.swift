@@ -1,6 +1,7 @@
 import UIKit
 
 extension UISwipeActionsConfiguration {
+    // MARK: - Task Row Actions
     /// A Task row's trailing swipe actions: Delete on the outer edge, then Choose Day.
     static func taskRowActions(
         onDelete: @escaping () -> Void,
