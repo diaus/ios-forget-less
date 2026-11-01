@@ -12,7 +12,8 @@ extension UISwipeActionsConfiguration {
         )
         // Offered whether Move Tasks is on or off: like the composer's Day chip, it never moves a Task by accident.
         let chooseDay = action(
-            symbol: "calendar", label: String(localized: .taskChooseDay), color: .systemBlue, handler: onChooseDay
+            symbol: "calendar", label: String(localized: .taskChooseDay),
+            color: UIColor(resource: .chooseDayAction), handler: onChooseDay
         )
         // The first action is the outermost.
         let configuration = UISwipeActionsConfiguration(actions: [delete, chooseDay])
