@@ -7,7 +7,6 @@ struct DayPickerDayView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let day: Date
 
-    /// The size of the chosen Day's circle.
     private let circleSize: CGFloat = 44
 
     // MARK: - Body
