@@ -39,6 +39,12 @@ extension Date {
         "\(shortWeekday) \(shortDate(today: today))"
     }
 
+    // MARK: - Full Date
+    /// This Day in full, weekday and year included, as VoiceOver reads it.
+    var fullDate: String {
+        formatted(Date.FormatStyle(date: .complete, time: .omitted, calendar: .gmt, timeZone: .gmt))
+    }
+
     // MARK: - Weekday
     /// This Day's weekday name.
     func weekday(capitalizationContext: FormatStyleCapitalizationContext) -> String {

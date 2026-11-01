@@ -25,6 +25,14 @@ struct DateDayFormattingTests {
         #expect(todayName != tomorrowName)
     }
 
+    @Test func aDaysFullDateNamesItsYearEvenInTodaysYear() throws {
+        let today = try day("2026-10-25")
+        let sameYearDay = try day("2026-11-06")
+
+        #expect(sameYearDay.fullDate.contains("2026"))
+        #expect(!sameYearDay.shortDate(today: today).contains("2026"))
+    }
+
     // MARK: - Helpers
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.
     private func day(_ yearMonthDay: String) throws -> Date {
