@@ -1,6 +1,6 @@
 # Choose a Day
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem Statement
 

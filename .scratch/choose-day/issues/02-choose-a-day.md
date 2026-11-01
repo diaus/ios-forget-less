@@ -44,7 +44,7 @@
 
 **Blocked by:** 01: The months and the Task counts
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] Choice-rule tests in `ForgetLessTests/Features/Schedule/DayPicker/` cover the rules listed under State.
 - [x] The UI check (`docs/agents/ui-check.md`) on iOS 27 confirms:

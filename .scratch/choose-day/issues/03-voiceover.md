@@ -13,7 +13,7 @@
 
 **Blocked by:** 02: Choose a Day from the swipe action
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] The UI check on iOS 27, with the accessibility tree read back (`snapshot_ui`), confirms:
   - "Choose Day" is among the row's actions;
