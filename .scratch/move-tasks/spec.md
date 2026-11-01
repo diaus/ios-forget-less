@@ -169,7 +169,7 @@ A good test exercises behaviour through a public interface and asserts on outcom
 
 ## Out of Scope
 
-- A date picker, or moving a Task to a Day that isn't listed.
+- Moving a Task by drag to a Day that isn't listed. A date picker came later, in `.scratch/choose-day/spec.md`.
 - Moving several Tasks at once.
 - Undo for a move.
 - A "Move to Tomorrow" action or any other shortcut besides drag and the two VoiceOver steps.
