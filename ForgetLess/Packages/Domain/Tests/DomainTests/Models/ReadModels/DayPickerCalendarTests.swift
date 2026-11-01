@@ -47,6 +47,44 @@ struct DayPickerCalendarTests {
         #expect(month.days.map { $0.dayCount(from: month.firstDay) } == Array(0..<dayCount))
     }
 
+    // 2026-11-01 is a Sunday, so a Monday start leaves six blank cells before it.
+    @Test func aMonthsWeeksPadItsFirstAndLastWeekWithBlankCells() throws {
+        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 1, firstWeekday: 2)
+        let month = try #require(calendar.months.first)
+
+        let blanks = { (count: Int) in [Date?](repeating: nil, count: count) }
+        #expect(month.weeks.count == 6)
+        #expect(try month.weeks.first == blanks(6) + [day("2026-11-01")])
+        #expect(month.weeks[1] == (1...7).map { try? day("2026-11-01").addingDays($0) })
+        #expect(try month.weeks.last == [day("2026-11-30")] + blanks(6))
+    }
+
+    // 2027-02-01 is a Monday, and February 2027 has 28 Days.
+    @Test func aMonthThatFillsWholeWeeksHasNoBlankCells() throws {
+        let calendar = DayPickerCalendar(today: try day("2027-02-10"), monthCount: 1, firstWeekday: 2)
+        let month = try #require(calendar.months.first)
+
+        #expect(month.weeks.count == 4)
+        #expect(month.weeks.allSatisfy { $0.count == 7 && !$0.contains(nil) })
+        #expect(try month.weeks.first?.first == day("2027-02-01"))
+        #expect(try month.weeks.last?.last == day("2027-02-28"))
+    }
+
+    @Test func theWeekHoldingADayIsFoundInItsMonth() throws {
+        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 2, firstWeekday: 2)
+
+        let week = try #require(calendar.week(containing: try day("2026-12-03")))
+        // 2026-12-01 is a Tuesday.
+        #expect(week == [nil] + (0..<6).map { try? day("2026-12-01").addingDays($0) })
+    }
+
+    @Test(arguments: ["2026-10-31", "2027-01-01"])
+    func noWeekHoldsADayOutsideTheMonthsShown(yearMonthDay: String) throws {
+        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 2, firstWeekday: 2)
+
+        #expect(calendar.week(containing: try day(yearMonthDay)) == nil)
+    }
+
     // MARK: - Helpers
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.
     private func day(_ yearMonthDay: String) throws -> Date {

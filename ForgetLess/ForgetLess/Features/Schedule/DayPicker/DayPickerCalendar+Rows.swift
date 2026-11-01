@@ -19,17 +19,6 @@ extension DayPickerCalendar {
 
     /// The row of the week that holds `day`, or `nil` when no month shown holds it.
     func weekRow(containing day: Date) -> Row? {
-        months.first { $0.days.contains(day) }?.weeks.first { $0.contains(day) }.map(Row.week)
-    }
-}
-
-private extension DayPickerCalendar.Month {
-    /// This month's Days in rows of a week, `nil` for each cell before the 1st or after the last Day.
-    var weeks: [[Date?]] {
-        let cells = Array(repeating: nil, count: leadingBlankCount) + days.map(Optional.some)
-        return stride(from: 0, to: cells.count, by: 7).map { start in
-            let week = Array(cells[start..<min(start + 7, cells.count)])
-            return week + Array(repeating: nil, count: 7 - week.count)
-        }
+        week(containing: day).map(Row.week)
     }
 }
