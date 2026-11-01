@@ -36,5 +36,6 @@ Before reporting done:
 ## Editing
 
 Add or change String Catalog keys with `scripts/xcstrings.py set KEY EN UK`, which writes the file in Xcode's own format and keeps SwiftLint's key prefixes in step.
+Set a key's plural forms, one language at a time, with `scripts/xcstrings.py set-plural KEY LANG CATEGORY=VALUE...` (`en` needs `one` and `other`, `uk` also `few` and `many`; `zero` is optional).
 
 A file kept out of a target in a synchronized folder (such as a `.gitkeep`) is listed in a `PBXFileSystemSynchronizedBuildFileExceptionSet` in `project.pbxproj`. When you delete or rename one, update its entry; once a set is empty, delete it and the folder's `exceptions = (...)` reference to it, then run `build_sim`.
