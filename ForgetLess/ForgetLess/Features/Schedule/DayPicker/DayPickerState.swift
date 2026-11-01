@@ -3,14 +3,14 @@ import Foundation
 
 /// The Day picker's choice of a Day for the Task being moved.
 struct DayPickerState {
-    let task: TodoTask
+    let taskID: UUID
     private(set) var today: Date
     /// `nil` while nothing is chosen.
     private(set) var chosenDay: Date?
 
     /// Opens on `task`'s Day, or with nothing chosen when the Task is Overdue.
     init(task: TodoTask, today: Date) {
-        self.task = task
+        self.taskID = task.id
         self.today = today
         self.chosenDay = task.day.canBePlanned(today: today) ? task.day : nil
     }
@@ -33,8 +33,8 @@ struct DayPickerState {
         }
     }
 
-    /// The Day to move the Task to: `nil` while nothing is chosen, or when the chosen Day is the Task's own.
-    var dayToMoveTo: Date? {
+    /// The Day to move `task`, as it is now, to: `nil` while nothing is chosen, or when the chosen Day is its own.
+    func dayToMove(_ task: TodoTask) -> Date? {
         chosenDay == task.day ? nil : chosenDay
     }
 }

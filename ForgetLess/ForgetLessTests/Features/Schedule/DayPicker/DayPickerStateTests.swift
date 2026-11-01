@@ -64,27 +64,42 @@ struct DayPickerStateTests {
     }
 
     @Test func theChosenDayIsTheDayToMoveTo() {
-        var picker = DayPickerState(task: task(on: today.addingDays(5)), today: today)
+        let task = task(on: today.addingDays(5))
+        var picker = DayPickerState(task: task, today: today)
 
         picker.choose(today.addingDays(2))
 
-        #expect(picker.dayToMoveTo == today.addingDays(2))
+        #expect(picker.dayToMove(task) == today.addingDays(2))
     }
 
     @Test func thereIsNoDayToMoveToWhileNothingIsChosen() {
-        let picker = DayPickerState(task: task(on: today.addingDays(-3)), today: today)
+        let task = task(on: today.addingDays(-3))
+        let picker = DayPickerState(task: task, today: today)
 
-        #expect(picker.dayToMoveTo == nil)
+        #expect(picker.dayToMove(task) == nil)
     }
 
     @Test func thereIsNoDayToMoveToOnTheTasksOwnDay() {
-        var picker = DayPickerState(task: task(on: today.addingDays(5)), today: today)
-        #expect(picker.dayToMoveTo == nil)
+        let task = task(on: today.addingDays(5))
+        var picker = DayPickerState(task: task, today: today)
+        #expect(picker.dayToMove(task) == nil)
 
         picker.choose(today)
         picker.choose(today.addingDays(5))
 
-        #expect(picker.dayToMoveTo == nil)
+        #expect(picker.dayToMove(task) == nil)
+    }
+
+    @Test func theTasksOwnDayIsTheDayItIsOnNowNotTheOneItOpenedOn() {
+        var task = task(on: today.addingDays(5))
+        var picker = DayPickerState(task: task, today: today)
+        task.day = today.addingDays(2)
+
+        #expect(picker.dayToMove(task) == today.addingDays(5))
+
+        picker.choose(today.addingDays(2))
+
+        #expect(picker.dayToMove(task) == nil)
     }
 
     // MARK: - Helpers

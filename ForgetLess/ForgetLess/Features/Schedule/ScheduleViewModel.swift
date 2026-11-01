@@ -174,9 +174,8 @@ final class ScheduleViewModel {
     /// VoiceOver says the new Day once the move is saved.
     func confirmDayPicker() {
         isDayPickerVisible = false
-        guard let dayPicker, let day = dayPicker.dayToMoveTo,
-              let task = tasks.first(where: { $0.id == dayPicker.task.id }),
-              schedule.canMove(task, toDay: day) else { return }
+        guard let dayPicker, let task = tasks.first(where: { $0.id == dayPicker.taskID }),
+              let day = dayPicker.dayToMove(task), schedule.canMove(task, toDay: day) else { return }
         let dayName = day.relativeNameOrShortDate(today: today)
         saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id)) {
             postAnnouncement(dayName)
@@ -185,7 +184,7 @@ final class ScheduleViewModel {
 
     /// Ends the Day picker once its sheet has closed, however it closed.
     func dayPickerDidClose() {
-        guard let id = dayPicker?.task.id else { return }
+        guard let id = dayPicker?.taskID else { return }
         dayPicker = nil
         // A Complete Task listed while Complete Tasks are hidden gets its grace period afresh, to be seen.
         if !showsComplete, tasks.contains(where: { $0.id == id && $0.isComplete }) {
@@ -286,7 +285,7 @@ final class ScheduleViewModel {
     private func rebuildSchedule() {
         // The edited Task, and the one the Day picker moves, stay listed until the composer or the picker closes, even
         // past their grace period, so they're seen as they move.
-        let listedTaskIDs = keptTaskIDs.union([composer.editedTask?.id, dayPicker?.task.id].compactMap { $0 })
+        let listedTaskIDs = keptTaskIDs.union([composer.editedTask?.id, dayPicker?.taskID].compactMap { $0 })
         schedule = Schedule(tasks: tasks, today: today, showsComplete: showsComplete, keptTaskIDs: listedTaskIDs)
         incompleteTaskCountsByDay = tasks.incompleteTaskCountsByDay
     }
