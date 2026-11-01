@@ -13,15 +13,15 @@
 
 **Status:** ready-for-agent
 
-- [ ] Month tests:
+- [x] Month tests:
   - the first month is Today's month;
   - the number of months is the number asked for;
   - the blank cells before the first Day for a Monday start and a Sunday start;
   - the number of Days in a 30-Day month, a 31-Day month, and February in a leap year and in another year;
   - a run that crosses into the next year;
   - the weekday header's order for a Monday start and a Sunday start.
-- [ ] Count tests:
+- [x] Count tests:
   - only Incomplete Tasks count;
   - each Task counts on its own Day;
   - a Day with only Complete Tasks has no count.
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.
