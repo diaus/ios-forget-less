@@ -21,6 +21,15 @@ The check passes once every behaviour the change touches is confirmed this way.
 - **Relaunch** with `xcrun simctl terminate`/`launch <udid> com.andrew.ForgetLess`: `stop_app_sim` and `launch_app_sim` need a bundle ID the session defaults lack.
 - **Background and return.** The `home` button is dropped like an early tap. Launch Settings (`xcrun simctl launch <udid> com.apple.Preferences`), then the app again; the same process id shows it came back rather than relaunched.
 
+## VoiceOver actions
+
+`snapshot_ui` lists neither an element's named actions nor its announcements, and the simulator has no VoiceOver. Without a Simulator.app to drive through the Mac's accessibility API, check them this way:
+
+- **Read the actions.** `"$axe" describe-ui --udid <udid>` prints each element's `custom_actions`, including those it inherits from its cell (Delete).
+- **Invoke one.** Run the app under Xcode's debugger (the Xcode tools' `RunProject` with `attachDebugger: true`). `lldb -p` from the shell hangs while Developer Mode (`DevToolsSecurity`) is off. Run `describe-ui` once, so the app builds its accessibility elements. Then `process interrupt`, `expr -l objc -- @import UIKit`, and an Objective-C expression that walks the windows' `accessibilityElements` and `subviews` to the element with that `accessibilityLabel`, and calls the matching action's `actionHandler`. Then `continue`.
+- **Read the announcement.** Before invoking, set `breakpoint set -n UIAccessibilityPostNotification -c "(int)$arg1 == 1008"` (1008 is the announcement). After `continue`, check `process status` until it has stopped there, then `po $arg2`.
+- Stop the app with `StopProject` when done, and relaunch with `build_run_sim` before using `snapshot_ui` again.
+
 ## Lock Screen widget
 
 The simulator's Lock Screen can be driven, so a widget check is not skipped for lack of a device.

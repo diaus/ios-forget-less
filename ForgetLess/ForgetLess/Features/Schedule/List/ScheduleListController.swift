@@ -100,7 +100,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     }
 
     private func configureDataSource() {
-        typealias RowRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, TodoTask.ID>
+        typealias RowRegistration = UICollectionView.CellRegistration<TaskRowCell, TodoTask.ID>
         let rowRegistration = RowRegistration { [weak self] cell, _, id in
             self?.configure(cell, id: id)
         }
@@ -128,8 +128,11 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
                 collectionView.dequeueConfiguredReusableSupplementary(using: dayHeaderRegistration, for: indexPath)
             }
         }
-        // Off, no row moves, not even from a long press.
-        dataSource.reorderingHandlers.canReorderItem = { [weak self] _ in self?.movesTasks ?? false }
+        // Off, no row moves, not even from a long press. On, a row moves only from its handle: UIKit also asks
+        // when VoiceOver reads a row, and would add its own move actions, which ignore the move rule.
+        dataSource.reorderingHandlers.canReorderItem = { [weak self] id in
+            self?.canStartOrContinueMove(id) ?? false
+        }
         dataSource.reorderingHandlers.didReorder = { [weak self] transaction in
             self?.didMove(transaction)
         }
@@ -226,6 +229,12 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             return false
         }
         return schedule.canMove(task, droppedOn: day, at: indexPath.item)
+    }
+
+    private func canStartOrContinueMove(_ id: TodoTask.ID) -> Bool {
+        guard movesTasks else { return false }
+        let row = dataSource?.indexPath(for: id).flatMap { collectionView.cellForItem(at: $0) } as? TaskRowCell
+        return rowMove.taskID == id || row?.isHandleTouched == true
     }
 
     /// The sections of the Days with no Task listed.

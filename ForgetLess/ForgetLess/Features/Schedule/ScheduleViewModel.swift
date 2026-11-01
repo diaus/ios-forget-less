@@ -136,6 +136,26 @@ final class ScheduleViewModel {
     // MARK: - Moving
     /// Moves `task` to `destination`, or lists it where it was when the move rule refuses that.
     func move(_ task: TodoTask, to destination: MoveDestination) {
+        move(task, to: destination) {}
+    }
+
+    /// Moves `task` to `destination`, and has VoiceOver say its new Day once the move is saved.
+    func moveAnnouncingDay(_ task: TodoTask, to destination: MoveDestination) {
+        let day = destination.day.relativeNameOrShortDate(today: today)
+        move(task, to: destination) {
+            postAnnouncement(day)
+        }
+    }
+
+    // MARK: - Deletion
+    func delete(_ task: TodoTask) {
+        write { try await self.repository.delete(id: task.id) }
+    }
+
+    // MARK: - Helpers
+    /// Moves `task` to `destination` and runs `onSaved` once the store has it, or lists it where it was when the
+    /// move rule refuses that.
+    private func move(_ task: TodoTask, to destination: MoveDestination, onSaved: @escaping @MainActor () -> Void) {
         guard schedule.canMove(task, to: destination) else {
             // Rebuilt all the same, so a list that already moved the row puts it back.
             rebuildSchedule()
@@ -146,6 +166,7 @@ final class ScheduleViewModel {
         rebuildSchedule()
         write {
             try await self.repository.move(id: task.id, to: destination)
+            onSaved()
         } onFailure: {
             // Nothing was saved, so the store's last Tasks put the Task back.
             self.tasks = self.observedTasks
@@ -153,12 +174,6 @@ final class ScheduleViewModel {
         }
     }
 
-    // MARK: - Deletion
-    func delete(_ task: TodoTask) {
-        write { try await self.repository.delete(id: task.id) }
-    }
-
-    // MARK: - Helpers
     /// Gives the Task with `id` its grace period while Complete Tasks are hidden.
     private func keep(_ id: UUID) {
         keptTaskIDs.insert(id)

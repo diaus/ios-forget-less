@@ -3,5 +3,10 @@ import Foundation
 
 /// Has VoiceOver speak `message` at once.
 public func postAnnouncement(_ message: LocalizedStringResource) {
-    AccessibilityNotification.Announcement(String(localized: message).highPriorityAnnouncement).post()
+    postAnnouncement(String(localized: message))
+}
+
+/// Has VoiceOver speak `message`, already localized, at once.
+public func postAnnouncement(_ message: String) {
+    AccessibilityNotification.Announcement(message.highPriorityAnnouncement).post()
 }

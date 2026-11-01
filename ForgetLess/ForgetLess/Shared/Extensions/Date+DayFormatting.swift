@@ -5,17 +5,27 @@ extension Date {
     // MARK: - Day Header
     /// This Day's title in its Schedule section header.
     func dayHeader(today: Date) -> String {
-        let relativeLabel: String? = switch dayChipCategory(today: today) {
+        let parts = [
+            shortDate(today: today),
+            relativeName(today: today),
+            weekday(capitalizationContext: .middleOfSentence),
+        ]
+        return parts.compactMap(\.self).joined(separator: " · ")
+    }
+
+    // MARK: - Relative Name
+    /// This Day in a word when it has one: Today, Tomorrow, or `nil` for any other Day.
+    func relativeName(today: Date) -> String? {
+        switch dayChipCategory(today: today) {
         case .today: String(localized: .dayToday)
         case .tomorrow: String(localized: .dayTomorrow)
         case .weekday, .later, .past: nil
         }
-        let parts = [
-            shortDate(today: today),
-            relativeLabel,
-            weekday(capitalizationContext: .middleOfSentence),
-        ]
-        return parts.compactMap(\.self).joined(separator: " · ")
+    }
+
+    /// This Day in a word when it has one, or else its short date.
+    func relativeNameOrShortDate(today: Date) -> String {
+        relativeName(today: today) ?? shortDate(today: today)
     }
 
     // MARK: - Short Date

@@ -29,6 +29,8 @@ struct TaskRowView: View {
             .buttonStyle(.borderless)
             .accessibilityLabel(accessibilityName)
             .accessibilityValue(Text(task.isComplete ? .taskComplete : .taskIncomplete))
+            // Listed after Rename, which comes first as the row's tap.
+            .accessibilityActions { moveActions }
             // The row's tap, for VoiceOver, which activates the circle.
             .accessibilityAction(named: Text(.taskRename), onRename)
             .accessibilityFocused(returningTo: .task(task.id), from: composerOpenerFocus)
@@ -51,6 +53,20 @@ struct TaskRowView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(.rect)
         .onTapGesture(perform: onRename)
+    }
+
+    // MARK: - UI Components
+    /// VoiceOver's way to move the Task, offered only for a step that leads somewhere.
+    @ViewBuilder private var moveActions: some View {
+        // In reverse, as VoiceOver lists them: Move Up first.
+        if vm.movesTasks {
+            if let destination = vm.schedule.destinationOneStepDown(for: task) {
+                Button { vm.moveAnnouncingDay(task, to: destination) } label: { Text(.taskMoveDown) }
+            }
+            if let destination = vm.schedule.destinationOneStepUp(for: task) {
+                Button { vm.moveAnnouncingDay(task, to: destination) } label: { Text(.taskMoveUp) }
+            }
+        }
     }
 
     // MARK: - Helpers
