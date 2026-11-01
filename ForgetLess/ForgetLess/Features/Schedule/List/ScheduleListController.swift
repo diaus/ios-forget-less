@@ -11,6 +11,9 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         case day(Date)
     }
 
+    /// A Day's header, a type of its own so it's never reused for the Overdue header.
+    final class DayHeaderCell: UICollectionViewListCell {}
+
     let collectionView = ScheduleCollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     /// The list as SwiftUI last described it, for the actions the rows and headers call.
     var listView: ScheduleListView
@@ -87,7 +90,13 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         let rowRegistration = RowRegistration { [weak self] cell, _, id in
             self?.configure(cell, id: id)
         }
-        let headerRegistration = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
+        // One registration per header kind, so a reused header never swaps one SwiftUI view type for another.
+        let overdueHeaderRegistration = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
+            elementKind: UICollectionView.elementKindSectionHeader
+        ) { header, _, _ in
+            header.contentConfiguration = UIHostingConfiguration { OverdueHeaderView() }
+        }
+        let dayHeaderRegistration = UICollectionView.SupplementaryRegistration<DayHeaderCell>(
             elementKind: UICollectionView.elementKindSectionHeader
         ) { [weak self] header, _, indexPath in
             self?.configure(header, section: indexPath.section)
@@ -97,8 +106,13 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         ) { collectionView, indexPath, id in
             collectionView.dequeueConfiguredReusableCell(using: rowRegistration, for: indexPath, item: id)
         }
-        dataSource.supplementaryViewProvider = { collectionView, _, indexPath in
-            collectionView.dequeueConfiguredReusableSupplementary(using: headerRegistration, for: indexPath)
+        dataSource.supplementaryViewProvider = { [weak self] collectionView, _, indexPath in
+            switch self?.dataSource?.sectionIdentifier(for: indexPath.section) {
+            case .overdue:
+                collectionView.dequeueConfiguredReusableSupplementary(using: overdueHeaderRegistration, for: indexPath)
+            case .day, nil:
+                collectionView.dequeueConfiguredReusableSupplementary(using: dayHeaderRegistration, for: indexPath)
+            }
         }
         self.dataSource = dataSource
     }
@@ -117,33 +131,27 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         }
     }
 
-    private func configure(_ header: UICollectionViewListCell, section: Int) {
-        switch dataSource?.sectionIdentifier(for: section) {
-        case .overdue:
-            header.contentConfiguration = UIHostingConfiguration { OverdueHeaderView() }
-        case let .day(day):
-            guard let scheduleDay = scheduleDays[day] else { return }
-            let today = today
-            let composerOpenerFocus = listView.composerOpenerFocus
-            let onAdd = { [weak self] in self?.listView.onAdd(day) ?? () }
-            header.contentConfiguration = UIHostingConfiguration {
-                DayHeaderView(
-                    scheduleDay: scheduleDay,
-                    today: today,
-                    composerOpenerFocus: composerOpenerFocus,
-                    onAdd: onAdd
-                )
-            }
-        case nil:
-            break
+    private func configure(_ header: DayHeaderCell, section: Int) {
+        guard case let .day(day) = dataSource?.sectionIdentifier(for: section),
+              let scheduleDay = scheduleDays[day] else { return }
+        let today = today
+        let composerOpenerFocus = listView.composerOpenerFocus
+        let onAdd = { [weak self] in self?.listView.onAdd(day) ?? () }
+        header.contentConfiguration = UIHostingConfiguration {
+            DayHeaderView(
+                scheduleDay: scheduleDay,
+                today: today,
+                composerOpenerFocus: composerOpenerFocus,
+                onAdd: onAdd
+            )
         }
     }
 
+    /// Only Day headers: the Overdue header never changes.
     private func reconfigureVisibleHeaders() {
         let kind = UICollectionView.elementKindSectionHeader
         for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: kind) {
-            if let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath)
-                as? UICollectionViewListCell {
+            if let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath) as? DayHeaderCell {
                 configure(header, section: indexPath.section)
             }
         }
