@@ -171,6 +171,14 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
                 onAdd: onAdd
             )
         }
+        // Weeks delimiter line
+        .background {
+            if scheduleDay.startsWeek {
+                Color(uiColor: .separator)
+                    .frame(height: 1)
+                    .frame(maxHeight: .infinity, alignment: .top)
+            }
+        }
     }
 
     /// Only Day headers: the Overdue header never changes.

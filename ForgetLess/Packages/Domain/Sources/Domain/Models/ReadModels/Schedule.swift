@@ -6,6 +6,10 @@ public struct Schedule: Sendable {
     public struct Day: Identifiable, Sendable {
         public let day: Date
         public let tasks: [TodoTask]
+        /// Whether this Day opens a week the Day listed before it isn't in. Never true for the first Day listed.
+        public let startsWeek: Bool
+        /// Whether this Day opens a month the Day listed before it isn't in, or, listed first, is the month's 1st.
+        public let startsMonth: Bool
 
         public var id: Date { day }
     }
@@ -21,7 +25,14 @@ public struct Schedule: Sendable {
     ///   - tasks: In order of Day, then position within it, as the repository sends them.
     ///   - showsComplete: Whether Complete Tasks are listed.
     ///   - keptTaskIDs: Complete Tasks listed even while Complete Tasks are hidden, so a mis-tap can be undone.
-    public init(tasks: [TodoTask], today: Date, showsComplete: Bool = true, keptTaskIDs: Set<UUID> = []) {
+    ///   - firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
+    public init(
+        tasks: [TodoTask],
+        today: Date,
+        showsComplete: Bool = true,
+        keptTaskIDs: Set<UUID> = [],
+        firstWeekday: Int = Date.firstWeekday
+    ) {
         let tasks = showsComplete ? tasks : tasks.filter { !$0.isComplete || keptTaskIDs.contains($0.id) }
         // A Task completed from Overdue stays there until Today rolls over, so a mis-tap can be undone.
         overdue = tasks.filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }
@@ -34,7 +45,17 @@ public struct Schedule: Sendable {
         for task in tasks where task.day >= afterWindow && laterDays.last != task.day {
             laterDays.append(task.day)
         }
-        days = (window + laterDays).map { day in Day(day: day, tasks: tasksByDay[day, default: []]) }
+        let listedDays = window + laterDays
+        days = listedDays.indices.map { index in
+            let day = listedDays[index]
+            let previousDay = index > 0 ? listedDays[index - 1] : nil
+            return Day(
+                day: day,
+                tasks: tasksByDay[day, default: []],
+                startsWeek: previousDay.map { !day.isInSameWeek(as: $0, firstWeekday: firstWeekday) } ?? false,
+                startsMonth: previousDay.map { !day.isInSameMonth(as: $0) } ?? day.isFirstDayOfMonth
+            )
+        }
     }
 
     // MARK: - Moving

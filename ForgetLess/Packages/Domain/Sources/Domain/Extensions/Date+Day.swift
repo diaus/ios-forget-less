@@ -41,4 +41,27 @@ public extension Date {
     func isInSameYear(as day: Date) -> Bool {
         Calendar.gmt.isDate(self, equalTo: day, toGranularity: .year)
     }
+
+    /// The weekday the user's weeks start on, numbered as `Calendar` numbers them (1 is Sunday).
+    static var firstWeekday: Int {
+        Calendar.current.firstWeekday
+    }
+
+    /// Whether this Day is in the same week as `day`, for weeks that start on `firstWeekday`.
+    func isInSameWeek(as day: Date, firstWeekday: Int) -> Bool {
+        var calendar = Calendar.gmt
+        calendar.firstWeekday = firstWeekday
+        // Every Day falls in a week.
+        let weekStart = { (day: Date) in calendar.dateInterval(of: .weekOfYear, for: day)!.start }
+        return weekStart(self) == weekStart(day)
+    }
+
+    /// Whether this Day is in the same month as `day`, of the same year.
+    func isInSameMonth(as day: Date) -> Bool {
+        Calendar.gmt.isDate(self, equalTo: day, toGranularity: .month)
+    }
+
+    var isFirstDayOfMonth: Bool {
+        Calendar.gmt.component(.day, from: self) == 1
+    }
 }

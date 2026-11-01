@@ -13,6 +13,8 @@ struct DayHeaderView: View {
         let header = scheduleDay.day.dayHeader(today: today)
         HStack {
             Text(header)
+                .italic(scheduleDay.startsMonth)
+                .underline(scheduleDay.startsMonth)
             Spacer()
             Button(action: onAdd) {
                 Image(systemName: "plus")
