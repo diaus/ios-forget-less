@@ -77,6 +77,8 @@ struct DayPickerView: View {
             .padding(.horizontal, 8)
             .padding(.top, 16)
             .padding(.bottom, 4)
+            // So the rotor moves by month.
+            .accessibilityAddTraits(.isHeader)
     }
 
     private func week(_ days: [Date?]) -> some View {
@@ -86,7 +88,7 @@ struct DayPickerView: View {
                     if let day = days[index] {
                         DayPickerDayView(day: day)
                     } else {
-                        Color.clear
+                        Color.clear.accessibilityHidden(true)
                     }
                 }
                 .frame(maxWidth: .infinity)

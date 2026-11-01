@@ -171,12 +171,16 @@ final class ScheduleViewModel {
     }
 
     /// Moves the Task to the end of the chosen Day, unless it's already there, and closes the Day picker.
+    /// VoiceOver says the new Day once the move is saved.
     func confirmDayPicker() {
         isDayPickerVisible = false
         guard let dayPicker, let day = dayPicker.dayToMoveTo,
               let task = tasks.first(where: { $0.id == dayPicker.task.id }),
               schedule.canMove(task, toDay: day) else { return }
-        saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id))
+        let dayName = day.relativeNameOrShortDate(today: today)
+        saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id)) {
+            postAnnouncement(dayName)
+        }
     }
 
     /// Ends the Day picker once its sheet has closed, however it closed.

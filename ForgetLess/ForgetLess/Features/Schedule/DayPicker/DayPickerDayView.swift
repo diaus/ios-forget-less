@@ -15,7 +15,7 @@ struct DayPickerDayView: View {
         let isChosen = vm.dayPicker?.chosenDay == day
         let canChoose = vm.dayPicker?.canChoose(day) ?? false
         let isToday = vm.dayPicker?.today == day
-        let hasIncompleteTasks = vm.incompleteTaskCountsByDay[day] != nil
+        let incompleteTaskCount = vm.incompleteTaskCountsByDay[day] ?? 0
         Button { vm.dayPicker?.choose(day) } label: {
             ZStack {
                 if isChosen {
@@ -29,7 +29,7 @@ struct DayPickerDayView: View {
                     .fill(isChosen ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
                     .frame(width: 5, height: 5)
                     .offset(y: 13)
-                    .opacity(hasIncompleteTasks ? (canChoose ? 1 : 0.4) : 0)
+                    .opacity(incompleteTaskCount > 0 ? (canChoose ? 1 : 0.4) : 0)
             }
             .frame(width: circleSize, height: circleSize)
             .padding(.vertical, 3)
@@ -37,6 +37,9 @@ struct DayPickerDayView: View {
         }
         .buttonStyle(.plain)
         .disabled(!canChoose)
+        .accessibilityLabel(day.fullDate)
+        .accessibilityValue(Text(.dayPickerTaskCount(count: incompleteTaskCount)))
+        .accessibilityAddTraits(isChosen ? .isSelected : [])
     }
 
     // MARK: - Helpers
