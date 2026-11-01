@@ -46,8 +46,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] Choice-rule tests in `ForgetLessTests/Features/Schedule/DayPicker/` cover the rules listed under State.
-- [ ] The UI check (`docs/agents/ui-check.md`) on iOS 27 confirms:
+- [x] Choice-rule tests in `ForgetLessTests/Features/Schedule/DayPicker/` cover the rules listed under State.
+- [x] The UI check (`docs/agents/ui-check.md`) on iOS 27 confirms:
   - the calendar action sits inside Delete, is blue, and shows with Move Tasks off;
   - the sheet opens at medium, centred on the Task's Day, already chosen, and drags to large;
   - an Overdue Task opens with nothing chosen, "Choose a Day", and Done disabled;
@@ -60,7 +60,16 @@
   - Cancel and swiping down change nothing;
   - Done on a Day after the 100-Day window lists that Day;
   - with Complete Tasks hidden, a just-completed Task stays listed while the sheet is open.
-- [ ] Today rolling over while the sheet is open clears a chosen Day that is now past (`SIMCTL_CHILD_TZ`, as in the move-tasks check).
-- [ ] The widget shows the moved Task in its new place (`docs/agents/ui-check.md`, "Lock Screen widget").
-- [ ] Every new catalog key has `en` and `uk`, with the plural forms, added with `scripts/xcstrings.py`.
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] Today rolling over while the sheet is open clears a chosen Day that is now past (`SIMCTL_CHILD_TZ`, as in the move-tasks check).
+- [x] The widget shows the moved Task in its new place (`docs/agents/ui-check.md`, "Lock Screen widget").
+- [x] Every new catalog key has `en` and `uk`, with the plural forms, added with `scripts/xcstrings.py`.
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+
+## Comments
+
+- **Rollover:** checked at a real local midnight (00:00 EET) rather than by booting with `SIMCTL_CHILD_TZ`. The sheet was open with Today chosen. The rollover dimmed the old Today, cleared the choice to "Choose a Day" and disabled Done, and a tap on the dimmed Day was refused. "Days before Today can't be chosen" was checked the same way: the calendar opens on Today's month, and on the 1st it shows no earlier Day.
+- **Widget:** the widget was already on the simulator's Lock Screen. After Done moved a Task to Today, locking showed it in its new place, below the Task already there.
+- **Cancel:** both existing "Cancel" keys belong to another feature (`settings.cancel`, `task.deleteCancel`), so the picker has its own, `dayPicker.cancel`.
+- **Plurals:** `scripts/xcstrings.py set-plural KEY LANG CATEGORY=VALUE...` writes one language's plural forms. `check` now fails a plural that lacks a form its language needs (en: one, other; uk: one, few, many, other) or holds one it never uses; zero is optional. Ukrainian was also checked on screen ("2 завдання", "Немає завдань", the month header "листопад").
+- **Initial scroll:** the list is flattened into rows (a month header, then each of its weeks), so `ScrollPosition.scrollTo(id:)` reaches a week the lazy stack hasn't drawn yet. A `ScrollViewReader` didn't scroll, from either `onAppear` or `.task`.
+- **Left out:** Done's VoiceOver announcement and the Day cells' accessibility are ticket 03's. The failed-save path wasn't driven on the simulator; it reuses `saveMove`'s existing rollback.
