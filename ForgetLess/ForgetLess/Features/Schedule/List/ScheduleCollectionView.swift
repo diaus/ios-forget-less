@@ -27,18 +27,35 @@ final class ScheduleCollectionView: UICollectionView {
         lastAdjustedTop = adjustedContentInset.top
     }
 
-    // MARK: - Headers
-    /// The one of `sections` whose header band holds `point`, in content coordinates.
-    func section(withHeaderAt point: CGPoint, among sections: [Int]) -> Int? {
+    // MARK: - Moving
+    /// Where a lifted row centred on `point`, in content coordinates, lands: in the section whose header is the nearest
+    /// above it, after that section's rows above it. `nil` above the first header.
+    /// - Parameter current: Where the lifted row's gap is now.
+    func moveTarget(at point: CGPoint, from current: IndexPath) -> IndexPath? {
+        guard let section = section(withHeaderAbove: point) else { return nil }
+        // Asked of the layout, which places the other rows where they show mid-move; the collection view's own
+        // `layoutAttributesForItem(at:)` still gives where they were before the lift. The gap never counts.
+        let rowsAbove = (0..<numberOfItems(inSection: section)).filter { item in
+            let indexPath = IndexPath(item: item, section: section)
+            guard indexPath != current, let row = collectionViewLayout.layoutAttributesForItem(at: indexPath) else {
+                return false
+            }
+            return row.frame.midY < point.y
+        }
+        return IndexPath(item: rowsAbove.count, section: section)
+    }
+
+    /// The section whose header is the nearest above `point`, in content coordinates: the section a row at `point` sits
+    /// in. `nil` above the first header.
+    private func section(withHeaderAbove point: CGPoint) -> Int? {
         let kind = UICollectionView.elementKindSectionHeader
-        return sections.first { section in
+        // A header counts as above once the point passes its middle, so a row sliding over it changes section halfway.
+        return (0..<numberOfSections).last { section in
             let indexPath = IndexPath(item: 0, section: section)
             guard let header = layoutAttributesForSupplementaryElement(ofKind: kind, at: indexPath) else {
                 return false
             }
-            // Half a header's height either side, so a lifted row finds the band easily.
-            let band = header.frame.insetBy(dx: 0, dy: -header.frame.height / 2)
-            return band.minY...band.maxY ~= point.y
+            return header.frame.midY <= point.y
         }
     }
 

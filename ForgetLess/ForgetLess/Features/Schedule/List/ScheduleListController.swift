@@ -190,15 +190,17 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         atCurrentIndexPath currentIndexPath: IndexPath,
         toProposedIndexPath proposedIndexPath: IndexPath
     ) -> IndexPath {
-        // The list never proposes an empty Day by itself, so a row held over one's header is sent there.
+        guard let id = dataSource?.itemIdentifier(for: originalIndexPath) else { return originalIndexPath }
+        // The list's own proposal can't be trusted across Days: it never proposes an empty Day, it proposes the next
+        // Day while the row is still over the top half of its header, and in a Day entered from another it proposes
+        // only the edge the row came in at. So the drop follows where the row is.
         let liftedRow = collectionView.visibleCells.first { cell in
             (cell as? UICollectionViewListCell)?.configurationState.isReordering == true
         }
-        let emptySection = liftedRow.flatMap { row in
-            self.collectionView.section(withHeaderAt: row.center, among: emptySections)
-        }
-        let proposed = emptySection.map { IndexPath(item: 0, section: $0) } ?? proposedIndexPath
-        let isAccepted = dataSource?.itemIdentifier(for: originalIndexPath).map { canMove($0, to: proposed) } ?? false
+        let proposed = liftedRow.flatMap { row in
+            self.collectionView.moveTarget(at: row.center, from: currentIndexPath)
+        } ?? proposedIndexPath
+        let isAccepted = canMove(id, to: proposed)
         rowMove.tickOnEntering(isAccepted ? proposed.section : nil, startedIn: originalIndexPath.section)
         // Refused, no gap opens, and letting go puts the row back where it started.
         return isAccepted ? proposed : originalIndexPath
@@ -235,14 +237,6 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         guard movesTasks else { return false }
         let row = dataSource?.indexPath(for: id).flatMap { collectionView.cellForItem(at: $0) } as? TaskRowCell
         return rowMove.taskID == id || row?.isHandleTouched == true
-    }
-
-    /// The sections of the Days with no Task listed.
-    private var emptySections: [Int] {
-        guard let snapshot = dataSource?.snapshot() else { return [] }
-        return snapshot.sectionIdentifiers.indices.filter { index in
-            snapshot.numberOfItems(inSection: snapshot.sectionIdentifiers[index]) == 0
-        }
     }
 
     // MARK: - Row Actions

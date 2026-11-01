@@ -44,7 +44,7 @@
 - **The list:**
   - `ScheduleListController` adds the reorder accessory while Move Tasks is on, and `canReorderItem` refuses every move while it's off.
   - The target-index-path delegate asks the move rule. Overdue has no Day, so a drop there goes back to where the row started.
-  - A row held over an empty Day's header band is sent into that Day. The band lookup is `ScheduleCollectionView.section(withHeaderAt:among:)`.
+  - The drop follows the lifted row, not the list's proposal (`ScheduleCollectionView.moveTarget(at:from:)`): the Day whose header is the nearest above the row's centre, after that Day's rows whose middle is above it. The list's proposal never names an empty Day, names the next Day while the row is over the top half of its header, and in a Day entered from another names only the edge the row came in at. An earlier band around an empty Day's header missed the room above the next header and took the gap at the end of the Day above.
   - `TaskRowMove` holds the lifted row and its haptics.
 - **The view model** holds `movesTasks` in `UserDefaults` (default on). `move(_:to:)` checks the move rule, moves the Task at once, and writes.
 
