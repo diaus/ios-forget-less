@@ -4,6 +4,7 @@ These are the judgement calls tooling can't make. Tooling already enforces these
 - SwiftLint (`ForgetLess/.swiftlint.yml`): its default style rules, plus catalog symbols instead of string literals, no `localizedDescription`, no GLOSSARY "Avoid" words in identifiers, no `Calendar` outside Domain's Day extensions.
 - Zero warnings: compiler and SwiftLint warnings are errors in the app and the packages.
 - The String Catalog format and its `en`/`uk` coverage (`scripts/xcstrings.py check`).
+- No source folder holds more than seven Swift files at one level (`scripts/check.sh`). Whether a folder holds one concept is still a review call.
 
 ## Architecture
 
@@ -12,15 +13,11 @@ These are the judgement calls tooling can't make. Tooling already enforces these
 - **Utils is project-independent.** It holds helpers another project could reuse (a concurrency primitive, a Foundation extension). It imports only the standard library and Apple's system frameworks: no Domain, no Data, no third-party package. The glossary lint rule skips it.
 - **A Task's Day is a `Date` at 00:00 GMT everywhere** (ADR 0001). Data stores and queries it as given. The local calendar is read only for Today and when it rolls over, in Domain's `Date+Day` (`Date.today`, `today(at:)`, `nextRollover(after:)`). A new Day operation is a helper in Domain's `Date+Day`, and Days are formatted in GMT (`Date.FormatStyle(calendar: .gmt, timeZone: .gmt)`).
 - **Every write goes through the repository's notifying save** (ADR 0002), or open streams miss it.
-- **Folders by role.** A new file goes in the folder for its role:
-  - Domain: `Models/`, `Repositories/` (protocols), `UseCases/`, `Errors/`, `Extensions/`. `Models/` splits by DDD building block:
-    - `Entities/`: a stored record with its own ID (`TodoTask`).
-    - `ValueObjects/`: a value without an ID, equal by its fields (`RelativeDay`).
-    - `ReadModels/`: computed for a screen, never stored (`Schedule`).
-  - Data: `Repositories/` (the concrete repositories only), `Infrastructure/` (generic SwiftData helpers the repositories share), `Mapping/` (model ↔ domain), `Schema/V<n>/`, `DI/` (Factory wiring), `Errors/`.
-  - App: `App/`, `Composition/` (Factory wiring), `Features/<Feature>/` (a view and its view model), `Shared/{Components,Extensions,Modifiers,Preview}/`.
-  - Widget (`ForgetLessWidget/`): the bundle and each widget at the top, then `Configuration/` (its App Intent settings), `Timeline/` (the timeline provider, its entry and what the widget shows), `Views/` (each with its previews), `Preview/` (sample entries the previews share).
-  - Mixed folders get split.
+- **Folders.** The directory tree shows which folders exist; these rules say how they're cut, so a new folder needs no entry here.
+  - **Layers cut by role.** Domain's `Models/` splits by DDD building block: `Entities/` (a stored record with its own ID, `TodoTask`), `ValueObjects/` (a value without an ID, equal by its fields, `RelativeDay`), `ReadModels/` (computed for a screen, never stored, `Schedule`). `Repositories/` holds the protocols in Domain and the concrete repositories in Data.
+  - **Features cut by concept.** A feature folder holds its screen's view and view model at the top, and a folder for each part of the screen, named with the glossary term for what it shows. A part's UIKit hosting, controllers and cell content sit with that part.
+  - **Tests mirror** the folders of the code they test.
+  - **One concept per folder.** Each folder a change adds files to holds one concept when the change is done. When a folder gains a second concept, or grows past seven files at one level (by then it almost always holds two), split it in the same change.
 - **A use case exists only when an operation does at least one of these:**
   - (a) applies a business rule beyond passing values through;
   - (b) composes more than one repository call;
@@ -63,7 +60,7 @@ These are the judgement calls tooling can't make. Tooling already enforces these
   - restate a declaration: an enum's `allCases`, a schema version, a constant;
   - re-check what the compiler already guarantees (generated catalog symbols, exhaustive switches);
   - use a fake the code under test can never reach, so the assertion passes whatever the code does.
-- **View models stay untested in v1** (spec). Logic in one that deserves a test moves to Domain.
+- **View models stay untested**. Logic in one that deserves a test moves to Domain.
 - **Tests never depend on the machine's clock or time zone.** Pass `today`, never `Date.today`. Days are GMT midnights, so only the Today rule's tests pin a local time zone, on both sides of GMT.
 - **SwiftData fetches are unordered unless sorted.** The repository's lists of Tasks are sorted in the query, by Day then `sortIndex`, as its protocol doc comments promise, so their tests assert that order and their callers rely on it. Any other fetch is compared as a set or sorted first.
 

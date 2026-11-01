@@ -7,9 +7,7 @@ struct ScheduleView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var isComposerNameFocused: Bool
-    @AccessibilityFocusState private var focusedComposerOpener: ComposerOpener?
-    /// What showed the composer, where VoiceOver returns when it's dismissed.
-    @State private var composerOpener: ComposerOpener = .floating
+    @State private var composerOpenerFocus = ComposerOpenerFocus()
     @State private var isConfirmingDiscard = false
 
     // MARK: - Body
@@ -80,72 +78,28 @@ struct ScheduleView: View {
                 .background(.tint, in: .circle)
         }
         .accessibilityLabel(Text(.taskAdd))
-        .accessibilityFocused($focusedComposerOpener, equals: .floating)
+        .accessibilityFocused(returningTo: .floating, from: composerOpenerFocus)
         .padding(20)
-        // Its own container, so the rotor's Containers moves between it and the List.
+        // Its own container, so the rotor's Containers moves between it and the list.
         .accessibilityElement(children: .contain)
     }
 
     private var scheduleList: some View {
-        List {
-            if !vm.schedule.overdue.isEmpty {
-                overdueSection
-            }
-            ForEach(vm.schedule.days) { scheduleDay in
-                Section {
-                    ForEach(scheduleDay.tasks) { task in
-                        TaskRowView(task: task, showsDay: false, focusedComposerOpener: $focusedComposerOpener) {
-                            showComposer(editing: task)
-                        }
-                    }
-                } header: {
-                    dayHeader(scheduleDay)
-                }
-            }
+        // A wrapped view gets no safe area of its own, so it's read here and passed in. The list runs under the bar.
+        GeometryReader { proxy in
+            ScheduleListView(
+                schedule: vm.schedule,
+                today: vm.today,
+                composerOpenerFocus: composerOpenerFocus,
+                safeAreaInsets: proxy.safeAreaInsets,
+                onAdd: { day in showComposer(on: day, from: .day(day)) },
+                onRename: showComposer(editing:),
+                onDelete: vm.delete
+            )
+            .ignoresSafeArea()
+            // A Task completed while Complete Tasks are hidden leaves when its grace period ends.
+            .animation(.default, value: vm.keptTaskIDs)
         }
-        // Room under the last row, so the floating "+" never covers it.
-        .contentMargins(.bottom, 88, for: .scrollContent)
-        // A Task completed while Complete Tasks are hidden leaves when its grace period ends.
-        .animation(.default, value: vm.keptTaskIDs)
-    }
-
-    private var overdueSection: some View {
-        Section {
-            ForEach(vm.schedule.overdue) { task in
-                TaskRowView(task: task, showsDay: true, focusedComposerOpener: $focusedComposerOpener) {
-                    showComposer(editing: task)
-                }
-            }
-        } header: {
-            // No "+": a Task can't be planned in the past.
-            HStack {
-                Text(.scheduleOverdue)
-                Spacer()
-            }
-            // On the stack, as the Day headers do: on the Text, `.primary` resolves against the header's grey.
-            .font(.subheadline.bold())
-            .foregroundStyle(.primary)
-            .textCase(nil)
-        }
-    }
-
-    /// A Day section's header.
-    private func dayHeader(_ scheduleDay: Schedule.Day) -> some View {
-        let header = scheduleDay.day.dayHeader(today: vm.today)
-        return HStack {
-            Text(header)
-            Spacer()
-            Button { showComposer(on: scheduleDay.day, from: .day(scheduleDay.day)) } label: {
-                Image(systemName: "plus")
-            }
-            // Only the "+" takes the tap, not the whole header.
-            .buttonStyle(.borderless)
-            .accessibilityLabel(Text(.taskAddToDay(day: header)))
-            .accessibilityFocused($focusedComposerOpener, equals: .day(scheduleDay.day))
-        }
-        .font(.subheadline.weight(scheduleDay.tasks.isEmpty ? .regular : .bold))
-        .foregroundStyle(scheduleDay.tasks.isEmpty ? .secondary : .primary)
-        .textCase(nil)
     }
 
     // MARK: - Actions
@@ -162,7 +116,7 @@ struct ScheduleView: View {
     /// Called in the same action that shows the panel, so the keyboard starts in the same frame.
     private func focusComposer(from opener: ComposerOpener) {
         isComposerNameFocused = true
-        composerOpener = opener
+        composerOpenerFocus.opener = opener
     }
 
     /// Dismisses the composer, first asking whether to discard any change.
@@ -183,17 +137,10 @@ struct ScheduleView: View {
     private func dismissComposer() {
         vm.dismissComposer()
         isComposerNameFocused = false
-        focusedComposerOpener = composerOpener
+        composerOpenerFocus.returnToOpener()
     }
 
     // MARK: - Helpers
-    /// What showed the composer: a "+", or a Task's row.
-    nonisolated enum ComposerOpener: Hashable {
-        case floating
-        case day(Date)
-        case task(UUID)
-    }
-
     /// What the Schedule is observed for; a change restarts the observation.
     private struct ScheduleObservation: Equatable {
         let today: Date

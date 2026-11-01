@@ -16,7 +16,7 @@ Before exploring the codebase, read `GLOSSARY.md` and the ADRs in `docs/adr/` th
 
 The project is `ForgetLess/ForgetLess.xcodeproj`, in a nested `ForgetLess/` folder beside the app (`ForgetLess/ForgetLess/`), its tests (`ForgetLess/ForgetLessTests/`), the Lock Screen widget (`ForgetLess/ForgetLessWidget/`) and the local packages (`ForgetLess/Packages/*`).
 
-Before writing or reviewing code, read `CODING_STANDARDS.md`: it holds the review rules and where each new file goes. The v1 spec is `.scratch/forget-less-v1/spec.md`.
+Before any code change, however small, read `CODING_STANDARDS.md`: it holds the review rules and where each new file goes.
 
 ## Building
 
@@ -28,7 +28,8 @@ SourceKit's "No such module" diagnostics for the local packages are index noise;
 
 Before reporting done:
 - `build_sim` and `test_sim` pass.
-- `scripts/check.sh` ends with `check.sh: OK`. `test_sim` covers only the app target; `check.sh` covers the packages (lint and tests on the Mac) and the String Catalog.
+- Every `CODING_STANDARDS.md` rule that touches the changed lines holds, folders included.
+- `scripts/check.sh` ends with `check.sh: OK`. `test_sim` covers only the app target; `check.sh` covers folder sizes, the packages (lint and tests on the Mac) and the String Catalog.
 - For any UI change, the check in `docs/agents/ui-check.md` passes on iOS 27. Run it on iOS 18 only when the user asks.
 - A check that couldn't run is reported as skipped, with its acceptance box left unticked.
 

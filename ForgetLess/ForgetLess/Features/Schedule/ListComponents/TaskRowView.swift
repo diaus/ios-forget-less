@@ -8,11 +8,9 @@ struct TaskRowView: View {
     let task: TodoTask
     /// Whether the row names its Day, which its section header doesn't.
     let showsDay: Bool
-    var focusedComposerOpener: AccessibilityFocusState<ScheduleView.ComposerOpener?>.Binding
+    let composerOpenerFocus: ComposerOpenerFocus
     /// Asks the owner to show the composer on this Task, to rename it.
     let onRename: () -> Void
-
-    @State private var isConfirmingDelete = false
 
     /// The circle's grey, which keeps a white checkmark legible in both appearances.
     private let circleGray = Color(uiColor: .systemGray)
@@ -33,7 +31,7 @@ struct TaskRowView: View {
             .accessibilityValue(Text(task.isComplete ? .taskComplete : .taskIncomplete))
             // The row's tap, for VoiceOver, which activates the circle.
             .accessibilityAction(named: Text(.taskRename), onRename)
-            .accessibilityFocused(focusedComposerOpener, equals: .task(task.id))
+            .accessibilityFocused(returningTo: .task(task.id), from: composerOpenerFocus)
             Group {
                 Text(task.name)
                     .lineLimit(2)
@@ -53,22 +51,6 @@ struct TaskRowView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(.rect)
         .onTapGesture(perform: onRename)
-        // No full swipe: deleting always asks first.
-        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            // No destructive role: the List would remove the row, and its dialog, before the user confirms.
-            Button { isConfirmingDelete = true } label: {
-                Label { Text(.taskDelete) } icon: { Image(systemName: "trash") }
-                    .labelStyle(.iconOnly)
-            }
-            .tint(Color(.deleteAction))
-        }
-        .confirmationDialog(
-            Text(.taskDeleteConfirmation(name: task.name)),
-            isPresented: $isConfirmingDelete,
-            titleVisibility: .visible
-        ) {
-            Button(role: .destructive) { vm.delete(task) } label: { Text(.taskDelete) }
-        }
     }
 
     // MARK: - Helpers
@@ -78,10 +60,10 @@ struct TaskRowView: View {
 }
 
 #Preview {
-    @Previewable @AccessibilityFocusState var focusedComposerOpener: ScheduleView.ComposerOpener?
+    let composerOpenerFocus = ComposerOpenerFocus()
     List {
-        TaskRowView(task: .previewOverdue, showsDay: true, focusedComposerOpener: $focusedComposerOpener) {}
-        TaskRowView(task: .previewIncomplete, showsDay: false, focusedComposerOpener: $focusedComposerOpener) {}
-        TaskRowView(task: .previewComplete, showsDay: false, focusedComposerOpener: $focusedComposerOpener) {}
+        TaskRowView(task: .previewOverdue, showsDay: true, composerOpenerFocus: composerOpenerFocus) {}
+        TaskRowView(task: .previewIncomplete, showsDay: false, composerOpenerFocus: composerOpenerFocus) {}
+        TaskRowView(task: .previewComplete, showsDay: false, composerOpenerFocus: composerOpenerFocus) {}
     }
 }
