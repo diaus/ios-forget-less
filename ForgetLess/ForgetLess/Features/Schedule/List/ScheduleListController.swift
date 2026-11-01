@@ -267,19 +267,13 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
     private func swipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let id = dataSource?.itemIdentifier(for: indexPath) else { return nil }
-        // No title, so only the icon shows; VoiceOver reads the icon's label.
-        let delete = UIContextualAction(style: .normal, title: nil) { [weak self] _, _, completion in
+        return .taskRowActions { [weak self] in
             self?.confirmDeletion(of: id)
-            completion(true)
+        } onChooseDay: { [weak self] in
+            if let task = self?.tasks[id] {
+                self?.vm.showDayPicker(for: task)
+            }
         }
-        let image = UIImage(systemName: "trash")
-        image?.accessibilityLabel = String(localized: .taskDelete)
-        delete.image = image
-        delete.backgroundColor = UIColor(resource: .deleteAction)
-        let configuration = UISwipeActionsConfiguration(actions: [delete])
-        // No full swipe: deleting always asks first.
-        configuration.performsFirstActionWithFullSwipe = false
-        return configuration
     }
 
     private func confirmDeletion(of id: TodoTask.ID) {

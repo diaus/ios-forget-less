@@ -11,6 +11,11 @@ final class ScheduleViewModel {
     private(set) var today: Date
     private(set) var schedule: Schedule
     var composer: ComposerState
+    /// The Day picker's choice; `nil` once it has closed. Kept until then, so the sheet keeps its content as it goes.
+    var dayPicker: DayPickerState?
+    var isDayPickerVisible = false
+    /// How many Incomplete Tasks each Day holds; a Day with none has no entry.
+    private(set) var incompleteTaskCountsByDay: [Date: Int] = [:]
     let composerOpenerFocus = ComposerOpenerFocus()
     /// The Day the list last asked to bring into view.
     private(set) var dayReveal: DayReveal?
@@ -54,6 +59,7 @@ final class ScheduleViewModel {
     /// Brings Today up to date.
     func refresh() {
         today = .today
+        dayPicker?.update(today: today)
     }
 
     /// Keeps the Schedule up to date with the stored Tasks for the current Today, until the calling task is cancelled.
@@ -157,6 +163,33 @@ final class ScheduleViewModel {
         return .added
     }
 
+    // MARK: - Day Picker
+    /// Shows the Day picker, to move `task` to the end of another Day.
+    func showDayPicker(for task: TodoTask) {
+        dayPicker = DayPickerState(task: task, today: today)
+        isDayPickerVisible = true
+    }
+
+    /// Moves the Task to the end of the chosen Day, unless it's already there, and closes the Day picker.
+    func confirmDayPicker() {
+        isDayPickerVisible = false
+        guard let dayPicker, let day = dayPicker.dayToMoveTo,
+              let task = tasks.first(where: { $0.id == dayPicker.task.id }),
+              schedule.canMove(task, toDay: day) else { return }
+        saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id))
+    }
+
+    /// Ends the Day picker once its sheet has closed, however it closed.
+    func dayPickerDidClose() {
+        guard let id = dayPicker?.task.id else { return }
+        dayPicker = nil
+        // A Complete Task listed while Complete Tasks are hidden gets its grace period afresh, to be seen.
+        if !showsComplete, tasks.contains(where: { $0.id == id && $0.isComplete }) {
+            keep(id, for: UserDefaults.standard.keptDuration)
+        }
+        rebuildSchedule()
+    }
+
     // MARK: - Completion
     func toggleComplete(_ task: TodoTask) {
         let isComplete = !task.isComplete
@@ -247,9 +280,11 @@ final class ScheduleViewModel {
     }
 
     private func rebuildSchedule() {
-        // The edited Task stays listed until the composer closes, even past its grace period, so it's seen as it moves.
-        let listedTaskIDs = keptTaskIDs.union([composer.editedTask?.id].compactMap { $0 })
+        // The edited Task, and the one the Day picker moves, stay listed until the composer or the picker closes, even
+        // past their grace period, so they're seen as they move.
+        let listedTaskIDs = keptTaskIDs.union([composer.editedTask?.id, dayPicker?.task.id].compactMap { $0 })
         schedule = Schedule(tasks: tasks, today: today, showsComplete: showsComplete, keptTaskIDs: listedTaskIDs)
+        incompleteTaskCountsByDay = tasks.incompleteTaskCountsByDay
     }
 
     /// Runs `operation`; on failure, runs `onFailure` and shows the error.

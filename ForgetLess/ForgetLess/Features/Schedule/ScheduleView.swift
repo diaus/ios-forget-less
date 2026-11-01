@@ -48,6 +48,10 @@ struct ScheduleView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
             vm.refresh()
         }
+        .sheet(isPresented: $vm.isDayPickerVisible, onDismiss: vm.dayPickerDidClose) {
+            DayPickerView()
+                .presentationDetents([.medium, .large])
+        }
         .errorAlert(message: $vm.errorMessage)
         // The quick settings bar stands in for a navigation bar; only screens pushed from it show one.
         .toolbar(.hidden, for: .navigationBar)

@@ -31,8 +31,12 @@ extension Date {
     // MARK: - Short Date
     /// This Day as a short date; `today` decides whether the year shows.
     func shortDate(today: Date) -> String {
-        let style = Date.FormatStyle(calendar: .gmt, timeZone: .gmt).day().month(.abbreviated)
-        return formatted(isInSameYear(as: today) ? style : style.year())
+        formatted(Date.FormatStyle(calendar: .gmt, timeZone: .gmt).day().month(.abbreviated), today: today)
+    }
+
+    /// This Day's short date, led by its weekday's short name.
+    func weekdayAndShortDate(today: Date) -> String {
+        "\(shortWeekday) \(shortDate(today: today))"
     }
 
     // MARK: - Weekday
@@ -40,5 +44,27 @@ extension Date {
     func weekday(capitalizationContext: FormatStyleCapitalizationContext) -> String {
         let style = Date.FormatStyle(calendar: .gmt, timeZone: .gmt, capitalizationContext: capitalizationContext)
         return formatted(style.weekday(.wide))
+    }
+
+    /// This Day's weekday as a short name, as a column of weeks is headed.
+    var shortWeekday: String {
+        formatted(Date.FormatStyle(calendar: .gmt, timeZone: .gmt).weekday(.abbreviated))
+    }
+
+    // MARK: - Month
+    /// The name of this Day's month; `today` decides whether the year shows.
+    func monthName(today: Date) -> String {
+        formatted(Date.FormatStyle(calendar: .gmt, timeZone: .gmt).month(.wide), today: today)
+    }
+
+    /// This Day's number within its month.
+    var dayOfMonth: String {
+        formatted(Date.FormatStyle(calendar: .gmt, timeZone: .gmt).day())
+    }
+
+    // MARK: - Helpers
+    /// This Day in `style`, with the year added when it isn't `today`'s.
+    private func formatted(_ style: Date.FormatStyle, today: Date) -> String {
+        formatted(isInSameYear(as: today) ? style : style.year())
     }
 }
