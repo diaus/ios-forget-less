@@ -50,6 +50,8 @@ struct ScheduleView: View {
             vm.refresh()
         }
         .errorAlert(message: $vm.errorMessage)
+        // The quick settings bar stands in for a navigation bar; only screens pushed from it show one.
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     // MARK: - UI Components
@@ -151,5 +153,7 @@ struct ScheduleView: View {
 }
 
 #Preview(traits: .sampleTasks) {
-    ScheduleView()
+    NavigationStack {
+        ScheduleView()
+    }
 }

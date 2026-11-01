@@ -15,7 +15,7 @@ final class ScheduleViewModel {
     /// Whether the Schedule lists Complete Tasks. Kept across launches.
     var showsComplete: Bool {
         didSet {
-            UserDefaults.standard.set(showsComplete, forKey: Self.showsCompleteKey)
+            UserDefaults.standard.showsComplete = showsComplete
             releaseKeptTasks()
             rebuildSchedule()
         }
@@ -23,7 +23,7 @@ final class ScheduleViewModel {
     /// Whether Tasks can be moved. Kept across launches.
     var movesTasks: Bool {
         didSet {
-            UserDefaults.standard.set(movesTasks, forKey: Self.movesTasksKey)
+            UserDefaults.standard.movesTasks = movesTasks
         }
     }
     /// The Tasks the Schedule lists, with any move not yet confirmed by the store already made.
@@ -34,11 +34,6 @@ final class ScheduleViewModel {
     private(set) var keptTaskIDs: Set<UUID> = []
     @ObservationIgnored private var keptTaskTimers: [UUID: Task<Void, Never>] = [:]
 
-    private static let showsCompleteKey = "showsCompleteTasks"
-    private static let movesTasksKey = "movesTasks"
-    /// How long a Task completed while Complete Tasks are hidden stays listed, so a mis-tap can be undone.
-    private static let keptDuration = Duration.seconds(2)
-
     @ObservationIgnored @Injected(\.todoTaskRepository) private var repository
     @ObservationIgnored @Injected(\.addTask) private var addTask
     @ObservationIgnored @Injected(\.renameTask) private var renameTask
@@ -48,8 +43,8 @@ final class ScheduleViewModel {
         self.today = today
         self.schedule = Schedule(tasks: [], today: today)
         self.composer = ComposerState(day: today)
-        self.showsComplete = UserDefaults.standard.object(forKey: Self.showsCompleteKey) as? Bool ?? true
-        self.movesTasks = UserDefaults.standard.object(forKey: Self.movesTasksKey) as? Bool ?? true
+        self.showsComplete = UserDefaults.standard.showsComplete
+        self.movesTasks = UserDefaults.standard.movesTasks
     }
 
     // MARK: - Loading
@@ -125,7 +120,7 @@ final class ScheduleViewModel {
     func toggleComplete(_ task: TodoTask) {
         let isComplete = !task.isComplete
         if isComplete && !showsComplete {
-            keep(task.id)
+            keep(task.id, for: UserDefaults.standard.keptDuration)
         } else {
             // Stays kept, so no rebuild drops it before the Tasks observed hold it Incomplete.
             keptTaskTimers.removeValue(forKey: task.id)?.cancel()
@@ -174,12 +169,17 @@ final class ScheduleViewModel {
         }
     }
 
-    /// Gives the Task with `id` its grace period while Complete Tasks are hidden.
-    private func keep(_ id: UUID) {
+    /// Gives the Task with `id` its grace period of `seconds` while Complete Tasks are hidden.
+    private func keep(_ id: UUID, for seconds: Double) {
+        keptTaskTimers.removeValue(forKey: id)?.cancel()
+        // With no grace period, the Task leaves with the next rebuild, even one kept by an earlier completion.
+        guard seconds > 0 else {
+            keptTaskIDs.remove(id)
+            return
+        }
         keptTaskIDs.insert(id)
-        keptTaskTimers[id]?.cancel()
         keptTaskTimers[id] = Task {
-            try? await Task.sleep(for: Self.keptDuration)
+            try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }
             keptTaskTimers[id] = nil
             keptTaskIDs.remove(id)

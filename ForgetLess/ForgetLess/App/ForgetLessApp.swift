@@ -12,7 +12,9 @@ struct ForgetLessApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ScheduleView()
+            NavigationStack {
+                ScheduleView()
+            }
         }
     }
 }

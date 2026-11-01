@@ -24,6 +24,12 @@ struct QuickSettingsView: View {
             .accessibilityRepresentation {
                 Toggle(isOn: $vm.movesTasks.animation()) { Text(.scheduleMoveTasks) }
             }
+            NavigationLink { SettingsView() } label: {
+                Image(systemName: "gearshape")
+                    .quickSettingSquare()
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(.settingsTitle))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
@@ -48,5 +54,7 @@ private extension View {
 }
 
 #Preview(traits: .sizeThatFitsLayout) {
-    QuickSettingsView()
+    NavigationStack {
+        QuickSettingsView()
+    }
 }
