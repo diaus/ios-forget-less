@@ -43,11 +43,11 @@
 
 **Blocked by:** 01: A month at an offset
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] State tests in `ForgetLessTests/Features/Composer/DayChipCalendar/` cover the rules listed under State.
-- [ ] A `ComposerStateTests` test: choosing a Day sets `hasSteppedDay`, so `revealsDayOnDismiss` holds as after a step.
-- [ ] The UI check (`docs/agents/ui-check.md`) on iOS 27, on a 6.9″ iPhone so the full calendar fits, confirms:
+- [x] State tests in `ForgetLessTests/Features/Composer/DayChipCalendar/` cover the rules listed under State.
+- [x] A `ComposerStateTests` test: choosing a Day sets `hasSteppedDay`, so `revealsDayOnDismiss` holds as after a step.
+- [x] The UI check (`docs/agents/ui-check.md`) on iOS 27, on a 6.9″ iPhone so the full calendar fits, confirms:
   - a tap on the chip opens the calendar on the chip's Day's month, with that Day chosen, and the keyboard stays up;
   - an Overdue Task being edited opens on Today's month with nothing chosen;
   - the swipe still steps the chip while the calendar is closed;
@@ -60,5 +60,14 @@
   - typing closes it;
   - dragging the composer down closes both;
   - the Choose a Day sheet still looks and works as before.
-- [ ] Today rolling over while the calendar is open dims the new past Day (`SIMCTL_CHILD_TZ` at boot, or a real midnight).
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] Today rolling over while the calendar is open dims the new past Day (`SIMCTL_CHILD_TZ` at boot, or a real midnight).
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+
+## Comments
+
+- Choosing needed the month count between two Days, so Domain's `Date+Day` gained `monthCount(from:)`, tested in `DateDayTests`.
+- The state also refuses a second Day while the calendar closes (`isClosing`), which carries "a second tap in that window is ignored".
+- The view model checks the Move before the calendar draws a Day chosen, so a refused Move shows nothing chosen and the chip stays put.
+- The composer's dismiss rule is shared by `ComposerView.dismissDrag` and the calendar's backdrop (`DragGesture.Value.dismissesComposer`). On the backdrop the composer doesn't follow the finger; it dismisses on release.
+- The UI check ran on an iPhone 18 Pro Max, iOS 27.2. The simulator gives no haptics, so the selection and rigid haptics weren't felt, only wired.
+- Seen during the check, in the list rather than the calendar: the first reveal of a Day far down the list (28 Nov, never yet laid out) stopped short of it. A reveal to 26 Nov after the list had scrolled there landed. The list's existing `scrollToShowRow` is the likely cause; untouched here.

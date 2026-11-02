@@ -16,6 +16,18 @@ struct DateDayTests {
     }
 
     @Test(arguments: [
+        ("2026-10-01", 0),
+        ("2026-10-31", 0),
+        ("2026-11-01", 1),
+        ("2026-09-30", -1),
+        ("2027-01-31", 3),
+        ("2025-10-25", -12),
+    ])
+    func aDayCountsWholeMonthsFromAnotherDaysMonth(yearMonthDay: String, monthCount: Int) throws {
+        #expect(try day(yearMonthDay).monthCount(from: try day("2026-10-25")) == monthCount)
+    }
+
+    @Test(arguments: [
         ("2026-10-25", true),
         ("2026-10-26", true),
         ("2031-10-25", true),

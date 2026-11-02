@@ -28,6 +28,12 @@ public extension Date {
         Calendar.gmt.dateComponents([.day], from: day, to: self).day!
     }
 
+    /// How many months this Day's month is after `day`'s, negative when it's before.
+    func monthCount(from day: Date) -> Int {
+        // Two months' first Days are always a whole number of months apart.
+        Calendar.gmt.dateComponents([.month], from: day.firstDayOfMonth, to: firstDayOfMonth).month!
+    }
+
     /// Whether a Task can be planned for this Day: never before Today.
     func canBePlanned(today: Date) -> Bool {
         self >= today

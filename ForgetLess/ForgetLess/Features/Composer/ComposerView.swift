@@ -17,8 +17,6 @@ struct ComposerView: View {
     /// Counts the steps refused before Today, for a bounce and a haptic on each.
     @State private var refusedDayStepCount = 0
 
-    /// How far a drag must go to dismiss the panel.
-    private let dismissDistance: CGFloat = 60
     /// How far a swipe on the Day chip must go to step its Day.
     private let dayStepDistance: CGFloat = 24
 
@@ -46,6 +44,7 @@ struct ComposerView: View {
         }
         .padding(16)
         .background(.background.secondary, in: .rect(cornerRadius: 20))
+        .transformAnchorPreference(key: DayChipCalendarAnchorsKey.self, value: .bounds) { $0.composer = $1 }
         .padding(.horizontal, 8)
         .padding(.bottom, 8)
         .offset(y: max(dragOffset, 0))
@@ -53,6 +52,8 @@ struct ComposerView: View {
         // A container, so VoiceOver's escape (two-finger scrub) from any of its elements dismisses, like the drag.
         .accessibilityElement(children: .contain)
         .accessibilityAction(.escape, onDismiss)
+        // Typing goes straight back to the name field.
+        .onChange(of: vm.composer.taskName) { vm.closeDayChipCalendar() }
     }
 
     // MARK: - UI Components
@@ -79,6 +80,8 @@ struct ComposerView: View {
                 SpringKeyframe(0, duration: 0.3)
             }
             .contentShape(.capsule)
+            .transformAnchorPreference(key: DayChipCalendarAnchorsKey.self, value: .bounds) { $0.chip = $1 }
+            .onTapGesture(perform: vm.toggleDayChipCalendar)
             .simultaneousGesture(dayStepSwipe)
             .sensoryFeedback(.selection, trigger: dayStepCount)
             .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.5), trigger: refusedDayStepCount)
@@ -113,6 +116,7 @@ struct ComposerView: View {
     }
 
     private func submit() {
+        vm.closeDayChipCalendar()
         switch vm.submitComposer() {
         case .added:
             // Return would otherwise drop focus, and the panel stays up for the next Task.
@@ -131,10 +135,7 @@ struct ComposerView: View {
                 offset = value.translation.height
             }
             .onEnded { value in
-                // Mostly down, so a sideways swipe on the Day chip only steps its Day.
-                guard value.translation.height > abs(value.translation.width) else { return }
-                let isFlung = value.predictedEndTranslation.height > dismissDistance * 2
-                if value.translation.height > dismissDistance || isFlung {
+                if value.dismissesComposer {
                     onDismiss()
                 }
             }

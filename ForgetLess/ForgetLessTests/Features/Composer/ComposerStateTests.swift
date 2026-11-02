@@ -62,6 +62,17 @@ struct ComposerStateTests {
         #expect(composer.revealsDayOnDismiss)
     }
 
+    @Test func aStepToADayFarAwayAsTheCalendarMakesIsRevealedAsAOneDayStepIs() {
+        let farDay = day.addingDays(40)
+        var composer = ComposerState(day: day)
+
+        composer.step(to: farDay)
+        composer.daysAddedTo.insert(farDay)
+
+        #expect(composer.hasSteppedDay)
+        #expect(composer.revealsDayOnDismiss)
+    }
+
     @Test func startingAfreshForgetsStepsAndAdds() {
         var composer = ComposerState(day: day)
         composer.step(to: day.addingDays(1))

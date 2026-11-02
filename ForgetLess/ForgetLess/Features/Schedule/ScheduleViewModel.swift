@@ -11,6 +11,8 @@ final class ScheduleViewModel {
     private(set) var today: Date
     private(set) var schedule: Schedule
     var composer: ComposerState
+    /// The composer's Day chip calendar; `nil` while it's closed.
+    var dayChipCalendar: DayChipCalendarState?
     /// The Day picker's choice; `nil` once it has closed. Kept until then, so the sheet keeps its content as it goes.
     var dayPicker: DayPickerState?
     /// How many Incomplete Tasks each Day holds; a Day with none has no entry.
@@ -59,6 +61,7 @@ final class ScheduleViewModel {
     func refresh() {
         today = .today
         dayPicker?.update(today: today)
+        dayChipCalendar?.update(today: today)
     }
 
     /// Keeps the Schedule up to date with the stored Tasks for the current Today, until the calling task is cancelled.
@@ -94,6 +97,7 @@ final class ScheduleViewModel {
     /// Hides the composer and drops what's typed, so the next add starts blank. VoiceOver goes back to what showed it,
     /// and the list brings a Day stepped to into view.
     func dismissComposer() {
+        closeDayChipCalendar()
         if composer.revealsDayOnDismiss {
             dayReveal = DayReveal(day: composer.day)
         }
@@ -115,18 +119,7 @@ final class ScheduleViewModel {
         let shownDay = composer.day
         guard let day = forward ? shownDay.nextDayToPlan(today: today) : shownDay.previousDayToPlan(today: today)
         else { return false }
-        if let task = composer.editedTask {
-            guard schedule.canMove(task, toDay: day) else { return false }
-            saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id), onFailure: {
-                // Back to the Day the store holds, as the list is.
-                if let stored = self.observedTasks.first(where: { $0.id == task.id }),
-                   self.composer.editedTask?.id == task.id {
-                    self.composer.day = stored.day
-                }
-            })
-        }
-        composer.step(to: day)
-        return true
+        return changeComposerDay(to: day)
     }
 
     /// Saves the typed name: adds a Task to the composer's Day, or renames the Task being edited. Returns `nil` and
@@ -157,6 +150,29 @@ final class ScheduleViewModel {
             }
         }
         return .added
+    }
+
+    // MARK: - Day Chip Calendar
+    /// Opens the Day chip calendar on the composer's Day, or closes it when it's open.
+    func toggleDayChipCalendar() {
+        if dayChipCalendar == nil {
+            dayChipCalendar = DayChipCalendarState(today: today, chipDay: composer.day)
+        } else {
+            closeDayChipCalendar()
+        }
+    }
+
+    func closeDayChipCalendar() {
+        dayChipCalendar = nil
+    }
+
+    /// Sets the composer to `day` as a step does, unless the Day chip calendar or the move rule refuses it. VoiceOver
+    /// says an edited Task's new Day once its Move is saved.
+    func chooseDayChipCalendarDay(_ day: Date) {
+        // Checked before the calendar draws the choice, so a refused Move shows nothing chosen.
+        guard let calendar = dayChipCalendar, !calendar.isClosing, calendar.canChoose(day),
+              day == composer.day || changeComposerDay(to: day, onSaved: dayAnnouncement(day)) else { return }
+        dayChipCalendar?.choose(day)
     }
 
     // MARK: - Day Picker
@@ -212,6 +228,25 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Helpers
+    /// Sets the composer's Day to `day`, which can be planned for; an edited Task moves to the end of it at once, and
+    /// `onSaved` runs once that's saved. Returns whether the Day changed: never on the composer's own Day.
+    @discardableResult
+    private func changeComposerDay(to day: Date, onSaved: @escaping @MainActor () -> Void = {}) -> Bool {
+        guard day != composer.day else { return false }
+        if let task = composer.editedTask {
+            guard schedule.canMove(task, toDay: day) else { return false }
+            saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id), onSaved: onSaved, onFailure: {
+                // Back to the Day the store holds, as the list is.
+                if let stored = self.observedTasks.first(where: { $0.id == task.id }),
+                   self.composer.editedTask?.id == task.id {
+                    self.composer.day = stored.day
+                }
+            })
+        }
+        composer.step(to: day)
+        return true
+    }
+
     /// Moves `task` to `destination` and runs `onSaved` once the store has it, or lists it where it was when the
     /// move rule refuses that.
     private func move(_ task: TodoTask, to destination: MoveDestination, onSaved: @escaping @MainActor () -> Void) {

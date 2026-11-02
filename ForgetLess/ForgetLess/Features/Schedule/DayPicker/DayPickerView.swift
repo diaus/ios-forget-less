@@ -54,7 +54,7 @@ struct DayPickerView: View {
                     ForEach(calendar.rows) { row in
                         switch row {
                         case let .monthHeader(firstDay): monthHeader(firstDay, today: dayPicker.today)
-                        case let .week(days): week(days)
+                        case let .week(days): week(days, dayPicker: dayPicker)
                         }
                     }
                 }
@@ -81,12 +81,19 @@ struct DayPickerView: View {
             .accessibilityAddTraits(.isHeader)
     }
 
-    private func week(_ days: [Date?]) -> some View {
+    private func week(_ days: [Date?], dayPicker: DayPickerState) -> some View {
         HStack(spacing: 0) {
             ForEach(days.indices, id: \.self) { index in
                 Group {
                     if let day = days[index] {
-                        DayPickerDayView(day: day)
+                        DayPickerDayView(
+                            day: day,
+                            isChosen: dayPicker.chosenDay == day,
+                            canChoose: dayPicker.canChoose(day),
+                            isToday: dayPicker.today == day,
+                            incompleteTaskCount: vm.incompleteTaskCountsByDay[day] ?? 0,
+                            rowHeight: DayPickerDayView.fullRowHeight
+                        ) { vm.dayPicker?.choose(day) }
                     } else {
                         Color.clear.accessibilityHidden(true)
                     }

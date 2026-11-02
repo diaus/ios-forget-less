@@ -1,28 +1,32 @@
 import Domain
-import FactoryKit
 import SwiftUI
 
-/// A Day in the Day picker, chosen by a tap.
+/// A Day in a month to choose a Day from, chosen by a tap.
 struct DayPickerDayView: View {
-    @InjectedObservable(\.scheduleViewModel) private var vm
     let day: Date
+    let isChosen: Bool
+    let canChoose: Bool
+    let isToday: Bool
+    let incompleteTaskCount: Int
+    /// The height of the week row the Day sits in.
+    let rowHeight: CGFloat
+    let onChoose: () -> Void
 
-    private let circleSize: CGFloat = 44
+    /// A row's height in the Choose a Day sheet.
+    static let fullRowHeight: CGFloat = 50
+
+    private let rowPadding: CGFloat = 3
 
     // MARK: - Body
     var body: some View {
-        let isChosen = vm.dayPicker?.chosenDay == day
-        let canChoose = vm.dayPicker?.canChoose(day) ?? false
-        let isToday = vm.dayPicker?.today == day
-        let incompleteTaskCount = vm.incompleteTaskCountsByDay[day] ?? 0
-        Button { vm.dayPicker?.choose(day) } label: {
+        Button(action: onChoose) {
             ZStack {
                 if isChosen {
                     Circle().fill(.tint)
                 }
                 Text(day.dayOfMonth)
                     .font(.body.weight(isToday ? .semibold : .regular))
-                    .foregroundStyle(numberStyle(isChosen: isChosen, isToday: isToday, canChoose: canChoose))
+                    .foregroundStyle(numberStyle)
                 // Under the number, inside the chosen Day's circle.
                 Circle()
                     .fill(isChosen ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
@@ -30,8 +34,8 @@ struct DayPickerDayView: View {
                     .offset(y: 13)
                     .opacity(incompleteTaskCount > 0 ? (canChoose ? 1 : 0.4) : 0)
             }
-            .frame(width: circleSize, height: circleSize)
-            .padding(.vertical, 3)
+            .frame(width: rowHeight - 2 * rowPadding, height: rowHeight - 2 * rowPadding)
+            .padding(.vertical, rowPadding)
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
@@ -42,7 +46,7 @@ struct DayPickerDayView: View {
     }
 
     // MARK: - Helpers
-    private func numberStyle(isChosen: Bool, isToday: Bool, canChoose: Bool) -> AnyShapeStyle {
+    private var numberStyle: AnyShapeStyle {
         if !canChoose {
             AnyShapeStyle(.tertiary)
         } else if isChosen {
@@ -57,10 +61,17 @@ struct DayPickerDayView: View {
 
 #Preview(traits: .sizeThatFitsLayout) {
     HStack {
-        DayPickerDayView(day: Date.today.addingDays(-1))
-        DayPickerDayView(day: .today)
-        DayPickerDayView(day: Date.today.addingDays(1))
+        DayPickerDayView(
+            day: Date.today.addingDays(-1), isChosen: false, canChoose: false, isToday: false, incompleteTaskCount: 1,
+            rowHeight: DayPickerDayView.fullRowHeight
+        ) {}
+        DayPickerDayView(
+            day: .today, isChosen: false, canChoose: true, isToday: true, incompleteTaskCount: 2,
+            rowHeight: DayPickerDayView.fullRowHeight
+        ) {}
+        DayPickerDayView(
+            day: Date.today.addingDays(1), isChosen: true, canChoose: true, isToday: false, incompleteTaskCount: 1,
+            rowHeight: DayPickerDayView.fullRowHeight
+        ) {}
     }
-    // The view resolves the same shared view model.
-    .onAppear { Container.shared.scheduleViewModel().showDayPicker(for: .previewTomorrow) }
 }
