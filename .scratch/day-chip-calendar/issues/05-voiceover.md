@@ -15,7 +15,8 @@
   - its Incomplete Task count as its value;
   - dimmed before Today;
   - selected on the chip's Day.
-- **Blank cells and padding rows** are hidden from VoiceOver.
+- **Days from the months either side** (ticket 06) read as any Day: their full date says which month they're in.
+- **The ✕** reads as a "Close" button and closes only the calendar.
 - **The announcement:** while editing, the new Day is announced once the Move is saved (from ticket 02). Check that it isn't cut off by the focus moving back to the chip as the calendar closes.
 - **New catalog keys,** if any (for example a hint on the chip), are added with `scripts/xcstrings.py` in `en` and `uk`.
 
@@ -27,8 +28,8 @@
   - the chip is adjustable and can be activated;
   - while the calendar is open, only its elements are in the tree;
   - the month header is an adjustable heading;
-  - each Day's label, value and traits;
-  - blank cells are absent.
+  - each Day's label, value and traits, a Day from another month included;
+  - the ✕ is a button labelled "Close".
 - [ ] The escape gesture closes only the calendar, checked on the simulator or reported as skipped.
 - [ ] The announcement after a Move gives the new Day, checked in the console or the accessibility notification log, or reported as skipped.
 - [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.

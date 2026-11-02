@@ -15,7 +15,7 @@
 - **Action:** exactly a tap on that Day, through the same view-model call, including the 0.15 s chosen circle when the month shown holds that Day, and the close.
 - **The state** gives the buttons' Days: Today, Tomorrow and Today + 2.
 
-**Blocked by:** 02: The Day chip calendar
+**Blocked by:** 06: Five weeks, and the card over the composer
 
 **Status:** ready-for-agent
 

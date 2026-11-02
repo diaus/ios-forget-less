@@ -8,19 +8,15 @@ struct DayChipCalendarMonthView: View {
     let month: DayPickerCalendar.Month
     let calendar: DayChipCalendarState
 
-    /// As many weeks as the longest month spans, so every month is as tall.
-    private static let weekCount = 6
+    /// Every month as many weeks, so paging never changes the calendar's height.
+    private static let weekCount = 5
 
     // MARK: - Body
     var body: some View {
-        let weekdays = DayPickerCalendar.weekdays()
-        let blankWeek = [Date?](repeating: nil, count: weekdays.count)
         VStack(spacing: 0) {
             header
-            weekdayRow(weekdays)
-            ForEach(0..<Self.weekCount, id: \.self) { index in
-                week(index < month.weeks.count ? month.weeks[index] : blankWeek)
-            }
+            weekdayRow(DayPickerCalendar.weekdays())
+            ForEach(month.weeks(count: Self.weekCount), id: \.self, content: week)
         }
     }
 
@@ -30,6 +26,8 @@ struct DayChipCalendarMonthView: View {
             .font(.headline)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 8)
+            // Clear of the ✕ over the page's top-trailing corner.
+            .padding(.trailing, DayChipCalendarView.closeButtonSize)
             .padding(.bottom, 8)
             .accessibilityAddTraits(.isHeader)
     }
@@ -46,27 +44,20 @@ struct DayChipCalendarMonthView: View {
         .padding(.bottom, 4)
     }
 
-    private func week(_ days: [Date?]) -> some View {
+    private func week(_ days: [Date]) -> some View {
         HStack(spacing: 0) {
-            ForEach(days.indices, id: \.self) { index in
-                Group {
-                    if let day = days[index] {
-                        DayPickerDayView(
-                            day: day,
-                            isChosen: calendar.chosenDay == day,
-                            canChoose: calendar.canChoose(day),
-                            isToday: calendar.today == day,
-                            incompleteTaskCount: vm.incompleteTaskCountsByDay[day] ?? 0,
-                            rowHeight: DayPickerDayView.fullRowHeight
-                        ) { vm.chooseDayChipCalendarDay(day) }
-                    } else {
-                        Color.clear.accessibilityHidden(true)
-                    }
-                }
+            ForEach(days, id: \.self) { day in
+                DayPickerDayView(
+                    day: day,
+                    isChosen: calendar.chosenDay == day,
+                    canChoose: calendar.canChoose(day),
+                    isToday: calendar.today == day,
+                    isInMonth: day.isInSameMonth(as: month.firstDay),
+                    incompleteTaskCount: vm.incompleteTaskCountsByDay[day] ?? 0,
+                    rowHeight: DayPickerDayView.fullRowHeight
+                ) { vm.chooseDayChipCalendarDay(day) }
                 .frame(maxWidth: .infinity)
             }
         }
-        // A week of blanks has no Day to give it its height.
-        .frame(height: DayPickerDayView.fullRowHeight)
     }
 }

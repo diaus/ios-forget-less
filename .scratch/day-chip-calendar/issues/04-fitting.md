@@ -1,9 +1,9 @@
 # 04: Fitting the calendar
 
-**What to build:** The calendar always fits the space above the chip, refitting live (spec stories 32–35).
+**What to build:** The calendar always fits the space from the top safe area to the composer's bottom, refitting live (spec stories 32–35). It has 5 week rows (ticket 06), and its ✕ sits on the header's line, adding no height.
 
 - **Fitting is a pure function** in `Features/Composer/DayChipCalendar/` (for example `DayChipCalendarLayout`), tested in the app's tests.
-  - Inputs: the height available above the chip, the measured heights of the header and the button row, the padding, and whether the keyboard is up.
+  - Inputs: the height available from the top safe area to the composer's bottom, the measured heights of the header and the button row, the padding, and whether the keyboard is up.
   - Outputs: the row height, whether the buttons show, and whether the keyboard must go down.
   - It tries, in order:
     1. rows the sheet's height (about 50 pt) with the buttons;
@@ -12,7 +12,7 @@
     4. with the keyboard down, steps 1–3 again in the larger space;
     5. rows that take all the height there is.
 - **The view:**
-  - It measures the header and the button row at the current Dynamic Type size, and the space from the top safe area to the chip.
+  - It measures the header and the button row at the current Dynamic Type size, and the space from the top safe area to the composer's bottom.
   - It refits whenever any of these change, for example when switching to the emoji keyboard, rotating, or changing Dynamic Type.
   - The Day numbers shrink with the row (for example `minimumScaleFactor`).
   - Nothing scrolls vertically inside the calendar.
@@ -31,8 +31,8 @@
 - [ ] A state test: a calendar that hid the keyboard says so until it closes.
 - [ ] The UI check on iOS 27 confirms:
   - a 6.9″ iPhone shows the full calendar with the buttons;
-  - a 6.1″ iPhone hides the buttons;
-  - the iPhone SE (or the smallest iOS 27 simulator) shrinks the rows, or hides the keyboard;
+  - a 6.1″ iPhone fits by the first step that works for its height (expected: the full calendar with the buttons, now that the calendar covers the composer and has 5 rows), recorded in Comments;
+  - the iPhone SE (or the smallest iOS 27 simulator) hides the buttons, shrinks the rows, or hides the keyboard, recorded in Comments;
   - iPhone landscape hides the keyboard and fits;
   - switching to the emoji keyboard refits;
   - an iPad caps the width at about 400 pt;

@@ -91,6 +91,7 @@ struct DayPickerView: View {
                             isChosen: dayPicker.chosenDay == day,
                             canChoose: dayPicker.canChoose(day),
                             isToday: dayPicker.today == day,
+                            isInMonth: true,
                             incompleteTaskCount: vm.incompleteTaskCountsByDay[day] ?? 0,
                             rowHeight: DayPickerDayView.fullRowHeight
                         ) { vm.dayPicker?.choose(day) }

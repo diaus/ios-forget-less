@@ -28,6 +28,15 @@ public struct DayPickerCalendar: Sendable {
                 return week + Array(repeating: nil, count: Date.daysPerWeek - week.count)
             }
         }
+
+        /// `count` rows of a week from the week that holds `firstDay`, every cell a Day, those of the months either
+        /// side included.
+        public func weeks(count: Int) -> [[Date]] {
+            let start = firstDay.addingDays(-leadingBlankCount)
+            return (0..<count).map { week in
+                (0..<Date.daysPerWeek).map { start.addingDays(week * Date.daysPerWeek + $0) }
+            }
+        }
     }
 
     /// The weekday header.

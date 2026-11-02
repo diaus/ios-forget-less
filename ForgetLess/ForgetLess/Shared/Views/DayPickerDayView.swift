@@ -7,6 +7,8 @@ struct DayPickerDayView: View {
     let isChosen: Bool
     let canChoose: Bool
     let isToday: Bool
+    /// Whether `day` is in the month shown, rather than a Day of the months either side.
+    let isInMonth: Bool
     let incompleteTaskCount: Int
     /// The height of the week row the Day sits in.
     let rowHeight: CGFloat
@@ -53,6 +55,8 @@ struct DayPickerDayView: View {
             AnyShapeStyle(.white)
         } else if isToday {
             AnyShapeStyle(.tint)
+        } else if !isInMonth {
+            AnyShapeStyle(Color(.dayPickerOtherMonthDay))
         } else {
             AnyShapeStyle(.primary)
         }
@@ -62,16 +66,20 @@ struct DayPickerDayView: View {
 #Preview(traits: .sizeThatFitsLayout) {
     HStack {
         DayPickerDayView(
-            day: Date.today.addingDays(-1), isChosen: false, canChoose: false, isToday: false, incompleteTaskCount: 1,
-            rowHeight: DayPickerDayView.fullRowHeight
+            day: Date.today.addingDays(-1), isChosen: false, canChoose: false, isToday: false, isInMonth: true,
+            incompleteTaskCount: 1, rowHeight: DayPickerDayView.fullRowHeight
         ) {}
         DayPickerDayView(
-            day: .today, isChosen: false, canChoose: true, isToday: true, incompleteTaskCount: 2,
-            rowHeight: DayPickerDayView.fullRowHeight
+            day: .today, isChosen: false, canChoose: true, isToday: true, isInMonth: true,
+            incompleteTaskCount: 2, rowHeight: DayPickerDayView.fullRowHeight
         ) {}
         DayPickerDayView(
-            day: Date.today.addingDays(1), isChosen: true, canChoose: true, isToday: false, incompleteTaskCount: 1,
-            rowHeight: DayPickerDayView.fullRowHeight
+            day: Date.today.addingDays(1), isChosen: true, canChoose: true, isToday: false, isInMonth: true,
+            incompleteTaskCount: 1, rowHeight: DayPickerDayView.fullRowHeight
+        ) {}
+        DayPickerDayView(
+            day: Date.today.addingDays(2), isChosen: false, canChoose: true, isToday: false, isInMonth: false,
+            incompleteTaskCount: 1, rowHeight: DayPickerDayView.fullRowHeight
         ) {}
     }
 }

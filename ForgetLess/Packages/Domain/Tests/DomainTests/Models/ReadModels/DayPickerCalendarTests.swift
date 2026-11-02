@@ -117,6 +117,41 @@ struct DayPickerCalendarTests {
         #expect(header.map { Calendar.gmt.component(.weekday, from: $0) } == weekdays)
     }
 
+    // 2026-12-01 is a Tuesday: a Monday start opens on 2026-11-30, a Sunday start on 2026-11-29.
+    @Test(arguments: [(2, "2026-11-30"), (1, "2026-11-29")])
+    func aFiveWeekGridStartsOnTheWeekHoldingTheFirstAndRunsOnConsecutiveDays(
+        firstWeekday: Int, firstCell: String
+    ) throws {
+        let month = DayPickerCalendar.Month(today: try day("2026-11-17"), offset: 1, firstWeekday: firstWeekday)
+
+        let weeks = month.weeks(count: 5)
+
+        let start = try day(firstCell)
+        #expect(weeks.map(\.count) == [7, 7, 7, 7, 7])
+        #expect(weeks.joined().map { $0.dayCount(from: start) } == Array(0..<35))
+    }
+
+    // March 2026 runs from a Sunday to a Tuesday, so with a Monday start it spans 6 weeks.
+    @Test func aMonthSpanningSixWeeksLosesItsLastRowsDaysToTheNextMonthsGrid() throws {
+        let today = try day("2026-03-10")
+        let march = DayPickerCalendar.Month(today: today, offset: 0, firstWeekday: 2).weeks(count: 5)
+        let april = DayPickerCalendar.Month(today: today, offset: 1, firstWeekday: 2).weeks(count: 5)
+
+        #expect(try march.last?.last == day("2026-03-29"))
+        #expect(try april.first?.prefix(2) == [day("2026-03-30"), day("2026-03-31")])
+    }
+
+    // 2027-02-01 is a Monday, and February 2027 has 28 Days.
+    @Test func aFebruarySpanningFourWeeksGetsMarchsFirstWeekAsItsFifthRow() throws {
+        let month = DayPickerCalendar.Month(today: try day("2027-02-10"), offset: 0, firstWeekday: 2)
+
+        let weeks = month.weeks(count: 5)
+
+        let marchFirst = try day("2027-03-01")
+        #expect(try weeks.first?.first == day("2027-02-01"))
+        #expect(weeks.last == (0..<7).map(marchFirst.addingDays))
+    }
+
     // MARK: - Helpers
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.
     private func day(_ yearMonthDay: String) throws -> Date {

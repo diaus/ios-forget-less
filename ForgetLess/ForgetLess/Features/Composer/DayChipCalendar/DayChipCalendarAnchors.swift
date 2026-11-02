@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// What the Day chip calendar is placed from: the Day chip it opens above, and the composer it lines up with.
+/// What the Day chip calendar is placed from: the Day chip it grows from, and the composer it covers.
 struct DayChipCalendarAnchors {
     var chip: Anchor<CGRect>?
     var composer: Anchor<CGRect>?

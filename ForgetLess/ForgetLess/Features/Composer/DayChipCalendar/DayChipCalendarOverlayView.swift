@@ -10,8 +10,6 @@ struct DayChipCalendarOverlayView: View {
 
     /// The widest the calendar grows, so its Days never spread out on a wide screen.
     private let maxWidth: CGFloat = 400
-    /// The space between the calendar and the chip under it.
-    private let chipGap: CGFloat = 8
     private let coordinateSpaceName = "dayChipCalendarOverlay"
 
     // MARK: - Body
@@ -26,9 +24,13 @@ struct DayChipCalendarOverlayView: View {
                 if let calendar = vm.dayChipCalendar, let chip, let composer {
                     DayChipCalendarView(calendar: calendar)
                         .frame(width: min(composer.width, maxWidth))
-                        .frame(height: max(chip.minY - chipGap, 0), alignment: .bottom)
-                        .offset(x: composer.minX)
-                        .transition(.scale(scale: 0.1, anchor: .bottomLeading).combined(with: .opacity))
+                        .padding(.leading, composer.minX)
+                        // Covers the composer, for the most height for its month.
+                        .frame(width: proxy.size.width, height: composer.maxY, alignment: .bottomLeading)
+                        .transition(
+                            .scale(scale: 0.1, anchor: chipCorner(chip, in: proxy.size, above: composer.maxY))
+                                .combined(with: .opacity)
+                        )
                 }
             }
             .animation(.snappy(duration: 0.25), value: vm.dayChipCalendar == nil)
@@ -56,5 +58,11 @@ struct DayChipCalendarOverlayView: View {
                     onDismissComposer()
                 }
             }
+    }
+
+    // MARK: - Helpers
+    /// Where the calendar grows from and shrinks back into.
+    private func chipCorner(_ chip: CGRect, in size: CGSize, above bottom: CGFloat) -> UnitPoint {
+        UnitPoint(x: chip.minX / max(size.width, 1), y: chip.maxY / max(bottom, 1))
     }
 }

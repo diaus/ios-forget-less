@@ -18,6 +18,9 @@ struct DayChipCalendarView: View {
     private static let edgeThreshold = 3
     /// How far past Today's month a swipe must pull before it counts as refused.
     private static let refusedPullDistance: CGFloat = 8
+    private static let pagePadding: CGFloat = 16
+    /// About the ✕'s width, which a month's name stays clear of.
+    static let closeButtonSize: CGFloat = 30
 
     init(calendar: DayChipCalendarState) {
         self.calendar = calendar
@@ -35,7 +38,7 @@ struct DayChipCalendarView: View {
                         month: DayPickerCalendar.Month(today: calendar.today, offset: offset),
                         calendar: calendar
                     )
-                    .padding(16)
+                    .padding(Self.pagePadding)
                     .containerRelativeFrame(.horizontal)
                 }
             }
@@ -75,8 +78,35 @@ struct DayChipCalendarView: View {
         }
         .sensoryFeedback(.selection, trigger: calendar.isClosing) { _, isClosing in isClosing }
         .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.5), trigger: refusedPageCount)
+        // Over the pages rather than on one, so it stays put while they page.
+        .overlay(alignment: .topTrailing) {
+            closeButton
+                // Raised a little, as it's taller than the month's name, so it sits on that name's line.
+                .padding(.top, Self.pagePadding - 4)
+                .padding(.trailing, Self.pagePadding)
+        }
         .background(.background.secondary)
         .clipShape(.rect(cornerRadius: 20))
         .shadow(color: .black.opacity(0.15), radius: 16, y: 4)
+    }
+
+    // MARK: - UI Components
+    @ViewBuilder private var closeButton: some View {
+        if #available(iOS 26, *) {
+            // Outside a toolbar the close role draws its title, so only its xmark is kept.
+            Button(role: .close, action: vm.closeDayChipCalendar)
+                .labelStyle(.iconOnly)
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+        } else {
+            Button(action: vm.closeDayChipCalendar) {
+                Image(systemName: "xmark")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: Self.closeButtonSize, height: Self.closeButtonSize)
+                    .background(.fill.tertiary, in: .circle)
+            }
+            .accessibilityLabel(Text(.dayChipCalendarClose))
+        }
     }
 }
