@@ -87,6 +87,11 @@ public extension Date {
         (Calendar.gmt.component(.weekday, from: self) - firstWeekday + Date.daysPerWeek) % Date.daysPerWeek
     }
 
+    /// The first Day of this Day's week, for weeks that start on `firstWeekday`.
+    internal func firstDayOfWeek(firstWeekday: Int) -> Date {
+        addingDays(-dayCountIntoWeek(firstWeekday: firstWeekday))
+    }
+
     /// The 1st of this Day's month.
     internal var firstDayOfMonth: Date {
         // Every Day falls in a month.

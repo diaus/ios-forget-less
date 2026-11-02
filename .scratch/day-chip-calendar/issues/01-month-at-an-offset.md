@@ -10,12 +10,12 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Tests in `DayPickerCalendarTests` (or a sibling file, if it grows too large):
+- [x] Tests in `DayPickerCalendarTests` (or a sibling file, if it grows too large):
   - offset 0 is Today's month;
   - an offset that crosses into the next year;
   - a month at an offset has the same blank cells and Days as the same month built by `DayPickerCalendar(today:monthCount:)`;
   - the weekday header's order for a Monday start and a Sunday start, without building any month.
-- [ ] The existing `DayPickerCalendarTests` still pass unchanged.
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] The existing `DayPickerCalendarTests` still pass unchanged.
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.

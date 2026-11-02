@@ -85,6 +85,38 @@ struct DayPickerCalendarTests {
         #expect(calendar.week(containing: try day(yearMonthDay)) == nil)
     }
 
+    // Offset 0 is Today's month, and later offsets run on into the next years.
+    @Test(arguments: [
+        (0, "2026-11-01", "2026-11-30"),
+        (2, "2027-01-01", "2027-01-31"),
+        (15, "2028-02-01", "2028-02-29"),
+    ])
+    func aMonthAtAnOffsetIsThatManyMonthsAfterTodaysMonth(offset: Int, firstDay: String, lastDay: String) throws {
+        let month = DayPickerCalendar.Month(today: try day("2026-11-17"), offset: offset, firstWeekday: 2)
+
+        #expect(try month.firstDay == day(firstDay))
+        #expect(try month.days.last == day(lastDay))
+    }
+
+    @Test(arguments: [2, 1])
+    func aMonthAtAnOffsetIsTheSameMonthTheMonthsShow(firstWeekday: Int) throws {
+        let today = try day("2026-11-17")
+        let months = DayPickerCalendar(today: today, monthCount: 4, firstWeekday: firstWeekday).months
+
+        for (offset, shown) in months.enumerated() {
+            let month = DayPickerCalendar.Month(today: today, offset: offset, firstWeekday: firstWeekday)
+            #expect(month.leadingBlankCount == shown.leadingBlankCount)
+            #expect(month.days == shown.days)
+        }
+    }
+
+    @Test(arguments: [(2, [2, 3, 4, 5, 6, 7, 1]), (1, [1, 2, 3, 4, 5, 6, 7])])
+    func theWeekdayHeaderStartsOnTheFirstWeekdayWithoutAnyMonth(firstWeekday: Int, weekdays: [Int]) {
+        let header = DayPickerCalendar.weekdays(firstWeekday: firstWeekday)
+
+        #expect(header.map { Calendar.gmt.component(.weekday, from: $0) } == weekdays)
+    }
+
     // MARK: - Helpers
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.
     private func day(_ yearMonthDay: String) throws -> Date {
