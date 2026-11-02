@@ -127,7 +127,7 @@ Tests check behaviour through a public interface. Tests pass `today` explicitly,
 
 ## Out of Scope
 
-- Opening the sheet from the composer's Day chip.
+- Opening the sheet from the composer's Day chip. The chip opens its own calendar instead: see `.scratch/day-chip-calendar/spec.md`.
 - Choosing a Day for several Tasks at once.
 - Undo.
 - Any change to dragging, the Move Up and Move Down actions, or the composer's Day chip.
