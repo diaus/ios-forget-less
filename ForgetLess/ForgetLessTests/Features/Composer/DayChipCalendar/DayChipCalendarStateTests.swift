@@ -99,4 +99,25 @@ struct DayChipCalendarStateTests {
         #expect(calendar.chosenDay == nil)
         #expect(!calendar.canChoose(today))
     }
+
+    @Test(arguments: [
+        ("2026-11-02", ["2026-11-02", "2026-11-03", "2026-11-04"]),
+        ("2026-11-29", ["2026-11-29", "2026-11-30", "2026-12-01"]),
+        ("2026-11-30", ["2026-11-30", "2026-12-01", "2026-12-02"]),
+        ("2026-12-31", ["2026-12-31", "2027-01-01", "2027-01-02"]),
+    ])
+    func theButtonsDaysAreTodayTomorrowAndTheDayAfterTomorrow(
+        todayYearMonthDay: String,
+        buttonYearMonthDays: [String]
+    ) throws {
+        let calendar = DayChipCalendarState(today: try day(todayYearMonthDay), chipDay: try day(todayYearMonthDay))
+
+        #expect(calendar.buttonDays == (try buttonYearMonthDays.map(day)))
+    }
+
+    // MARK: - Helpers
+    /// The Day `yyyy-MM-dd`.
+    private func day(_ yearMonthDay: String) throws -> Date {
+        try Date("\(yearMonthDay)T00:00:00Z", strategy: .iso8601)
+    }
 }

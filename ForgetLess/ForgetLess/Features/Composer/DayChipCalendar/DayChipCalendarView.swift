@@ -31,6 +31,32 @@ struct DayChipCalendarView: View {
 
     // MARK: - Body
     var body: some View {
+        VStack(spacing: 0) {
+            months
+            // Under the months rather than on one, so they stay put while the months page.
+            DayChipCalendarButtonsView(calendar: calendar)
+                .padding([.horizontal, .bottom], Self.pagePadding)
+        }
+        // Closes a moment after a Day is chosen, so the choice is seen.
+        .task(id: calendar.isClosing) {
+            guard calendar.isClosing, (try? await Task.sleep(for: .seconds(0.15))) != nil else { return }
+            vm.closeDayChipCalendar()
+        }
+        .sensoryFeedback(.selection, trigger: calendar.isClosing) { _, isClosing in isClosing }
+        // Over the pages rather than on one, so it stays put while they page.
+        .overlay(alignment: .topTrailing) {
+            closeButton
+                // Raised a little, as it's taller than the month's name, so it sits on that name's line.
+                .padding(.top, Self.pagePadding - 4)
+                .padding(.trailing, Self.pagePadding)
+        }
+        .background(.background.secondary)
+        .clipShape(.rect(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.15), radius: 16, y: 4)
+    }
+
+    // MARK: - UI Components
+    private var months: some View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: 0) {
                 ForEach(0..<pageCount, id: \.self) { offset in
@@ -71,26 +97,9 @@ struct DayChipCalendarView: View {
             instant.disablesAnimations = true
             withTransaction(instant) { position.scrollTo(id: offset) }
         }
-        // Closes a moment after a Day is chosen, so the choice is seen.
-        .task(id: calendar.isClosing) {
-            guard calendar.isClosing, (try? await Task.sleep(for: .seconds(0.15))) != nil else { return }
-            vm.closeDayChipCalendar()
-        }
-        .sensoryFeedback(.selection, trigger: calendar.isClosing) { _, isClosing in isClosing }
         .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.5), trigger: refusedPageCount)
-        // Over the pages rather than on one, so it stays put while they page.
-        .overlay(alignment: .topTrailing) {
-            closeButton
-                // Raised a little, as it's taller than the month's name, so it sits on that name's line.
-                .padding(.top, Self.pagePadding - 4)
-                .padding(.trailing, Self.pagePadding)
-        }
-        .background(.background.secondary)
-        .clipShape(.rect(cornerRadius: 20))
-        .shadow(color: .black.opacity(0.15), radius: 16, y: 4)
     }
 
-    // MARK: - UI Components
     @ViewBuilder private var closeButton: some View {
         if #available(iOS 26, *) {
             // Outside a toolbar the close role draws its title, so only its xmark is kept.

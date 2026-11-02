@@ -23,6 +23,11 @@ struct DayChipCalendarState {
         canChoose(chipDay) ? chipDay : nil
     }
 
+    /// The nearest Days, one tap away from any month.
+    var buttonDays: [Date] {
+        (0..<3).map(today.addingDays)
+    }
+
     func canChoose(_ day: Date) -> Bool {
         day.canBePlanned(today: today)
     }
