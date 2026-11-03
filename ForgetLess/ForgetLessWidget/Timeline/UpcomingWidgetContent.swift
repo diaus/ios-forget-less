@@ -27,9 +27,12 @@ nonisolated enum UpcomingWidgetContent: Hashable {
 
 extension UpcomingWidgetContent {
     /// Stands in for the user's Tasks in the widget gallery and, redacted, in the placeholder.
-    nonisolated static let sample = UpcomingWidgetContent.rows([
-        UpcomingRow(name: "Pay rent", marker: .overdue),
-        UpcomingRow(name: "Buy oat milk", marker: nil),
-        UpcomingRow(name: "Call mum", marker: nil),
-    ])
+    nonisolated static var sample: UpcomingWidgetContent {
+        // Computed, so a language change shows on the next gallery or placeholder request.
+        .rows([
+            UpcomingRow(name: String(localized: .widgetSamplePayRent), marker: nil),
+            UpcomingRow(name: String(localized: .widgetSampleBuyOatMilk), marker: nil),
+            UpcomingRow(name: String(localized: .widgetSampleCallMum), marker: .tomorrow),
+        ])
+    }
 }

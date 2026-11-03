@@ -831,6 +831,57 @@
         }
       }
     },
+    "widget.sample.buyOatMilk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy oat milk"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Купити вівсяне молоко"
+          }
+        }
+      }
+    },
+    "widget.sample.callMum" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Call mum"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подзвонити мамі"
+          }
+        }
+      }
+    },
+    "widget.sample.payRent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay rent"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сплатити оренду"
+          }
+        }
+      }
+    },
     "widget.showOverdueTasks" : {
       "extractionState" : "manual",
       "localizations" : {
