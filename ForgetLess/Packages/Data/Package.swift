@@ -31,6 +31,7 @@ let package = Package(
             dependencies: [
                 "Data",
                 .product(name: "FactoryKit", package: "Factory"),
+                .product(name: "FactoryTesting", package: "Factory"),
             ],
             swiftSettings: zeroWarnings
         ),

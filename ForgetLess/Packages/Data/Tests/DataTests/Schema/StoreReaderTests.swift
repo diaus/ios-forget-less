@@ -1,3 +1,5 @@
+import FactoryKit
+import FactoryTesting
 import Foundation
 import Synchronization
 import Testing
@@ -23,14 +25,14 @@ struct StoreReaderTests {
         #expect(tasks.map(\.name) == ["Buy milk"])
     }
 
-    @Test func aWriteThroughTheReaderFailsAndRunsNoAfterSaveHook() async throws {
+    @Test(.container) func aWriteThroughTheReaderFailsAndRunsNoAfterSaveHook() async throws {
         defer { try? FileManager.default.removeItem(at: root) }
         try createStoreFolder()
         _ = try ForgetLessModelContainer.make(url: store)
         let saves = Mutex(0)
+        Container.shared.afterStoreSave.register { { saves.withLock { $0 += 1 } } }
         let reader = TodoTaskRepositoryLive(
-            modelContainer: try #require(try ForgetLessModelContainer.makeReader(existingStoreAt: store)),
-            afterStoreSave: { saves.withLock { $0 += 1 } }
+            modelContainer: try #require(try ForgetLessModelContainer.makeReader(existingStoreAt: store))
         )
 
         await #expect(throws: (any Error).self) {

@@ -9,7 +9,7 @@ These are the judgement calls tooling can't make. Tooling already enforces these
 ## Architecture
 
 - **Layers.** Domain imports neither SwiftData nor SwiftUI, so it doesn't depend on the storage or the UI chosen. Only Data imports SwiftData.
-- **Injection.** The app resolves its dependencies through Factory's property wrappers: a view holds its view model with `@InjectedObservable(\.key)`, and a view model holds each repository and use case as `@ObservationIgnored @Injected(\.key) private var`, so its `init` sets up only its own state. Domain and Data types take their dependencies as `init` parameters, which their factory passes, so Domain stays free of Factory.
+- **Injection.** The app resolves its dependencies through Factory's property wrappers: a view holds its view model with `@InjectedObservable(\.key)`, and a view model holds each repository and use case as `@ObservationIgnored @Injected(\.key) private var`, so its `init` sets up only its own state.
 - **Utils is project-independent.** It holds helpers another project could reuse (a concurrency primitive, a Foundation extension). It imports only the standard library and Apple's system frameworks: no Domain, no Data, no third-party package. The glossary lint rule skips it.
 - **A Task's Day is a `Date` at 00:00 GMT everywhere** (ADR 0001). Data stores and queries it as given. The local calendar is read only for Today and when it rolls over, in Domain's `Date+Day` (`Date.today`, `today(at:)`, `nextRollover(after:)`). A new Day operation is a helper in Domain's `Date+Day`, and Days are formatted in GMT (`Date.FormatStyle(calendar: .gmt, timeZone: .gmt)`).
 - **Every write goes through the repository's notifying save** (ADR 0002), or open streams miss it.
@@ -61,6 +61,7 @@ These are the judgement calls tooling can't make. Tooling already enforces these
   - re-check what the compiler already guarantees (generated catalog symbols, exhaustive switches);
   - use a fake the code under test can never reach, so the assertion passes whatever the code does.
 - **View models stay untested**. Logic in one that deserves a test moves to Domain.
+- **A test that registers on `Container.shared` runs with FactoryTesting's `.container` trait,** so its registration doesn't carry over into tests running in parallel.
 - **Tests never depend on the machine's clock or time zone.** Pass `today`, never `Date.today`. Days are GMT midnights, so only the Today rule's tests pin a local time zone, on both sides of GMT.
 - **SwiftData fetches are unordered unless sorted.** The repository's lists of Tasks are sorted in the query, by Day then `sortIndex`, as its protocol doc comments promise, so their tests assert that order and their callers rely on it. Any other fetch is compared as a set or sorted first.
 

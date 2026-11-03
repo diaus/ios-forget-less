@@ -1,4 +1,6 @@
 import Domain
+import FactoryKit
+import FactoryTesting
 import Foundation
 import SwiftData
 import Synchronization
@@ -232,12 +234,10 @@ struct TodoTaskRepositoryLiveTests {
         #expect(await scheduleTasks.next() == [])
     }
 
-    @Test func theAfterSaveHookRunsOnceForEverySuccessfulWrite() async throws {
+    @Test(.container) func theAfterSaveHookRunsOnceForEverySuccessfulWrite() async throws {
         let saves = Mutex(0)
-        let repository = TodoTaskRepositoryLive(
-            modelContainer: try Self.inMemoryContainer(),
-            afterStoreSave: { saves.withLock { $0 += 1 } }
-        )
+        Container.shared.afterStoreSave.register { { saves.withLock { $0 += 1 } } }
+        let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
         let today = try Self.day("2026-10-25")
 
         try await repository.create(name: "Cal mum", day: today)

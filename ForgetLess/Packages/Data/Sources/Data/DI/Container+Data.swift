@@ -18,11 +18,8 @@ public extension Container {
 
     /// The Task store.
     var todoTaskRepository: Factory<any TodoTaskRepository> {
-        self {
-            // Resolved at each save, not once here, so the app's override applies whenever it registers.
-            TodoTaskRepositoryLive(modelContainer: self.modelContainer(), afterStoreSave: { self.afterStoreSave()() })
-        }
-        .singleton
+        self { TodoTaskRepositoryLive(modelContainer: self.modelContainer()) }
+            .singleton
     }
 
     // MARK: - Helpers
