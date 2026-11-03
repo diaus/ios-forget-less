@@ -154,7 +154,7 @@ Tests check behaviour through a public interface. Tests pass `today` explicitly,
 - Months before Today's month.
 - A summary line ("Fri 6 Nov · 1 task") or chevron buttons in the calendar.
 - Paging to a neighbouring month when one of its Days is tapped: the tap chooses the Day.
-- Opening the calendar from anywhere but the composer's Day chip.
+- Opening the calendar from anywhere but the composer's Day chip. It now opens from a Task's row too: see `.scratch/list-day-calendar/spec.md`.
 - Undo.
 
 ## Further Notes

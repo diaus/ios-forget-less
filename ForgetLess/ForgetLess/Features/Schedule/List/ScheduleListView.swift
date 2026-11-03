@@ -11,6 +11,8 @@ struct ScheduleListView: UIViewRepresentable {
     let onAdd: (Date) -> Void
     /// Asks the owner to show the composer on a Task, to edit it.
     let onEdit: (TodoTask) -> Void
+    /// Asks the owner to show the floating Day calendar on a Task, by its row where it was tapped.
+    let onChooseDay: (TodoTask, TaskDayCalendarOrigin) -> Void
 
     func makeCoordinator() -> ScheduleListController {
         ScheduleListController(listView: self)
@@ -31,6 +33,7 @@ struct ScheduleListView: UIViewRepresentable {
             animated: context.transaction.animation != nil
         )
         context.coordinator.reveal(vm.dayReveal)
+        context.coordinator.highlightRow(of: vm.taskDayCalendar?.taskID)
         collectionView.targetContentInsets = UIEdgeInsets(
             top: safeAreaInsets.top,
             left: 0,

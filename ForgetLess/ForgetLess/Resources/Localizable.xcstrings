@@ -137,23 +137,6 @@
         }
       }
     },
-    "dayChipCalendar.close" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Закрити"
-          }
-        }
-      }
-    },
     "dayPicker.cancel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -334,6 +317,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Не вдалося завантажити чи зберегти завдання. Спробуйте ще раз."
+          }
+        }
+      }
+    },
+    "floatingDayCalendar.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрити"
           }
         }
       }

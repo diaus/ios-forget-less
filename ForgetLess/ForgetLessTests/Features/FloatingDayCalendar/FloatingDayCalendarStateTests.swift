@@ -4,22 +4,22 @@ import Testing
 @testable import ForgetLess
 
 @MainActor
-struct DayChipCalendarStateTests {
+struct FloatingDayCalendarStateTests {
     /// Any Day mid-month, so a few Days either side stay in its month.
     private let today = Date(timeIntervalSince1970: 0).addingDays(14)
 
     // MARK: - Tests
     @Test(arguments: [(0, 0), (5, 0), (40, 1), (400, 13)])
-    func itOpensOnTheChipsDaysMonthWithThatDayChosen(dayCount: Int, monthOffset: Int) {
-        let calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(dayCount))
+    func itOpensOnItsDaysMonthWithThatDayChosen(dayCount: Int, monthOffset: Int) {
+        let calendar = FloatingDayCalendarState(today: today, day: today.addingDays(dayCount))
 
         #expect(calendar.monthOffset == monthOffset)
         #expect(calendar.chosenDay == today.addingDays(dayCount))
     }
 
     @Test(arguments: [-1, -40])
-    func withTheChipBeforeTodayItOpensOnTodaysMonthWithNothingChosen(dayCount: Int) {
-        let calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(dayCount))
+    func withItsDayBeforeTodayItOpensOnTodaysMonthWithNothingChosen(dayCount: Int) {
+        let calendar = FloatingDayCalendarState(today: today, day: today.addingDays(dayCount))
 
         #expect(calendar.monthOffset == 0)
         #expect(calendar.chosenDay == nil)
@@ -27,14 +27,14 @@ struct DayChipCalendarStateTests {
 
     @Test(arguments: [(-1, false), (-30, false), (0, true), (1, true), (400, true)])
     func onlyADayFromTodayOnCanBeChosen(dayCount: Int, canChoose: Bool) {
-        let calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(5))
+        let calendar = FloatingDayCalendarState(today: today, day: today.addingDays(5))
 
         #expect(calendar.canChoose(today.addingDays(dayCount)) == canChoose)
     }
 
     @Test(arguments: [(3, 3), (0, 0), (-1, 0), (-12, 0)])
     func itPagesToAnyMonthButNeverBeforeTodays(monthOffset: Int, monthOffsetShown: Int) {
-        var calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(40))
+        var calendar = FloatingDayCalendarState(today: today, day: today.addingDays(40))
 
         calendar.page(to: monthOffset)
 
@@ -43,7 +43,7 @@ struct DayChipCalendarStateTests {
 
     @Test(arguments: [(1, 2), (-1, 0)])
     func itPagesByAMonthEitherWay(monthCount: Int, monthOffsetShown: Int) {
-        var calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(40))
+        var calendar = FloatingDayCalendarState(today: today, day: today.addingDays(40))
 
         let isPaged = calendar.page(by: monthCount)
 
@@ -52,7 +52,7 @@ struct DayChipCalendarStateTests {
     }
 
     @Test func pagingBackFromTodaysMonthIsRefused() {
-        var calendar = DayChipCalendarState(today: today, chipDay: today)
+        var calendar = FloatingDayCalendarState(today: today, day: today)
 
         let isPaged = calendar.page(by: -1)
 
@@ -61,18 +61,18 @@ struct DayChipCalendarStateTests {
     }
 
     @Test(arguments: [0, 1, 40])
-    func aChosenDayBecomesTheChipsDay(dayCount: Int) {
-        var calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(5))
+    func aChosenDayBecomesItsDay(dayCount: Int) {
+        var calendar = FloatingDayCalendarState(today: today, day: today.addingDays(5))
 
         let isChosen = calendar.choose(today.addingDays(dayCount))
 
         #expect(isChosen)
-        #expect(calendar.chipDay == today.addingDays(dayCount))
+        #expect(calendar.day == today.addingDays(dayCount))
         #expect(calendar.chosenDay == today.addingDays(dayCount))
     }
 
     @Test func aDayBeforeTodayIsRefused() {
-        var calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(5))
+        var calendar = FloatingDayCalendarState(today: today, day: today.addingDays(5))
 
         let isChosen = calendar.choose(today.addingDays(-1))
 
@@ -81,7 +81,7 @@ struct DayChipCalendarStateTests {
     }
 
     @Test func onceADayIsChosenAnotherIsRefusedWhileItCloses() {
-        var calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(5))
+        var calendar = FloatingDayCalendarState(today: today, day: today.addingDays(5))
         calendar.choose(today.addingDays(1))
 
         let isChosen = calendar.choose(today.addingDays(2))
@@ -94,7 +94,7 @@ struct DayChipCalendarStateTests {
     func aNewTodayInTheNextMonthKeepsTheMonthShownButNeverOneBeforeIt(monthOffset: Int, monthOffsetShown: Int) {
         // Today's month's last Day, so the next Day is in the next month.
         let lastDay = today.addingDays(16)
-        var calendar = DayChipCalendarState(today: lastDay, chipDay: lastDay)
+        var calendar = FloatingDayCalendarState(today: lastDay, day: lastDay)
         calendar.page(to: monthOffset)
 
         calendar.update(today: lastDay.addingDays(1))
@@ -103,15 +103,15 @@ struct DayChipCalendarStateTests {
     }
 
     @Test func aNewTodayInTheSameMonthKeepsTheMonthShown() {
-        var calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(40))
+        var calendar = FloatingDayCalendarState(today: today, day: today.addingDays(40))
 
         calendar.update(today: today.addingDays(1))
 
         #expect(calendar.monthOffset == 1)
     }
 
-    @Test func aNewTodayStopsChoosingAChipDayItLeavesBeforeIt() {
-        var calendar = DayChipCalendarState(today: today, chipDay: today)
+    @Test func aNewTodayStopsChoosingADayItLeavesBeforeIt() {
+        var calendar = FloatingDayCalendarState(today: today, day: today)
 
         calendar.update(today: today.addingDays(1))
 
@@ -129,13 +129,13 @@ struct DayChipCalendarStateTests {
         todayYearMonthDay: String,
         buttonYearMonthDays: [String]
     ) throws {
-        let calendar = DayChipCalendarState(today: try day(todayYearMonthDay), chipDay: try day(todayYearMonthDay))
+        let calendar = FloatingDayCalendarState(today: try day(todayYearMonthDay), day: try day(todayYearMonthDay))
 
         #expect(calendar.buttonDays == (try buttonYearMonthDays.map(day)))
     }
 
     @Test func aCalendarThatHidTheKeyboardKeepsSayingSoThroughPagingANewTodayAndAChoice() {
-        var calendar = DayChipCalendarState(today: today, chipDay: today)
+        var calendar = FloatingDayCalendarState(today: today, day: today)
         #expect(!calendar.hasHiddenKeyboard)
 
         calendar.recordHiddenKeyboard()

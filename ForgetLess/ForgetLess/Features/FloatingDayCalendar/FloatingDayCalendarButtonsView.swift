@@ -1,11 +1,10 @@
 import Domain
-import FactoryKit
 import SwiftUI
 
-/// The nearest Days, one tap away from any month of the Day chip calendar.
-struct DayChipCalendarButtonsView: View {
-    @InjectedObservable(\.scheduleViewModel) private var vm
-    let calendar: DayChipCalendarState
+/// The nearest Days, one tap away from any month of the floating Day calendar.
+struct FloatingDayCalendarButtonsView: View {
+    let calendar: FloatingDayCalendarState
+    let onChoose: (Date) -> Void
 
     // MARK: - Body
     var body: some View {
@@ -17,7 +16,7 @@ struct DayChipCalendarButtonsView: View {
     // MARK: - UI Components
     private func button(_ day: Date) -> some View {
         // A tap on the button is a tap on its Day, so there's one rule to learn.
-        Button { vm.chooseDayChipCalendarDay(day) } label: {
+        Button { onChoose(day) } label: {
             Text(day.dayChipLabel(today: calendar.today))
                 .font(.subheadline)
                 .foregroundStyle(day.dayChipColor(today: calendar.today))

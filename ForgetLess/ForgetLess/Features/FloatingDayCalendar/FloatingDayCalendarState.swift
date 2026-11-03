@@ -1,11 +1,11 @@
 import Domain
 import Foundation
 
-/// The Day chip calendar's month and the Day it shows chosen.
-struct DayChipCalendarState {
+/// The floating Day calendar's month and the Day it shows chosen.
+struct FloatingDayCalendarState {
     private(set) var today: Date
-    /// The composer's Day.
-    private(set) var chipDay: Date
+    /// The Day it's for: the composer's, or the Task's it opened from.
+    private(set) var day: Date
     /// The month shown, as how many months it's after Today's month.
     private(set) var monthOffset: Int
     /// Whether a Day has been chosen, so the calendar is about to close.
@@ -13,16 +13,16 @@ struct DayChipCalendarState {
     /// Whether the calendar took the keyboard down to make room, so closing it brings the keyboard back.
     private(set) var hasHiddenKeyboard = false
 
-    init(today: Date, chipDay: Date) {
+    init(today: Date, day: Date) {
         self.today = today
-        self.chipDay = chipDay
+        self.day = day
         // Never on a month before Today's, where nothing can be chosen.
-        self.monthOffset = max(chipDay.monthCount(from: today), 0)
+        self.monthOffset = max(day.monthCount(from: today), 0)
     }
 
-    /// The chip's Day, or `nil` when it can't be chosen.
+    /// Its Day, or `nil` when it can't be chosen.
     var chosenDay: Date? {
-        canChoose(chipDay) ? chipDay : nil
+        canChoose(day) ? day : nil
     }
 
     /// The nearest Days, one tap away from any month.
@@ -34,12 +34,12 @@ struct DayChipCalendarState {
         day.canBePlanned(today: today)
     }
 
-    /// Makes `day` the chip's Day, unless it can't be chosen or a Day already was. Returns whether it did.
+    /// Makes `day` its Day, unless it can't be chosen or a Day already was. Returns whether it did.
     @discardableResult
     mutating func choose(_ day: Date) -> Bool {
         // The calendar closes a moment after a choice, and a second tap in that moment changes nothing.
         guard !isClosing, canChoose(day) else { return false }
-        chipDay = day
+        self.day = day
         isClosing = true
         return true
     }

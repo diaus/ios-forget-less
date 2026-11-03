@@ -12,7 +12,9 @@ final class ScheduleViewModel {
     private(set) var schedule: Schedule
     var composer: ComposerState
     /// The composer's Day chip calendar; `nil` while it's closed.
-    var dayChipCalendar: DayChipCalendarState?
+    var dayChipCalendar: FloatingDayCalendarState?
+    /// The floating Day calendar opened from a Task's row; `nil` while it's closed.
+    var taskDayCalendar: TaskDayCalendar?
     /// The Day picker's choice; `nil` once it has closed. Kept until then, so the sheet keeps its content as it goes.
     var dayPicker: DayPickerState?
     /// How many Incomplete Tasks each Day holds; a Day with none has no entry.
@@ -62,6 +64,7 @@ final class ScheduleViewModel {
         today = .today
         dayPicker?.update(today: today)
         dayChipCalendar?.update(today: today)
+        taskDayCalendar?.calendar.update(today: today)
     }
 
     /// Keeps the Schedule up to date with the stored Tasks for the current Today, until the calling task is cancelled.
@@ -70,6 +73,10 @@ final class ScheduleViewModel {
             for await tasks in try await repository.scheduleTasks(today: today) {
                 observedTasks = tasks
                 self.tasks = tasks
+                // Its Task is gone, deleted elsewhere, so there's nothing left to Move.
+                if let id = taskDayCalendar?.taskID, !tasks.contains(where: { $0.id == id }) {
+                    taskDayCalendar = nil
+                }
                 rebuildSchedule()
             }
         } catch {
@@ -150,53 +157,6 @@ final class ScheduleViewModel {
             }
         }
         return .added
-    }
-
-    // MARK: - Day Chip Calendar
-    /// Opens the Day chip calendar on the composer's Day, or closes it when it's open.
-    func toggleDayChipCalendar() {
-        if dayChipCalendar == nil {
-            dayChipCalendar = DayChipCalendarState(today: today, chipDay: composer.day)
-        } else {
-            closeDayChipCalendar()
-        }
-    }
-
-    func closeDayChipCalendar() {
-        dayChipCalendar = nil
-    }
-
-    /// Sets the composer to `day` as a step does, unless the Day chip calendar or the move rule refuses it. VoiceOver
-    /// says an edited Task's new Day once its Move is saved.
-    func chooseDayChipCalendarDay(_ day: Date) {
-        // Checked before the calendar draws the choice, so a refused Move shows nothing chosen.
-        guard let calendar = dayChipCalendar, !calendar.isClosing, calendar.canChoose(day),
-              day == composer.day || changeComposerDay(to: day, onSaved: dayAnnouncement(day)) else { return }
-        dayChipCalendar?.choose(day)
-    }
-
-    // MARK: - Day Picker
-    /// Shows the Day picker, to move `task` to the end of another Day.
-    func showDayPicker(for task: TodoTask) {
-        dayPicker = DayPickerState(task: task, today: today)
-        dayPicker?.isVisible = true
-    }
-
-    /// Moves the Task to the end of the chosen Day, unless it's already there, and closes the Day picker.
-    /// VoiceOver says the new Day once the move is saved.
-    func confirmDayPicker() {
-        dayPicker?.isVisible = false
-        guard let dayPicker, let task = tasks.first(where: { $0.id == dayPicker.taskID }),
-              let day = dayPicker.dayToMove(task), schedule.canMove(task, toDay: day) else { return }
-        saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id), onSaved: dayAnnouncement(day))
-    }
-
-    /// Ends the Day picker once its sheet has closed, however it closed.
-    func dayPickerDidClose() {
-        guard let id = dayPicker?.taskID else { return }
-        dayPicker = nil
-        restartGracePeriod(of: id)
-        rebuildSchedule()
     }
 
     // MARK: - Completion
@@ -298,8 +258,23 @@ final class ScheduleViewModel {
         }
     }
 
-    /// Gives the Task with `id`, listed while the composer or the Day picker had it, its grace period afresh when it's
-    /// Complete and Complete Tasks are hidden, so it's seen before it leaves.
+    /// Moves `task` to the end of `day` unless the move rule refuses it, and has VoiceOver say `day` once the Move is
+    /// saved. Returns whether it moved.
+    @discardableResult
+    private func moveToEnd(_ task: TodoTask, of day: Date) -> Bool {
+        guard schedule.canMove(task, toDay: day) else { return false }
+        saveMove(task, to: tasks.destinationAtEnd(of: day, forTaskWithID: task.id), onSaved: dayAnnouncement(day))
+        return true
+    }
+
+    /// Lists the Task with `id` by the usual rules again, once the Day picker or its row's calendar no longer has it.
+    private func stopListing(_ id: UUID) {
+        restartGracePeriod(of: id)
+        rebuildSchedule()
+    }
+
+    /// Gives the Task with `id`, listed while the composer, the Day picker or its row's calendar had it, its grace
+    /// period afresh when it's Complete and Complete Tasks are hidden, so it's seen before it leaves.
     private func restartGracePeriod(of id: UUID) {
         if !showsComplete, tasks.contains(where: { $0.id == id && $0.isComplete }) {
             keep(id, for: UserDefaults.standard.keptDuration)
@@ -319,9 +294,11 @@ final class ScheduleViewModel {
     }
 
     private func rebuildSchedule() {
-        // The edited Task, and the one the Day picker moves, stay listed until the composer or the picker closes, even
-        // past their grace period, so they're seen as they move.
-        let listedTaskIDs = keptTaskIDs.union([composer.editedTask?.id, dayPicker?.taskID].compactMap { $0 })
+        // The edited Task, and the one the Day picker or a row's calendar moves, stay listed until what has them
+        // closes, even past their grace period, so they're seen as they move.
+        let listedTaskIDs = keptTaskIDs.union(
+            [composer.editedTask?.id, dayPicker?.taskID, taskDayCalendar?.taskID].compactMap { $0 }
+        )
         schedule = Schedule(tasks: tasks, today: today, showsComplete: showsComplete, keptTaskIDs: listedTaskIDs)
         incompleteTaskCountsByDay = tasks.incompleteTaskCountsByDay
     }
@@ -347,5 +324,77 @@ final class ScheduleViewModel {
         case added
         /// The edited Task was renamed; nothing is left to save.
         case renamed
+    }
+}
+
+// In an extension, so the class's body stays within SwiftLint's length.
+extension ScheduleViewModel {
+    // MARK: - Day Chip Calendar
+    /// Opens the Day chip calendar on the composer's Day, or closes it when it's open.
+    func toggleDayChipCalendar() {
+        if dayChipCalendar == nil {
+            dayChipCalendar = FloatingDayCalendarState(today: today, day: composer.day)
+        } else {
+            closeDayChipCalendar()
+        }
+    }
+
+    func closeDayChipCalendar() {
+        dayChipCalendar = nil
+    }
+
+    /// Sets the composer to `day` as a step does, unless the Day chip calendar or the move rule refuses it. VoiceOver
+    /// says an edited Task's new Day once its Move is saved.
+    func chooseDayChipCalendarDay(_ day: Date) {
+        // Checked before the calendar draws the choice, so a refused Move shows nothing chosen.
+        guard let calendar = dayChipCalendar, !calendar.isClosing, calendar.canChoose(day),
+              day == composer.day || changeComposerDay(to: day, onSaved: dayAnnouncement(day)) else { return }
+        dayChipCalendar?.choose(day)
+    }
+
+    // MARK: - Task Day Calendar
+    /// Opens the floating Day calendar on `task`'s Day, to Move it to another.
+    func showTaskDayCalendar(for task: TodoTask) {
+        let calendar = FloatingDayCalendarState(today: today, day: task.day)
+        taskDayCalendar = TaskDayCalendar(taskID: task.id, calendar: calendar)
+    }
+
+    /// Moves the Task to the end of `day`, unless it's there already or the calendar or the move rule refuses it.
+    /// VoiceOver says the new Day once the Move is saved.
+    func chooseTaskDayCalendarDay(_ day: Date) {
+        // Checked before the calendar draws the choice, so a refused Move shows nothing chosen.
+        guard let open = taskDayCalendar, !open.calendar.isClosing, open.calendar.canChoose(day),
+              let task = tasks.first(where: { $0.id == open.taskID }),
+              day == task.day || moveToEnd(task, of: day) else { return }
+        taskDayCalendar?.calendar.choose(day)
+    }
+
+    func closeTaskDayCalendar() {
+        guard let id = taskDayCalendar?.taskID else { return }
+        taskDayCalendar = nil
+        stopListing(id)
+    }
+
+    // MARK: - Day Picker
+    /// Shows the Day picker, to move `task` to the end of another Day.
+    func showDayPicker(for task: TodoTask) {
+        dayPicker = DayPickerState(task: task, today: today)
+        dayPicker?.isVisible = true
+    }
+
+    /// Moves the Task to the end of the chosen Day, unless it's already there, and closes the Day picker.
+    /// VoiceOver says the new Day once the move is saved.
+    func confirmDayPicker() {
+        dayPicker?.isVisible = false
+        guard let dayPicker, let task = tasks.first(where: { $0.id == dayPicker.taskID }),
+              let day = dayPicker.dayToMove(task) else { return }
+        moveToEnd(task, of: day)
+    }
+
+    /// Ends the Day picker once its sheet has closed, however it closed.
+    func dayPickerDidClose() {
+        guard let id = dayPicker?.taskID else { return }
+        dayPicker = nil
+        stopListing(id)
     }
 }

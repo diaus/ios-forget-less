@@ -1,9 +1,12 @@
 import UIKit
 
-/// A Task's row in the Schedule's list, which knows when its handle is touched, so only the handle starts a move.
+/// A Task's row in the Schedule's list, which knows when its handle is touched, so only the handle starts a move, and
+/// where it was last touched, for the floating Day calendar to grow from.
 final class TaskRowCell: UICollectionViewListCell {
     /// Where to look for a finger on the handle.
     private weak var touchEvent: UIEvent?
+    /// Where the last touch on the row began, in the window's coordinates.
+    private(set) var lastTouchLocation: CGPoint?
 
     // MARK: - Handle
     var isHandleTouched: Bool {
@@ -21,6 +24,7 @@ final class TaskRowCell: UICollectionViewListCell {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         if event?.type == .touches {
             touchEvent = event
+            lastTouchLocation = convert(point, to: nil)
         }
         return super.hitTest(point, with: event)
     }

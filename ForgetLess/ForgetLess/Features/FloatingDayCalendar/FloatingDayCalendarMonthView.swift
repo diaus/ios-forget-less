@@ -2,17 +2,18 @@ import Domain
 import FactoryKit
 import SwiftUI
 
-/// A month of the Day chip calendar.
-struct DayChipCalendarMonthView: View {
+/// A month of the floating Day calendar.
+struct FloatingDayCalendarMonthView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let month: DayPickerCalendar.Month
     /// How many months `month` is after Today's month.
     let offset: Int
-    let calendar: DayChipCalendarState
+    let calendar: FloatingDayCalendarState
     let rowHeight: CGFloat
     var focusedMonthOffset: AccessibilityFocusState<Int?>.Binding
     /// Asks to page by a number of months.
     let onPage: (_ monthCount: Int) -> Void
+    let onChoose: (Date) -> Void
     /// Reports the height above the weeks, which the calendar fits its rows around.
     let onHeaderHeightChange: (CGFloat) -> Void
 
@@ -24,7 +25,7 @@ struct DayChipCalendarMonthView: View {
                 weekdayRow(DayPickerCalendar.weekdays())
             }
             .onGeometryChange(for: CGFloat.self, of: \.size.height, action: onHeaderHeightChange)
-            ForEach(month.weeks(count: DayChipCalendarLayout.weekCount), id: \.self, content: week)
+            ForEach(month.weeks(count: FloatingDayCalendarLayout.weekCount), id: \.self, content: week)
         }
     }
 
@@ -38,7 +39,7 @@ struct DayChipCalendarMonthView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 8)
             // Clear of the ✕ over the page's top-trailing corner.
-            .padding(.trailing, DayChipCalendarView.closeButtonSize)
+            .padding(.trailing, FloatingDayCalendarView.closeButtonSize)
             .padding(.bottom, 8)
             .accessibilityAddTraits(.isHeader)
             // For VoiceOver, which can't swipe sideways to page: swiping up or down pages instead.
@@ -77,7 +78,7 @@ struct DayChipCalendarMonthView: View {
                     isInMonth: day.isInSameMonth(as: month.firstDay),
                     incompleteTaskCount: vm.incompleteTaskCountsByDay[day] ?? 0,
                     rowHeight: rowHeight
-                ) { vm.chooseDayChipCalendarDay(day) }
+                ) { onChoose(day) }
                 .frame(maxWidth: .infinity)
             }
         }

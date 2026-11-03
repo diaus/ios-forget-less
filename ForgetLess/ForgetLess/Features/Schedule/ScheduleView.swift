@@ -9,6 +9,10 @@ struct ScheduleView: View {
     @FocusState private var isComposerNameFocused: Bool
     @AccessibilityFocusState private var isDayChipAccessibilityFocused: Bool
     @State private var isConfirmingDiscard = false
+    /// Where the row was tapped that opened the floating Day calendar last.
+    @State private var taskDayCalendarOrigin: TaskDayCalendarOrigin?
+    /// What the list shows, between its bars, which the floating Day calendar opened from a row keeps within.
+    @State private var listFrame: CGRect = .zero
 
     // MARK: - Body
     var body: some View {
@@ -45,6 +49,10 @@ struct ScheduleView: View {
                 isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused,
                 onDismissComposer: requestComposerDismissal
             )
+        }
+        // Over everything, the add button included, so a touch anywhere else only closes it.
+        .overlay {
+            TaskDayCalendarOverlayView(origin: taskDayCalendarOrigin, listFrame: listFrame)
         }
         // Restarts on a new Today and on coming back, when a fresh fetch also picks up changes made outside the app.
         .task(id: ScheduleObservation(today: vm.today, isActive: scenePhase == .active)) {
@@ -113,12 +121,15 @@ struct ScheduleView: View {
             ScheduleListView(
                 safeAreaInsets: proxy.safeAreaInsets,
                 onAdd: { day in showComposer(on: day, from: .day(day)) },
-                onEdit: showComposer(editing:)
+                onEdit: showComposer(editing:),
+                onChooseDay: showTaskDayCalendar
             )
             .ignoresSafeArea()
             // A Task completed while Complete Tasks are hidden leaves when its grace period ends.
             .animation(.default, value: vm.keptTaskIDs)
         }
+        // Already between the bars, though its safe area still names them for the list that runs under them.
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { listFrame = $0 }
     }
 
     // MARK: - Actions
@@ -130,6 +141,11 @@ struct ScheduleView: View {
     private func showComposer(editing task: TodoTask) {
         vm.showComposer(editing: task)
         focusComposer()
+    }
+
+    private func showTaskDayCalendar(for task: TodoTask, from origin: TaskDayCalendarOrigin) {
+        taskDayCalendarOrigin = origin
+        vm.showTaskDayCalendar(for: task)
     }
 
     /// Called in the same action that shows the panel, so the keyboard starts in the same frame.

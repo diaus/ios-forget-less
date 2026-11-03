@@ -1,5 +1,6 @@
 import FactoryKit
 import SwiftUI
+import Utils
 
 /// The Day chip calendar, with what closes it on a touch anywhere else.
 struct DayChipCalendarOverlayView: View {
@@ -26,9 +27,12 @@ struct DayChipCalendarOverlayView: View {
                     backdrop(composerFrame: composer)
                 }
                 if let calendar = vm.dayChipCalendar, let chip, let composer {
-                    DayChipCalendarView(
-                        calendar: calendar,
+                    FloatingDayCalendarView(
+                        calendar: binding(keeping: calendar),
                         availableHeight: composer.maxY - topMargin,
+                        isKeyboardUp: !calendar.hasHiddenKeyboard,
+                        onHideKeyboard: hideKeyboard,
+                        onChoose: vm.chooseDayChipCalendarDay,
                         onClose: close
                     )
                         .frame(width: min(composer.width, maxWidth))
@@ -83,7 +87,24 @@ struct DayChipCalendarOverlayView: View {
         isDayChipAccessibilityFocused.wrappedValue = true
     }
 
+    /// Takes the keyboard down to make room, and keeps it down until the calendar closes, so the calendar never
+    /// bounces as it refits.
+    private func hideKeyboard() {
+        vm.dayChipCalendar?.recordHiddenKeyboard()
+        UIApplication.shared.resignFocus()
+    }
+
     // MARK: - Helpers
+    /// The open calendar's state, or `calendar` once it has closed, while it animates out. A closed calendar takes
+    /// no change, so it never opens again from one.
+    private func binding(keeping calendar: FloatingDayCalendarState) -> Binding<FloatingDayCalendarState> {
+        Binding { vm.dayChipCalendar ?? calendar } set: { newValue in
+            if vm.dayChipCalendar != nil {
+                vm.dayChipCalendar = newValue
+            }
+        }
+    }
+
     /// Where the calendar grows from and shrinks back into.
     private func chipCorner(_ chip: CGRect, in size: CGSize, above bottom: CGFloat) -> UnitPoint {
         UnitPoint(x: chip.minX / max(size.width, 1), y: chip.maxY / max(bottom, 1))

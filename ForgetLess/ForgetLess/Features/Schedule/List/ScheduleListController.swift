@@ -32,6 +32,8 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     private let rowMove = TaskRowMove()
     /// The reveal last carried out, so each is carried out once.
     private var lastReveal: DayReveal?
+    /// The Task whose row is drawn highlighted, while its floating Day calendar is open.
+    private var highlightedTaskID: TodoTask.ID?
 
     init(listView: ScheduleListView) {
         self.listView = listView
@@ -107,6 +109,16 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         collectionView.scrollToShowRow(at: indexPath)
     }
 
+    /// Highlights the row of the Task with `id`, and only that row; `nil` highlights none.
+    func highlightRow(of id: TodoTask.ID?) {
+        guard id != highlightedTaskID else { return }
+        let changedIDs = [highlightedTaskID, id].compactMap { $0 }
+        highlightedTaskID = id
+        for changedID in changedIDs {
+            dataSource?.indexPath(for: changedID).flatMap(collectionView.cellForItem)?.setNeedsUpdateConfiguration()
+        }
+    }
+
     // MARK: - Configuration
     private func makeLayout() -> UICollectionViewLayout {
         var configuration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
@@ -162,11 +174,20 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         cell.contentConfiguration = UIHostingConfiguration {
             TaskRowView(task: task, showsDay: overdueTaskIDs.contains(id)) { [weak self] in
                 self?.edit(id)
+            } onChooseDay: { [weak self] in
+                self?.chooseDay(id)
             }
         }
+        // The row draws its margins above and below as padding, so they take its taps.
+        .margins(.vertical, 0)
         cell.accessories = movesTasks ? [.reorder(displayed: .always)] : []
-        cell.configurationUpdateHandler = { [weak self] _, state in
+        cell.configurationUpdateHandler = { [weak self] cell, state in
             self?.rowStateChanged(state, id: id)
+            var background = cell.defaultBackgroundConfiguration().updated(for: state)
+            if self?.highlightedTaskID == id {
+                background.backgroundColor = UIColor(resource: .taskRowHighlight)
+            }
+            cell.backgroundConfiguration = background
         }
     }
 
@@ -253,9 +274,24 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         return rowMove.taskID == id || row?.isHandleTouched == true
     }
 
+    // MARK: - Helpers
+    /// Whether two snapshots hold the same sections, each with the same rows in the same order.
+    private static func sameRows(
+        _ snapshot: NSDiffableDataSourceSnapshot<Section, TodoTask.ID>,
+        _ other: NSDiffableDataSourceSnapshot<Section, TodoTask.ID>
+    ) -> Bool {
+        snapshot.sectionIdentifiers == other.sectionIdentifiers
+            && snapshot.sectionIdentifiers.allSatisfy { section in
+                snapshot.itemIdentifiers(inSection: section) == other.itemIdentifiers(inSection: section)
+            }
+    }
+}
+
+// In an extension, so the class's body stays within SwiftLint's length.
+extension ScheduleListController {
     // MARK: - Row Actions
     func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
-        // Rows take taps in SwiftUI, never as a selection: a row tap is for editing.
+        // Rows take taps in SwiftUI, never as a selection: a row tap edits the Task or opens its calendar.
         false
     }
 
@@ -263,6 +299,14 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         if let task = tasks[id] {
             listView.onEdit(task)
         }
+    }
+
+    private func chooseDay(_ id: TodoTask.ID) {
+        guard let task = tasks[id], let indexPath = dataSource?.indexPath(for: id),
+              let cell = collectionView.cellForItem(at: indexPath) as? TaskRowCell else { return }
+        let row = cell.convert(cell.bounds, to: nil)
+        let tap = cell.lastTouchLocation ?? CGPoint(x: row.midX, y: row.midY)
+        listView.onChooseDay(task, TaskDayCalendarOrigin(row: row, tap: tap))
     }
 
     private func swipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -297,17 +341,5 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         alert.popoverPresentationController?.sourceView = cell
         alert.popoverPresentationController?.sourceRect = cell.bounds
         presenter.present(alert, animated: true)
-    }
-
-    // MARK: - Helpers
-    /// Whether two snapshots hold the same sections, each with the same rows in the same order.
-    private static func sameRows(
-        _ snapshot: NSDiffableDataSourceSnapshot<Section, TodoTask.ID>,
-        _ other: NSDiffableDataSourceSnapshot<Section, TodoTask.ID>
-    ) -> Bool {
-        snapshot.sectionIdentifiers == other.sectionIdentifiers
-            && snapshot.sectionIdentifiers.allSatisfy { section in
-                snapshot.itemIdentifiers(inSection: section) == other.itemIdentifiers(inSection: section)
-            }
     }
 }

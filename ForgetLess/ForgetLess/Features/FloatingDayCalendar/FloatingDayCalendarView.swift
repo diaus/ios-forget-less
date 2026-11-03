@@ -1,13 +1,17 @@
 import Domain
-import FactoryKit
 import SwiftUI
-import Utils
 
-/// Chooses the composer's Day from a month at a time, from Today's month on.
-struct DayChipCalendarView: View {
-    @InjectedObservable(\.scheduleViewModel) private var vm
-    let calendar: DayChipCalendarState
+/// Chooses a Day from a month at a time, from Today's month on, in a card floating over the screen.
+struct FloatingDayCalendarView: View {
+    @Binding var calendar: FloatingDayCalendarState
     let availableHeight: CGFloat
+    /// Whether a keyboard is up that the calendar can take down to make room.
+    let isKeyboardUp: Bool
+    /// Asks the owner to take the keyboard down, once the calendar can't fit beside it.
+    let onHideKeyboard: () -> Void
+    /// Reports the height the calendar takes when nothing has to make room.
+    let onFullHeightChange: (CGFloat) -> Void
+    let onChoose: (Date) -> Void
     let onClose: () -> Void
 
     /// How many months have a page, from Today's on; grows as the user nears the last.
@@ -31,16 +35,25 @@ struct DayChipCalendarView: View {
     static let closeButtonSize: CGFloat = 30
 
     init(
-        calendar: DayChipCalendarState,
+        calendar: Binding<FloatingDayCalendarState>,
         availableHeight: CGFloat,
+        isKeyboardUp: Bool = false,
+        onHideKeyboard: @escaping () -> Void = {},
+        onFullHeightChange: @escaping (CGFloat) -> Void = { _ in },
+        onChoose: @escaping (Date) -> Void,
         onClose: @escaping () -> Void
     ) {
-        self.calendar = calendar
+        _calendar = calendar
         self.availableHeight = availableHeight
+        self.isKeyboardUp = isKeyboardUp
+        self.onHideKeyboard = onHideKeyboard
+        self.onFullHeightChange = onFullHeightChange
+        self.onChoose = onChoose
         self.onClose = onClose
         // Opens on its month at once, with no scroll to it.
-        _pageCount = State(initialValue: calendar.monthOffset + Self.growthStep)
-        _position = State(initialValue: ScrollPosition(id: calendar.monthOffset))
+        let monthOffset = calendar.wrappedValue.monthOffset
+        _pageCount = State(initialValue: monthOffset + Self.growthStep)
+        _position = State(initialValue: ScrollPosition(id: monthOffset))
     }
 
     // MARK: - Body
@@ -56,11 +69,16 @@ struct DayChipCalendarView: View {
             // Any keyboard it hid comes back with the close, not at the tap, so the calendar doesn't refit as it goes.
             onClose()
         }
-        // Once down, the keyboard stays down until the calendar closes, so the calendar never bounces as it refits.
         .onChange(of: layout.hidesKeyboard, initial: true) { _, hidesKeyboard in
-            guard hidesKeyboard else { return }
-            vm.dayChipCalendar?.recordHiddenKeyboard()
-            UIApplication.shared.resignFocus()
+            if hidesKeyboard {
+                onHideKeyboard()
+            }
+        }
+        .onChange(of: fullHeight, initial: true) { _, fullHeight in
+            // Not before the header and the buttons have been measured, so the owner never acts on a partial height.
+            if headerHeight > 0, buttonsHeight > 0 {
+                onFullHeightChange(fullHeight)
+            }
         }
         .sensoryFeedback(.selection, trigger: calendar.isClosing) { _, isClosing in isClosing }
         // Over the pages rather than on one, so it stays put while they page.
@@ -73,11 +91,11 @@ struct DayChipCalendarView: View {
         .background(.background.secondary)
         .clipShape(.rect(cornerRadius: 20))
         .shadow(color: .black.opacity(0.15), radius: 16, y: 4)
-        // Modal, so VoiceOver stays in the calendar, and its escape closes only the calendar, not the composer.
+        // Modal, so VoiceOver stays in the calendar, and its escape closes only the calendar.
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isModal)
         .accessibilityAction(.escape, onClose)
-        // The modal hides the chip VoiceOver was on, so focus moves to the month shown rather than anywhere.
+        // The modal hides what VoiceOver was on, so focus moves to the month shown rather than anywhere.
         .onAppear { focusedMonthOffset = calendar.monthOffset }
     }
 
@@ -86,13 +104,14 @@ struct DayChipCalendarView: View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: 0) {
                 ForEach(0..<pageCount, id: \.self) { offset in
-                    DayChipCalendarMonthView(
+                    FloatingDayCalendarMonthView(
                         month: DayPickerCalendar.Month(today: calendar.today, offset: offset),
                         offset: offset,
                         calendar: calendar,
                         rowHeight: layout.rowHeight,
                         focusedMonthOffset: $focusedMonthOffset,
-                        onPage: page(by:)
+                        onPage: page(by:),
+                        onChoose: onChoose
                     ) { headerHeight = $0 }
                     .padding(Self.pagePadding)
                     .containerRelativeFrame(.horizontal)
@@ -103,7 +122,7 @@ struct DayChipCalendarView: View {
         .scrollTargetBehavior(.paging)
         .scrollIndicators(.hidden)
         .scrollPosition($position)
-        // The name field keeps focus, so typing can go on as soon as the calendar closes.
+        // A name field keeps focus, so typing can go on as soon as the calendar closes.
         .scrollDismissesKeyboard(.never)
         .fixedSize(horizontal: false, vertical: true)
         .onScrollGeometryChange(for: Bool.self) { geometry in
@@ -115,7 +134,7 @@ struct DayChipCalendarView: View {
         }
         .onChange(of: position.viewID(type: Int.self)) { _, offset in
             guard let offset else { return }
-            vm.dayChipCalendar?.page(to: offset)
+            calendar.page(to: offset)
             if pageCount - offset <= Self.edgeThreshold {
                 pageCount += Self.growthStep
             }
@@ -131,7 +150,7 @@ struct DayChipCalendarView: View {
     }
 
     private var buttons: some View {
-        DayChipCalendarButtonsView(calendar: calendar)
+        FloatingDayCalendarButtonsView(calendar: calendar, onChoose: onChoose)
             .padding([.horizontal, .bottom], Self.pagePadding)
             // Measured even while hidden, so a new text size can bring them back.
             .fixedSize(horizontal: false, vertical: true)
@@ -157,29 +176,38 @@ struct DayChipCalendarView: View {
                     .frame(width: Self.closeButtonSize, height: Self.closeButtonSize)
                     .background(.fill.tertiary, in: .circle)
             }
-            .accessibilityLabel(Text(.dayChipCalendarClose))
+            .accessibilityLabel(Text(.floatingDayCalendarClose))
         }
     }
 
     // MARK: - Actions
     private func page(by monthCount: Int) {
-        guard vm.dayChipCalendar?.page(by: monthCount) == true, let offset = vm.dayChipCalendar?.monthOffset else {
+        guard calendar.page(by: monthCount) else {
             // The same haptic as a swipe before Today's month, so a refusal feels the same either way.
             refusedPageCount += 1
             return
         }
         // Once the month has scrolled in, VoiceOver moves to its header and reads its name.
+        let offset = calendar.monthOffset
         Task { focusedMonthOffset = offset }
     }
 
     // MARK: - Helpers
-    private var layout: DayChipCalendarLayout {
-        DayChipCalendarLayout(
+    private var layout: FloatingDayCalendarLayout {
+        FloatingDayCalendarLayout(
             availableHeight: availableHeight,
             headerHeight: headerHeight,
             buttonsHeight: buttonsHeight,
             padding: 2 * Self.pagePadding,
-            isKeyboardUp: !calendar.hasHiddenKeyboard
+            isKeyboardUp: isKeyboardUp
+        )
+    }
+
+    private var fullHeight: CGFloat {
+        FloatingDayCalendarLayout.fullHeight(
+            headerHeight: headerHeight,
+            buttonsHeight: buttonsHeight,
+            padding: 2 * Self.pagePadding
         )
     }
 }
