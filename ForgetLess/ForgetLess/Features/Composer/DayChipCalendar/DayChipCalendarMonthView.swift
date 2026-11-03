@@ -6,8 +6,13 @@ import SwiftUI
 struct DayChipCalendarMonthView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let month: DayPickerCalendar.Month
+    /// How many months `month` is after Today's month.
+    let offset: Int
     let calendar: DayChipCalendarState
     let rowHeight: CGFloat
+    var focusedMonthOffset: AccessibilityFocusState<Int?>.Binding
+    /// Asks to page by a number of months.
+    let onPage: (_ monthCount: Int) -> Void
     /// Reports the height above the weeks, which the calendar fits its rows around.
     let onHeaderHeightChange: (CGFloat) -> Void
 
@@ -36,6 +41,15 @@ struct DayChipCalendarMonthView: View {
             .padding(.trailing, DayChipCalendarView.closeButtonSize)
             .padding(.bottom, 8)
             .accessibilityAddTraits(.isHeader)
+            // For VoiceOver, which can't swipe sideways to page: swiping up or down pages instead.
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: onPage(1)
+                case .decrement: onPage(-1)
+                @unknown default: break
+                }
+            }
+            .accessibilityFocused(focusedMonthOffset, equals: offset)
     }
 
     private func weekdayRow(_ weekdays: [Date]) -> some View {

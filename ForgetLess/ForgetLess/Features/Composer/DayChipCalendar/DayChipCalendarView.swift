@@ -18,6 +18,8 @@ struct DayChipCalendarView: View {
     /// Measured at the current text size, for the rows to fit around.
     @State private var headerHeight: CGFloat = 0
     @State private var buttonsHeight: CGFloat = 0
+    /// The month whose header has VoiceOver focus, by its offset.
+    @AccessibilityFocusState private var focusedMonthOffset: Int?
 
     /// How many months the pages grow by at a time, and how close to their end they grow.
     private static let growthStep = 12
@@ -71,6 +73,12 @@ struct DayChipCalendarView: View {
         .background(.background.secondary)
         .clipShape(.rect(cornerRadius: 20))
         .shadow(color: .black.opacity(0.15), radius: 16, y: 4)
+        // Modal, so VoiceOver stays in the calendar, and its escape closes only the calendar, not the composer.
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .accessibilityAction(.escape, onClose)
+        // The modal hides the chip VoiceOver was on, so focus moves to the month shown rather than anywhere.
+        .onAppear { focusedMonthOffset = calendar.monthOffset }
     }
 
     // MARK: - UI Components
@@ -80,8 +88,11 @@ struct DayChipCalendarView: View {
                 ForEach(0..<pageCount, id: \.self) { offset in
                     DayChipCalendarMonthView(
                         month: DayPickerCalendar.Month(today: calendar.today, offset: offset),
+                        offset: offset,
                         calendar: calendar,
-                        rowHeight: layout.rowHeight
+                        rowHeight: layout.rowHeight,
+                        focusedMonthOffset: $focusedMonthOffset,
+                        onPage: page(by:)
                     ) { headerHeight = $0 }
                     .padding(Self.pagePadding)
                     .containerRelativeFrame(.horizontal)
@@ -148,6 +159,17 @@ struct DayChipCalendarView: View {
             }
             .accessibilityLabel(Text(.dayChipCalendarClose))
         }
+    }
+
+    // MARK: - Actions
+    private func page(by monthCount: Int) {
+        guard vm.dayChipCalendar?.page(by: monthCount) == true, let offset = vm.dayChipCalendar?.monthOffset else {
+            // The same haptic as a swipe before Today's month, so a refusal feels the same either way.
+            refusedPageCount += 1
+            return
+        }
+        // Once the month has scrolled in, VoiceOver moves to its header and reads its name.
+        Task { focusedMonthOffset = offset }
     }
 
     // MARK: - Helpers

@@ -6,6 +6,7 @@ struct DayChipCalendarOverlayView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let anchors: DayChipCalendarAnchors
     var isNameFocused: FocusState<Bool>.Binding
+    var isDayChipAccessibilityFocused: AccessibilityFocusState<Bool>.Binding
     /// Asks the owner to dismiss the composer.
     let onDismissComposer: () -> Void
 
@@ -78,6 +79,8 @@ struct DayChipCalendarOverlayView: View {
         if hasHiddenKeyboard {
             isNameFocused.wrappedValue = true
         }
+        // VoiceOver goes back to where the calendar opened from, rather than wherever the vanished calendar leaves it.
+        isDayChipAccessibilityFocused.wrappedValue = true
     }
 
     // MARK: - Helpers

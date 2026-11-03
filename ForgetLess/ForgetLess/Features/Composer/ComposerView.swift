@@ -5,6 +5,7 @@ import SwiftUI
 struct ComposerView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     var isNameFocused: FocusState<Bool>.Binding
+    var isDayChipAccessibilityFocused: AccessibilityFocusState<Bool>.Binding
     /// Asks the owner to dismiss the panel.
     let onDismiss: () -> Void
 
@@ -88,6 +89,11 @@ struct ComposerView: View {
             .accessibilityElement()
             .accessibilityLabel(Text(.composerDay))
             .accessibilityValue(label)
+            .accessibilityHint(Text(.composerDayHint))
+            .accessibilityAddTraits(.isButton)
+            // A double-tap opens the calendar, as a tap does, while swiping up or down still steps.
+            .accessibilityAction(.default, vm.toggleDayChipCalendar)
+            .accessibilityFocused(isDayChipAccessibilityFocused)
             .accessibilityAdjustableAction { direction in
                 switch direction {
                 case .increment: stepDay(forward: true)
@@ -158,13 +164,15 @@ struct ComposerView: View {
 
 #Preview("Adding") {
     @Previewable @FocusState var isNameFocused: Bool
-    ComposerView(isNameFocused: $isNameFocused) {}
+    @Previewable @AccessibilityFocusState var isDayChipAccessibilityFocused: Bool
+    ComposerView(isNameFocused: $isNameFocused, isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused) {}
         .frame(maxHeight: .infinity, alignment: .bottom)
 }
 
 #Preview("Editing") {
     @Previewable @FocusState var isNameFocused: Bool
-    ComposerView(isNameFocused: $isNameFocused) {}
+    @Previewable @AccessibilityFocusState var isDayChipAccessibilityFocused: Bool
+    ComposerView(isNameFocused: $isNameFocused, isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused) {}
         .frame(maxHeight: .infinity, alignment: .bottom)
         // The view resolves the same shared view model.
         .onAppear { Container.shared.scheduleViewModel().showComposer(editing: .previewIncomplete) }

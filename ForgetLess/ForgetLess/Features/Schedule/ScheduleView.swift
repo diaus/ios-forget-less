@@ -7,6 +7,7 @@ struct ScheduleView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var isComposerNameFocused: Bool
+    @AccessibilityFocusState private var isDayChipAccessibilityFocused: Bool
     @State private var isConfirmingDiscard = false
 
     // MARK: - Body
@@ -22,7 +23,11 @@ struct ScheduleView: View {
                 .animation(.easeOut(duration: 0.2), value: vm.composer.isVisible)
             // Mounted while hidden, so its field can take focus in the same action that shows it and the keyboard
             // starts in the same frame. Opacity, not removal or `.hidden()`: the field stays focusable while hidden.
-            ComposerView(isNameFocused: $isComposerNameFocused, onDismiss: requestComposerDismissal)
+            ComposerView(
+                isNameFocused: $isComposerNameFocused,
+                isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused,
+                onDismiss: requestComposerDismissal
+            )
             .opacity(vm.composer.isVisible ? 1 : 0)
             .allowsHitTesting(vm.composer.isVisible)
             .accessibilityHidden(!vm.composer.isVisible)
@@ -37,6 +42,7 @@ struct ScheduleView: View {
             DayChipCalendarOverlayView(
                 anchors: anchors,
                 isNameFocused: $isComposerNameFocused,
+                isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused,
                 onDismissComposer: requestComposerDismissal
             )
         }

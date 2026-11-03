@@ -53,6 +53,14 @@ struct DayChipCalendarState {
         self.monthOffset = max(monthOffset, 0)
     }
 
+    /// Shows the month `monthCount` months on from the one shown, unless it's before Today's. Returns whether it did.
+    @discardableResult
+    mutating func page(by monthCount: Int) -> Bool {
+        guard monthOffset + monthCount >= 0 else { return false }
+        monthOffset += monthCount
+        return true
+    }
+
     /// Moves Today on, keeping the month shown unless Today's month is now past it.
     mutating func update(today: Date) {
         let monthCount = today.monthCount(from: self.today)

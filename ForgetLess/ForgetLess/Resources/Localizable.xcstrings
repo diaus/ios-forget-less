@@ -18,6 +18,23 @@
         }
       }
     },
+    "composer.dayHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens a calendar to choose a Day from."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відкриває календар, щоб вибрати день."
+          }
+        }
+      }
+    },
     "composer.discard" : {
       "extractionState" : "manual",
       "localizations" : {

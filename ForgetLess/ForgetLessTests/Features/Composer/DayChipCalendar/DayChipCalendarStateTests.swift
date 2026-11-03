@@ -41,6 +41,25 @@ struct DayChipCalendarStateTests {
         #expect(calendar.monthOffset == monthOffsetShown)
     }
 
+    @Test(arguments: [(1, 2), (-1, 0)])
+    func itPagesByAMonthEitherWay(monthCount: Int, monthOffsetShown: Int) {
+        var calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(40))
+
+        let isPaged = calendar.page(by: monthCount)
+
+        #expect(isPaged)
+        #expect(calendar.monthOffset == monthOffsetShown)
+    }
+
+    @Test func pagingBackFromTodaysMonthIsRefused() {
+        var calendar = DayChipCalendarState(today: today, chipDay: today)
+
+        let isPaged = calendar.page(by: -1)
+
+        #expect(!isPaged)
+        #expect(calendar.monthOffset == 0)
+    }
+
     @Test(arguments: [0, 1, 40])
     func aChosenDayBecomesTheChipsDay(dayCount: Int) {
         var calendar = DayChipCalendarState(today: today, chipDay: today.addingDays(5))
