@@ -115,6 +115,18 @@ struct DayChipCalendarStateTests {
         #expect(calendar.buttonDays == (try buttonYearMonthDays.map(day)))
     }
 
+    @Test func aCalendarThatHidTheKeyboardKeepsSayingSoThroughPagingANewTodayAndAChoice() {
+        var calendar = DayChipCalendarState(today: today, chipDay: today)
+        #expect(!calendar.hasHiddenKeyboard)
+
+        calendar.recordHiddenKeyboard()
+        calendar.page(to: 2)
+        calendar.update(today: today.addingDays(1))
+        calendar.choose(today.addingDays(3))
+
+        #expect(calendar.hasHiddenKeyboard)
+    }
+
     // MARK: - Helpers
     /// The Day `yyyy-MM-dd`.
     private func day(_ yearMonthDay: String) throws -> Date {

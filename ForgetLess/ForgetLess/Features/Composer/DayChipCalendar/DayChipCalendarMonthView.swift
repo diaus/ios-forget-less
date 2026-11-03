@@ -7,16 +7,19 @@ struct DayChipCalendarMonthView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let month: DayPickerCalendar.Month
     let calendar: DayChipCalendarState
-
-    /// Every month as many weeks, so paging never changes the calendar's height.
-    private static let weekCount = 5
+    let rowHeight: CGFloat
+    /// Reports the height above the weeks, which the calendar fits its rows around.
+    let onHeaderHeightChange: (CGFloat) -> Void
 
     // MARK: - Body
     var body: some View {
         VStack(spacing: 0) {
-            header
-            weekdayRow(DayPickerCalendar.weekdays())
-            ForEach(month.weeks(count: Self.weekCount), id: \.self, content: week)
+            VStack(spacing: 0) {
+                header
+                weekdayRow(DayPickerCalendar.weekdays())
+            }
+            .onGeometryChange(for: CGFloat.self, of: \.size.height, action: onHeaderHeightChange)
+            ForEach(month.weeks(count: DayChipCalendarLayout.weekCount), id: \.self, content: week)
         }
     }
 
@@ -24,6 +27,9 @@ struct DayChipCalendarMonthView: View {
     private var header: some View {
         Text(month.firstDay.monthName(today: calendar.today))
             .font(.headline)
+            // One line at any text size, so the weeks keep the height.
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 8)
             // Clear of the ✕ over the page's top-trailing corner.
@@ -36,6 +42,8 @@ struct DayChipCalendarMonthView: View {
         HStack(spacing: 0) {
             ForEach(weekdays, id: \.self) { weekday in
                 Text(weekday.shortWeekday)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -54,7 +62,7 @@ struct DayChipCalendarMonthView: View {
                     isToday: calendar.today == day,
                     isInMonth: day.isInSameMonth(as: month.firstDay),
                     incompleteTaskCount: vm.incompleteTaskCountsByDay[day] ?? 0,
-                    rowHeight: DayPickerDayView.fullRowHeight
+                    rowHeight: rowHeight
                 ) { vm.chooseDayChipCalendarDay(day) }
                 .frame(maxWidth: .infinity)
             }

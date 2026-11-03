@@ -34,7 +34,11 @@ struct ScheduleView: View {
         }
         // Over the composer rather than in it, so the calendar can use the space above it.
         .overlayPreferenceValue(DayChipCalendarAnchorsKey.self) { anchors in
-            DayChipCalendarOverlayView(anchors: anchors, onDismissComposer: requestComposerDismissal)
+            DayChipCalendarOverlayView(
+                anchors: anchors,
+                isNameFocused: $isComposerNameFocused,
+                onDismissComposer: requestComposerDismissal
+            )
         }
         // Restarts on a new Today and on coming back, when a fresh fetch also picks up changes made outside the app.
         .task(id: ScheduleObservation(today: vm.today, isActive: scenePhase == .active)) {

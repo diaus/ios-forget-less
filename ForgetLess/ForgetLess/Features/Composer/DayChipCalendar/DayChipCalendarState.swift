@@ -10,6 +10,8 @@ struct DayChipCalendarState {
     private(set) var monthOffset: Int
     /// Whether a Day has been chosen, so the calendar is about to close.
     private(set) var isClosing = false
+    /// Whether the calendar took the keyboard down to make room, so closing it brings the keyboard back.
+    private(set) var hasHiddenKeyboard = false
 
     init(today: Date, chipDay: Date) {
         self.today = today
@@ -40,6 +42,10 @@ struct DayChipCalendarState {
         chipDay = day
         isClosing = true
         return true
+    }
+
+    mutating func recordHiddenKeyboard() {
+        hasHiddenKeyboard = true
     }
 
     /// Shows the month `monthOffset` months after Today's, or Today's month for one before it.

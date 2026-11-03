@@ -1,17 +1,23 @@
 import Domain
 import FactoryKit
 import SwiftUI
+import Utils
 
 /// Chooses the composer's Day from a month at a time, from Today's month on.
 struct DayChipCalendarView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let calendar: DayChipCalendarState
+    let availableHeight: CGFloat
+    let onClose: () -> Void
 
     /// How many months have a page, from Today's on; grows as the user nears the last.
     @State private var pageCount: Int
     @State private var position: ScrollPosition
     /// Counts the swipes refused before Today's month, for a haptic on each.
     @State private var refusedPageCount = 0
+    /// Measured at the current text size, for the rows to fit around.
+    @State private var headerHeight: CGFloat = 0
+    @State private var buttonsHeight: CGFloat = 0
 
     /// How many months the pages grow by at a time, and how close to their end they grow.
     private static let growthStep = 12
@@ -22,8 +28,14 @@ struct DayChipCalendarView: View {
     /// About the ✕'s width, which a month's name stays clear of.
     static let closeButtonSize: CGFloat = 30
 
-    init(calendar: DayChipCalendarState) {
+    init(
+        calendar: DayChipCalendarState,
+        availableHeight: CGFloat,
+        onClose: @escaping () -> Void
+    ) {
         self.calendar = calendar
+        self.availableHeight = availableHeight
+        self.onClose = onClose
         // Opens on its month at once, with no scroll to it.
         _pageCount = State(initialValue: calendar.monthOffset + Self.growthStep)
         _position = State(initialValue: ScrollPosition(id: calendar.monthOffset))
@@ -34,13 +46,19 @@ struct DayChipCalendarView: View {
         VStack(spacing: 0) {
             months
             // Under the months rather than on one, so they stay put while the months page.
-            DayChipCalendarButtonsView(calendar: calendar)
-                .padding([.horizontal, .bottom], Self.pagePadding)
+            buttons
         }
         // Closes a moment after a Day is chosen, so the choice is seen.
         .task(id: calendar.isClosing) {
             guard calendar.isClosing, (try? await Task.sleep(for: .seconds(0.15))) != nil else { return }
-            vm.closeDayChipCalendar()
+            // Any keyboard it hid comes back with the close, not at the tap, so the calendar doesn't refit as it goes.
+            onClose()
+        }
+        // Once down, the keyboard stays down until the calendar closes, so the calendar never bounces as it refits.
+        .onChange(of: layout.hidesKeyboard, initial: true) { _, hidesKeyboard in
+            guard hidesKeyboard else { return }
+            vm.dayChipCalendar?.recordHiddenKeyboard()
+            UIApplication.shared.resignFocus()
         }
         .sensoryFeedback(.selection, trigger: calendar.isClosing) { _, isClosing in isClosing }
         // Over the pages rather than on one, so it stays put while they page.
@@ -62,8 +80,9 @@ struct DayChipCalendarView: View {
                 ForEach(0..<pageCount, id: \.self) { offset in
                     DayChipCalendarMonthView(
                         month: DayPickerCalendar.Month(today: calendar.today, offset: offset),
-                        calendar: calendar
-                    )
+                        calendar: calendar,
+                        rowHeight: layout.rowHeight
+                    ) { headerHeight = $0 }
                     .padding(Self.pagePadding)
                     .containerRelativeFrame(.horizontal)
                 }
@@ -100,15 +119,27 @@ struct DayChipCalendarView: View {
         .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.5), trigger: refusedPageCount)
     }
 
+    private var buttons: some View {
+        DayChipCalendarButtonsView(calendar: calendar)
+            .padding([.horizontal, .bottom], Self.pagePadding)
+            // Measured even while hidden, so a new text size can bring them back.
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: CGFloat.self, of: \.size.height) { buttonsHeight = $0 }
+            .frame(height: layout.showsButtons ? nil : 0, alignment: .top)
+            .opacity(layout.showsButtons ? 1 : 0)
+            .allowsHitTesting(layout.showsButtons)
+            .accessibilityHidden(!layout.showsButtons)
+    }
+
     @ViewBuilder private var closeButton: some View {
         if #available(iOS 26, *) {
             // Outside a toolbar the close role draws its title, so only its xmark is kept.
-            Button(role: .close, action: vm.closeDayChipCalendar)
+            Button(role: .close, action: onClose)
                 .labelStyle(.iconOnly)
                 .buttonStyle(.glass)
                 .buttonBorderShape(.circle)
         } else {
-            Button(action: vm.closeDayChipCalendar) {
+            Button(action: onClose) {
                 Image(systemName: "xmark")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.secondary)
@@ -117,5 +148,16 @@ struct DayChipCalendarView: View {
             }
             .accessibilityLabel(Text(.dayChipCalendarClose))
         }
+    }
+
+    // MARK: - Helpers
+    private var layout: DayChipCalendarLayout {
+        DayChipCalendarLayout(
+            availableHeight: availableHeight,
+            headerHeight: headerHeight,
+            buttonsHeight: buttonsHeight,
+            padding: 2 * Self.pagePadding,
+            isKeyboardUp: !calendar.hasHiddenKeyboard
+        )
     }
 }

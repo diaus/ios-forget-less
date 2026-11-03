@@ -5,11 +5,14 @@ import SwiftUI
 struct DayChipCalendarOverlayView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let anchors: DayChipCalendarAnchors
+    var isNameFocused: FocusState<Bool>.Binding
     /// Asks the owner to dismiss the composer.
     let onDismissComposer: () -> Void
 
     /// The widest the calendar grows, so its Days never spread out on a wide screen.
     private let maxWidth: CGFloat = 400
+    /// Kept clear above the calendar, so it never touches the top of the safe area.
+    private let topMargin: CGFloat = 8
     private let coordinateSpaceName = "dayChipCalendarOverlay"
 
     // MARK: - Body
@@ -22,7 +25,11 @@ struct DayChipCalendarOverlayView: View {
                     backdrop(composerFrame: composer)
                 }
                 if let calendar = vm.dayChipCalendar, let chip, let composer {
-                    DayChipCalendarView(calendar: calendar)
+                    DayChipCalendarView(
+                        calendar: calendar,
+                        availableHeight: composer.maxY - topMargin,
+                        onClose: close
+                    )
                         .frame(width: min(composer.width, maxWidth))
                         .padding(.leading, composer.minX)
                         // Covers the composer, for the most height for its month.
@@ -53,11 +60,24 @@ struct DayChipCalendarOverlayView: View {
     private func backdropDrag(composerFrame: CGRect?) -> some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .named(coordinateSpaceName))
             .onEnded { value in
-                vm.closeDayChipCalendar()
                 if let composerFrame, composerFrame.contains(value.startLocation), value.dismissesComposer {
+                    // The composer goes too, so the keyboard isn't brought back.
+                    vm.closeDayChipCalendar()
                     onDismissComposer()
+                } else {
+                    close()
                 }
             }
+    }
+
+    // MARK: - Actions
+    /// Closes the calendar, bringing back the keyboard it hid.
+    private func close() {
+        let hasHiddenKeyboard = vm.dayChipCalendar?.hasHiddenKeyboard ?? false
+        vm.closeDayChipCalendar()
+        if hasHiddenKeyboard {
+            isNameFocused.wrappedValue = true
+        }
     }
 
     // MARK: - Helpers

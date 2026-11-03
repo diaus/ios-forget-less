@@ -21,6 +21,7 @@ struct DayPickerDayView: View {
 
     // MARK: - Body
     var body: some View {
+        let size = rowHeight - 2 * rowPadding
         Button(action: onChoose) {
             ZStack {
                 if isChosen {
@@ -28,15 +29,18 @@ struct DayPickerDayView: View {
                 }
                 Text(day.dayOfMonth)
                     .font(.body.weight(isToday ? .semibold : .regular))
+                    // Shrinks with a short row, so every Day still shows.
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
                     .foregroundStyle(numberStyle)
-                // Under the number, inside the chosen Day's circle.
+                // Under the number, inside the chosen Day's circle, however small the row.
                 Circle()
                     .fill(isChosen ? AnyShapeStyle(.white) : AnyShapeStyle(.secondary))
                     .frame(width: 5, height: 5)
-                    .offset(y: 13)
+                    .offset(y: size * 0.3)
                     .opacity(incompleteTaskCount > 0 ? (canChoose ? 1 : 0.4) : 0)
             }
-            .frame(width: rowHeight - 2 * rowPadding, height: rowHeight - 2 * rowPadding)
+            .frame(width: size, height: size)
             .padding(.vertical, rowPadding)
             .contentShape(.rect)
         }
