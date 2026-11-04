@@ -22,11 +22,7 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
 
     // MARK: - TodoTaskRepository
     func tasks(on day: Date) throws -> [TodoTask] {
-        let descriptor = FetchDescriptor<TodoTaskModel>(
-            predicate: #Predicate { $0.day == day },
-            sortBy: Self.scheduleOrder
-        )
-        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+        try models(on: day).map { $0.toDomain() }
     }
 
     func scheduleTasks(today: Date) throws -> AsyncStream<[TodoTask]> {
@@ -53,11 +49,9 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
 
     func incompleteTasks(from firstDay: Date?, through lastDay: Date) throws -> [TodoTask] {
         let firstDay = firstDay ?? .distantPast
-        let descriptor = FetchDescriptor<TodoTaskModel>(
-            predicate: #Predicate { $0.completeDay == nil && $0.day >= firstDay && $0.day <= lastDay },
-            sortBy: Self.scheduleOrder
-        )
-        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+        return try fetchInScheduleOrder(
+            #Predicate { $0.completeDay == nil && $0.day >= firstDay && $0.day <= lastDay }
+        ).map { $0.toDomain() }
     }
 
     func create(name: String, day: Date) throws {
@@ -88,11 +82,7 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     func move(id: UUID, to destination: MoveDestination) throws {
         // Read and write without suspending, so two moves at once can't take the same place in the Day.
         guard let model = try model(id: id) else { return }
-        let day = destination.day
-        let modelsOfDay = try modelContext.fetch(FetchDescriptor<TodoTaskModel>(
-            predicate: #Predicate { $0.day == day },
-            sortBy: Self.scheduleOrder
-        ))
+        let modelsOfDay = try models(on: destination.day)
         let tasksOfDay = modelsOfDay.map { $0.toDomain() }
         let order = TodoTask.order(afterMoving: model.toDomain(), to: destination, in: tasksOfDay)
         var modelsByID = Dictionary(uniqueKeysWithValues: modelsOfDay.map { ($0.id, $0) })
@@ -114,11 +104,17 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     private func fetchScheduleTasks(today: Date) throws -> [TodoTask] {
         // An Incomplete Task has no `completeDay`, so it counts as completed on no Day yet.
         let distantFuture = Date.distantFuture
-        let descriptor = FetchDescriptor<TodoTaskModel>(
-            predicate: #Predicate { $0.day >= today || ($0.completeDay ?? distantFuture) >= today },
-            sortBy: Self.scheduleOrder
-        )
-        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+        return try fetchInScheduleOrder(
+            #Predicate { $0.day >= today || ($0.completeDay ?? distantFuture) >= today }
+        ).map { $0.toDomain() }
+    }
+
+    private func models(on day: Date) throws -> [TodoTaskModel] {
+        try fetchInScheduleOrder(#Predicate { $0.day == day })
+    }
+
+    private func fetchInScheduleOrder(_ predicate: Predicate<TodoTaskModel>) throws -> [TodoTaskModel] {
+        try modelContext.fetch(FetchDescriptor(predicate: predicate, sortBy: Self.scheduleOrder))
     }
 
     private func model(id: UUID) throws -> TodoTaskModel? {
