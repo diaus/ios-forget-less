@@ -114,8 +114,7 @@ extension ScheduleViewModel {
         composer.hide()
         composerOpenerFocus.returnToOpener()
         if let editedTaskID {
-            restartGracePeriod(of: editedTaskID)
-            scheduleTasks.relist()
+            stopListing(editedTaskID)
         }
     }
 
@@ -163,7 +162,7 @@ extension ScheduleViewModel {
     func toggleComplete(_ task: TodoTask) {
         let isComplete = !task.isComplete
         if isComplete && !showsComplete {
-            keptTasks.keep(task.id, for: UserDefaults.standard.keptDuration)
+            startGracePeriod(of: task.id)
         } else {
             // Stays kept, so no rebuild drops it before the Tasks observed hold it Incomplete.
             keptTasks.stopGracePeriod(of: task.id)
@@ -209,7 +208,8 @@ extension ScheduleViewModel {
         }
     }
 
-    /// Lists the Task with `id` by the usual rules again, once the Day picker or its row's calendar no longer has it.
+    /// Lists the Task with `id` by the usual rules again, once the composer, the Day picker or its row's calendar no
+    /// longer has it.
     func stopListing(_ id: UUID) {
         restartGracePeriod(of: id)
         scheduleTasks.relist()
@@ -277,8 +277,12 @@ extension ScheduleViewModel {
     /// period afresh when it's Complete and Complete Tasks are hidden, so it's seen before it leaves.
     private func restartGracePeriod(of id: UUID) {
         if !showsComplete, scheduleTasks.task(withID: id)?.isComplete == true {
-            keptTasks.keep(id, for: UserDefaults.standard.keptDuration)
+            startGracePeriod(of: id)
         }
+    }
+
+    private func startGracePeriod(of id: UUID) {
+        keptTasks.keep(id, for: UserDefaults.standard.keptDuration)
     }
 
     /// Has VoiceOver say `day`, named as it is now, when called: once a move to it is saved.
