@@ -61,14 +61,14 @@ public struct Schedule: Sendable {
     // MARK: - Moving
     /// The move rule: whether `task` can be moved to `destination`.
     public func canMove(_ task: TodoTask, to destination: MoveDestination) -> Bool {
-        (isOverdue(task) || position(of: task) != nil) && days.contains { $0.day == destination.day }
+        isListed(task) && days.contains { $0.day == destination.day }
     }
 
     /// The move rule for a Move to the end of `day`, listed or not: whether `task` can go there.
     public func canMove(_ task: TodoTask, toDay day: Date) -> Bool {
         // The window opens on Today, and Overdue is never a destination.
         guard let today = days.first?.day, day.canBePlanned(today: today) else { return false }
-        return isOverdue(task) || position(of: task) != nil
+        return isListed(task)
     }
 
     /// Where `task` goes one step up among the Tasks listed, or `nil` when there's none.
@@ -122,5 +122,10 @@ public struct Schedule: Sendable {
 
     private func isOverdue(_ task: TodoTask) -> Bool {
         overdue.contains { $0.id == task.id }
+    }
+
+    /// Whether the Schedule lists `task`, in Overdue or on a Day: only a Task it lists can move.
+    private func isListed(_ task: TodoTask) -> Bool {
+        isOverdue(task) || position(of: task) != nil
     }
 }
