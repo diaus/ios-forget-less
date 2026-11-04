@@ -2,7 +2,7 @@ import Domain
 import SwiftUI
 
 /// A Day in a month to choose a Day from, chosen by a tap.
-struct DayPickerDayView: View {
+struct PickerDayView: View {
     let day: Date
     let isChosen: Bool
     let canChoose: Bool
@@ -69,21 +69,21 @@ struct DayPickerDayView: View {
 
 #Preview(traits: .sizeThatFitsLayout) {
     HStack {
-        DayPickerDayView(
+        PickerDayView(
             day: Date.today.addingDays(-1), isChosen: false, canChoose: false, isToday: false, isInMonth: true,
-            incompleteTaskCount: 1, rowHeight: DayPickerDayView.fullRowHeight
+            incompleteTaskCount: 1, rowHeight: PickerDayView.fullRowHeight
         ) {}
-        DayPickerDayView(
+        PickerDayView(
             day: .today, isChosen: false, canChoose: true, isToday: true, isInMonth: true,
-            incompleteTaskCount: 2, rowHeight: DayPickerDayView.fullRowHeight
+            incompleteTaskCount: 2, rowHeight: PickerDayView.fullRowHeight
         ) {}
-        DayPickerDayView(
+        PickerDayView(
             day: Date.today.addingDays(1), isChosen: true, canChoose: true, isToday: false, isInMonth: true,
-            incompleteTaskCount: 1, rowHeight: DayPickerDayView.fullRowHeight
+            incompleteTaskCount: 1, rowHeight: PickerDayView.fullRowHeight
         ) {}
-        DayPickerDayView(
+        PickerDayView(
             day: Date.today.addingDays(2), isChosen: false, canChoose: true, isToday: false, isInMonth: false,
-            incompleteTaskCount: 1, rowHeight: DayPickerDayView.fullRowHeight
+            incompleteTaskCount: 1, rowHeight: PickerDayView.fullRowHeight
         ) {}
     }
 }

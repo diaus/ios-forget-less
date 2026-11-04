@@ -17,6 +17,7 @@ final class ScheduleViewModel {
     var taskDayCalendar: TaskDayCalendar?
     /// The Day picker's choice; `nil` once it has closed. Kept until then, so the sheet keeps its content as it goes.
     var dayPicker: DayPickerState?
+    private(set) var dayPickerOrigin: DayPickerOrigin?
     /// How many Incomplete Tasks each Day holds; a Day with none has no entry.
     private(set) var incompleteTaskCountsByDay: [Date: Int] = [:]
     let composerOpenerFocus = ComposerOpenerFocus()
@@ -297,7 +298,7 @@ final class ScheduleViewModel {
         // The edited Task, and the one the Day picker or a row's calendar moves, stay listed until what has them
         // closes, even past their grace period, so they're seen as they move.
         let listedTaskIDs = keptTaskIDs.union(
-            [composer.editedTask?.id, dayPicker?.taskID, taskDayCalendar?.taskID].compactMap { $0 }
+            [composer.editedTask?.id, dayPickerOrigin?.taskID, taskDayCalendar?.taskID].compactMap { $0 }
         )
         schedule = Schedule(tasks: tasks, today: today, showsComplete: showsComplete, keptTaskIDs: listedTaskIDs)
         incompleteTaskCountsByDay = tasks.incompleteTaskCountsByDay
@@ -316,14 +317,6 @@ final class ScheduleViewModel {
                 errorMessage = error.userMessage
             }
         }
-    }
-
-    /// What submitting the composer did.
-    enum ComposerSubmission {
-        /// A Task was added, and the composer stays up for the next one.
-        case added
-        /// The edited Task was renamed; nothing is left to save.
-        case renamed
     }
 }
 
@@ -376,25 +369,32 @@ extension ScheduleViewModel {
     }
 
     // MARK: - Day Picker
-    /// Shows the Day picker, to move `task` to the end of another Day.
-    func showDayPicker(for task: TodoTask) {
-        dayPicker = DayPickerState(task: task, today: today)
+    /// Shows the Day picker on `day`, the Day of what `origin` names, to choose another for it.
+    func showDayPicker(on day: Date, from origin: DayPickerOrigin) {
+        dayPicker = DayPickerState(day: day, today: today)
+        dayPickerOrigin = origin
         dayPicker?.isVisible = true
     }
 
-    /// Moves the Task to the end of the chosen Day, unless it's already there, and closes the Day picker.
-    /// VoiceOver says the new Day once the move is saved.
+    /// Closes the Day picker and acts on the chosen Day, unless it's the Day the picker opened on: a row's Task moves
+    /// to the end of it, and the composer's Day steps to it. VoiceOver says the new Day once a Move is saved.
     func confirmDayPicker() {
         dayPicker?.isVisible = false
-        guard let dayPicker, let task = tasks.first(where: { $0.id == dayPicker.taskID }),
-              let day = dayPicker.dayToMove(task) else { return }
-        moveToEnd(task, of: day)
+        guard let day = dayPicker?.dayToMove, let dayPickerOrigin else { return }
+        switch dayPickerOrigin {
+        case let .taskRow(id):
+            guard let task = tasks.first(where: { $0.id == id }) else { return }
+            moveToEnd(task, of: day)
+        case .composer:
+            changeComposerDay(to: day, onSaved: dayAnnouncement(day))
+        }
     }
 
     /// Ends the Day picker once its sheet has closed, however it closed.
     func dayPickerDidClose() {
-        guard let id = dayPicker?.taskID else { return }
+        let id = dayPickerOrigin?.taskID
         dayPicker = nil
-        stopListing(id)
+        dayPickerOrigin = nil
+        if let id { stopListing(id) }
     }
 }

@@ -25,7 +25,7 @@ extension FloatingDayCalendarLayout {
     ) {
         let rowsHeight = availableHeight - padding - headerHeight
         let showsButtons = rowsHeight - buttonsHeight >= Self.fullRowsHeight
-        let rowHeight = min(max(rowsHeight, 0) / CGFloat(Self.weekCount), DayPickerDayView.fullRowHeight)
+        let rowHeight = min(max(rowsHeight, 0) / CGFloat(Self.weekCount), PickerDayView.fullRowHeight)
         let hidesKeyboard = isKeyboardUp && rowHeight < Self.minimumRowHeight
         self.init(rowHeight: rowHeight, showsButtons: showsButtons, hidesKeyboard: hidesKeyboard)
     }
@@ -36,6 +36,6 @@ extension FloatingDayCalendarLayout {
     }
 
     private static var fullRowsHeight: CGFloat {
-        DayPickerDayView.fullRowHeight * CGFloat(weekCount)
+        PickerDayView.fullRowHeight * CGFloat(weekCount)
     }
 }

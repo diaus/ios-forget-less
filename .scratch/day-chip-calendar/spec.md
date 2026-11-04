@@ -160,5 +160,5 @@ Tests check behaviour through a public interface. Tests pass `today` explicitly,
 ## Further Notes
 
 - Vocabulary: choosing a Day while editing is a **Move** (`GLOSSARY.md`). "The weekday after Tomorrow" is Today + 2, not a glossary term. The glossary gains no terms, and there's no ADR: the calendar is a view, easy to change later.
-- The Choose a Day spec's Out of Scope listed "Opening the sheet from the composer's Day chip". It now points here.
+- The Choose a Day spec's Out of Scope listed "Opening the sheet from the composer's Day chip". It's now in scope there: a long press on the chip opens the sheet, while a tap still opens this calendar (`.scratch/choose-day/issues/04-open-from-the-composers-day-chip.md`).
 - Issues, in order: `issues/01` a month at an offset in Domain, `02` the calendar, `06` five weeks and the card over the composer, `03` the buttons, `04` fitting, `05` VoiceOver. `06` came after `02` was built: the calendar first sat above the chip with 6 rows and blank cells, then moved over the composer for the height, with a ✕ to close it.

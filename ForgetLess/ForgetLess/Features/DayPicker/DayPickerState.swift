@@ -1,19 +1,24 @@
 import Domain
 import Foundation
 
-/// The Day picker's choice of a Day for the Task being moved.
+/// The Day picker's choice of a Day to move to.
 struct DayPickerState {
     var isVisible = false
-    let taskID: UUID
     private(set) var today: Date
+    private let openedDay: Date
     /// `nil` while nothing is chosen.
     private(set) var chosenDay: Date?
 
-    /// Opens on `task`'s Day, or with nothing chosen when the Task is Overdue.
-    init(task: TodoTask, today: Date) {
-        self.taskID = task.id
+    /// Opens on `day`, or with nothing chosen when `day` is before Today.
+    init(day: Date, today: Date) {
+        self.openedDay = day
         self.today = today
-        self.chosenDay = task.day.canBePlanned(today: today) ? task.day : nil
+        self.chosenDay = day.canBePlanned(today: today) ? day : nil
+    }
+
+    /// The Day to move to: `nil` while nothing is chosen, or when the chosen Day is the Day it opened on.
+    var dayToMove: Date? {
+        chosenDay == openedDay ? nil : chosenDay
     }
 
     func canChoose(_ day: Date) -> Bool {
@@ -32,10 +37,5 @@ struct DayPickerState {
         if let chosenDay, !canChoose(chosenDay) {
             self.chosenDay = nil
         }
-    }
-
-    /// The Day to move `task`, as it is now, to: `nil` while nothing is chosen, or when the chosen Day is its own.
-    func dayToMove(_ task: TodoTask) -> Date? {
-        chosenDay == task.day ? nil : chosenDay
     }
 }

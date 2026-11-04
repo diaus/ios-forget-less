@@ -70,7 +70,7 @@ struct FloatingDayCalendarMonthView: View {
     private func week(_ days: [Date]) -> some View {
         HStack(spacing: 0) {
             ForEach(days, id: \.self) { day in
-                DayPickerDayView(
+                PickerDayView(
                     day: day,
                     isChosen: calendar.chosenDay == day,
                     canChoose: calendar.canChoose(day),

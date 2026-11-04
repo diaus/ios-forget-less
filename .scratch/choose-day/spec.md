@@ -60,6 +60,17 @@ Every listed Task gets a second swipe action: a blue `calendar` button inside De
 32. As a VoiceOver user, I want Days before Today read as dimmed and the chosen Day read as selected, so that I hear the same state everyone else sees.
 33. As a VoiceOver user, I want the Task's new Day announced after Done ("Tomorrow", "3 Dec"), as for the Move Up and Move Down actions, so that I know where the Task went.
 
+### From the composer's Day chip
+
+34. As a user, I want a long press (about 0.35 s) on the composer's Day chip to open the sheet, with a haptic as it's recognised, so that I can see several months at once while a tap still opens the Day chip calendar.
+35. As a user, I want a finger that moves sideways before the press is recognised to step the Day as now, so that the swipe keeps working.
+36. As a user, I want the sheet to open on the chip's Day, already chosen, or with nothing chosen when I'm editing an Overdue Task, as from a row.
+37. As a user adding Tasks, I want Done to set the chip to the chosen Day, so that the next Tasks I add go there.
+38. As a user editing a Task, I want Done to Move it to the end of the chosen Day and save at once, as stepping the chip does, and to do nothing on its own Day.
+39. As a user, I want Done to count as a step, so that closing the composer brings that Day into view, and Cancel or a swipe down to change nothing.
+40. As a user, I want the keyboard to go down while the sheet is open and the name field to get focus back when it closes, so that I can carry on typing.
+41. As a VoiceOver user, I want a "Choose Day" action on the chip that opens the sheet, so that the long press has a VoiceOver equivalent.
+
 ## Implementation Decisions
 
 ### Domain
@@ -127,14 +138,13 @@ Tests check behaviour through a public interface. Tests pass `today` explicitly,
 
 ## Out of Scope
 
-- Opening the sheet from the composer's Day chip. The chip opens its own calendar instead: see `.scratch/day-chip-calendar/spec.md`.
 - Choosing a Day for several Tasks at once.
 - Undo.
-- Any change to dragging, the Move Up and Move Down actions, or the composer's Day chip.
+- Any change to dragging, the Move Up and Move Down actions, or the composer's Day chip besides its long press (stories 34–41). A tap on the chip opens its own calendar: see `.scratch/day-chip-calendar/spec.md`.
 - A sheet title, the chevron button from the screenshot, and dimmed weekends.
 
 ## Further Notes
 
 - Vocabulary: this is a **Move** (`GLOSSARY.md`). The glossary gains no terms. No ADR either: the custom calendar view is easy to change later.
 - The move-tasks spec's Out of Scope listed "A date picker". It now points here.
-- Issues, in order: `issues/01` the months and counts in Domain, `02` choosing a Day from the swipe action, `03` VoiceOver.
+- Issues, in order: `issues/01` the months and counts in Domain, `02` choosing a Day from the swipe action, `03` VoiceOver, `04` opening the sheet from the composer's Day chip (stories 34–41; added after 01–03 were built, once the chip's tap had gone to the Day chip calendar).

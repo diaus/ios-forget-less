@@ -86,14 +86,14 @@ struct DayPickerView: View {
             ForEach(days.indices, id: \.self) { index in
                 Group {
                     if let day = days[index] {
-                        DayPickerDayView(
+                        PickerDayView(
                             day: day,
                             isChosen: dayPicker.chosenDay == day,
                             canChoose: dayPicker.canChoose(day),
                             isToday: dayPicker.today == day,
                             isInMonth: true,
                             incompleteTaskCount: vm.incompleteTaskCountsByDay[day] ?? 0,
-                            rowHeight: DayPickerDayView.fullRowHeight
+                            rowHeight: PickerDayView.fullRowHeight
                         ) { vm.dayPicker?.choose(day) }
                     } else {
                         Color.clear.accessibilityHidden(true)
@@ -136,5 +136,8 @@ struct DayPickerView: View {
 #Preview(traits: .sampleTasks) {
     DayPickerView()
         // The view resolves the same shared view model.
-        .onAppear { Container.shared.scheduleViewModel().showDayPicker(for: .previewTomorrow) }
+        .onAppear {
+            let task = TodoTask.previewTomorrow
+            Container.shared.scheduleViewModel().showDayPicker(on: task.day, from: .taskRow(task.id))
+        }
 }

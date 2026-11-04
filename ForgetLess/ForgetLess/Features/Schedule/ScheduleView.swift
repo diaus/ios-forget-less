@@ -73,7 +73,7 @@ struct ScheduleView: View {
         // Bound by hand: the picker's state is `nil` while it's closed.
         .sheet(
             isPresented: Binding { vm.dayPicker?.isVisible ?? false } set: { vm.dayPicker?.isVisible = $0 },
-            onDismiss: vm.dayPickerDidClose
+            onDismiss: dayPickerDidClose
         ) {
             DayPickerView()
                 .presentationDetents([.medium, .large])
@@ -161,6 +161,17 @@ struct ScheduleView: View {
             isConfirmingDiscard = true
         } else {
             dismissComposer()
+        }
+    }
+
+    /// Ends the Day picker; one opened from the composer gives the name field its focus back.
+    private func dayPickerDidClose() {
+        let isFromComposer = vm.dayPickerOrigin == .composer
+        vm.dayPickerDidClose()
+        if isFromComposer {
+            isComposerNameFocused = true
+            // VoiceOver goes back to the Day chip, as when the Day chip calendar closes.
+            isDayChipAccessibilityFocused = true
         }
     }
 
