@@ -34,11 +34,16 @@ struct FloatingDayCalendarState {
         day.canBePlanned(today: today)
     }
 
-    /// Makes `day` its Day, unless it can't be chosen or a Day already was. Returns whether it did.
+    /// Whether choosing `day` would make it its Day: `day` can be chosen, and no Day already was.
+    func takesChoice(of day: Date) -> Bool {
+        // The calendar closes a moment after a choice, and a second tap in that moment changes nothing.
+        !isClosing && canChoose(day)
+    }
+
+    /// Makes `day` its Day, unless it doesn't take that choice. Returns whether it did.
     @discardableResult
     mutating func choose(_ day: Date) -> Bool {
-        // The calendar closes a moment after a choice, and a second tap in that moment changes nothing.
-        guard !isClosing, canChoose(day) else { return false }
+        guard takesChoice(of: day) else { return false }
         self.day = day
         isClosing = true
         return true

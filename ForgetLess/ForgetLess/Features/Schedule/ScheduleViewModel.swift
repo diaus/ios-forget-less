@@ -190,7 +190,7 @@ extension ScheduleViewModel {
     /// Gives `target` `day`, chosen in the floating Day `calendar`, unless the calendar is closed or closing, or it or
     /// the move rule refuses `day`. Returns whether the calendar shows `day` chosen: a refused Move shows nothing.
     func choose(_ day: Date, in calendar: FloatingDayCalendarState?, for target: DayChoiceTarget) -> Bool {
-        guard let calendar, !calendar.isClosing, calendar.canChoose(day) else { return false }
+        guard let calendar, calendar.takesChoice(of: day) else { return false }
         return choose(day, for: target)
     }
 

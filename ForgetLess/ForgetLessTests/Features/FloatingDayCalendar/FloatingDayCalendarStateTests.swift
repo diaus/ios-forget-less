@@ -77,6 +77,7 @@ struct FloatingDayCalendarStateTests {
         let isChosen = calendar.choose(today.addingDays(-1))
 
         #expect(!isChosen)
+        #expect(!calendar.takesChoice(of: today.addingDays(-1)))
         #expect(calendar.chosenDay == today.addingDays(5))
     }
 
@@ -87,6 +88,7 @@ struct FloatingDayCalendarStateTests {
         let isChosen = calendar.choose(today.addingDays(2))
 
         #expect(!isChosen)
+        #expect(!calendar.takesChoice(of: today.addingDays(2)))
         #expect(calendar.chosenDay == today.addingDays(1))
     }
 
