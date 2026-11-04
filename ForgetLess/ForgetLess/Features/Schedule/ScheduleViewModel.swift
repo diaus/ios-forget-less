@@ -133,15 +133,15 @@ extension ScheduleViewModel {
     /// being edited and dismisses. Saves nothing when the typed name can't be saved.
     func submitComposer() {
         closeDayChipCalendar()
-        guard composer.canSubmit else { return }
         let name = composer.taskName
+        guard let savedName = TodoTask.savedName(from: name) else { return }
         if let editedTask = composer.editedTask {
             write {
                 try await self.renameTask(id: editedTask.id, name: name)
                 postAnnouncement(.taskRenamed(name: name))
             }
             // Saved under the typed name, so dismissing now drops nothing.
-            composer.editedTask?.name = name.trimmed
+            composer.editedTask?.name = savedName
             dismissComposer()
             return
         }

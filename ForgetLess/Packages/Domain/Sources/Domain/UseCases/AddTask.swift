@@ -1,5 +1,4 @@
 import Foundation
-import Utils
 
 /// Adds a new Task to its Day.
 public struct AddTask: Sendable {
@@ -11,8 +10,7 @@ public struct AddTask: Sendable {
 
     /// Throws `DomainError.emptyName` for a blank name.
     public func callAsFunction(name: String, day: Date) async throws {
-        let name = name.trimmed
-        guard !name.isEmpty else { throw DomainError.emptyName }
+        guard let name = TodoTask.savedName(from: name) else { throw DomainError.emptyName }
         try await repository.create(name: name, day: day)
     }
 }

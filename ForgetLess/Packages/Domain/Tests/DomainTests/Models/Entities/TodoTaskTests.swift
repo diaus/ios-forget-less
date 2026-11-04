@@ -16,6 +16,14 @@ struct TodoTaskTests {
         #expect(TodoTask.nextSortIndex(in: tasksOfDay) == 5)
     }
 
+    @Test func aTaskNameIsSavedWithoutItsSurroundingWhitespace() {
+        #expect(TodoTask.savedName(from: "  Buy milk \n") == "Buy milk")
+    }
+
+    @Test func aBlankTaskNameCantBeSaved() {
+        #expect(TodoTask.savedName(from: " \n\t") == nil)
+    }
+
     @Test func aTaskMovedAfterATaskInTheMiddleGoesRightAfterIt() {
         let tasksOfDay = [task("Buy milk"), task("Call mum"), task("Walk the dog")]
         let moved = task("Pay rent")

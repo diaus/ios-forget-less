@@ -1,4 +1,5 @@
 import Foundation
+import Utils
 
 /// A Task: something the user plans to do on one Day. Named `TodoTask` so it doesn't shadow Swift's `Task`.
 public struct TodoTask: Identifiable, Equatable, Sendable {
@@ -24,6 +25,12 @@ public struct TodoTask: Identifiable, Equatable, Sendable {
     /// The end-of-Day rule: where a new Task goes in its Day.
     public static func nextSortIndex(in tasksOfDay: [TodoTask]) -> Int {
         (tasksOfDay.map(\.sortIndex).max() ?? -1) + 1
+    }
+
+    /// The name rule: the name `typed` is saved as, or `nil` when it can't be a Task's name.
+    public static func savedName(from typed: String) -> String? {
+        let name = typed.trimmed
+        return name.isEmpty ? nil : name
     }
 
     /// The order rule: the Tasks of `destination`'s Day once `task` is moved there, in order and numbered from 0,

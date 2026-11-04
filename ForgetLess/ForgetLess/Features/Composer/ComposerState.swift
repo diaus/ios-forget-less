@@ -1,6 +1,5 @@
 import Domain
 import Foundation
-import Utils
 
 /// What the composer shows, and where its focus goes.
 struct ComposerState {
@@ -23,14 +22,14 @@ struct ComposerState {
     // MARK: - Rules
     /// Whether the typed name can be saved as a Task's name.
     var canSubmit: Bool {
-        !taskName.trimmed.isEmpty
+        TodoTask.savedName(from: taskName) != nil
     }
 
     /// Whether dismissing would drop what the user typed: a name to add, or a rename. A stepped Day alone isn't one:
     /// an edited Task's is already saved.
     var hasChanges: Bool {
         guard let editedTask else { return canSubmit }
-        return taskName.trimmed != editedTask.name
+        return TodoTask.savedName(from: taskName) != editedTask.name
     }
 
     /// Whether closing the composer should bring its Day into view: the Day was stepped to, and holds the Task edited
