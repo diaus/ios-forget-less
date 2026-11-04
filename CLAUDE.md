@@ -33,6 +33,10 @@ Before reporting done:
 - For any UI change, the check in `docs/agents/ui-check.md` passes on iOS 27. Run it on iOS 18 only when the user asks.
 - A check that couldn't run is reported as skipped, with its acceptance box left unticked.
 
+## Committing
+
+Before any commit, read `docs/agents/commits.md`: each subject starts with a tag from its list.
+
 ## Editing
 
 Add or change String Catalog keys with `scripts/xcstrings.py set KEY EN UK`, which writes the file in Xcode's own format and keeps SwiftLint's key prefixes in step.
