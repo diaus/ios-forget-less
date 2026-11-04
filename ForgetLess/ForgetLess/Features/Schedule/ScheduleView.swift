@@ -20,26 +20,8 @@ struct ScheduleView: View {
             content
                 .ignoresSafeArea(.keyboard)
                 .accessibilityHidden(vm.composer.isVisible)
-            Color.black.opacity(vm.composer.isVisible ? 0.3 : 0)
-                .ignoresSafeArea()
-                .allowsHitTesting(vm.composer.isVisible)
-                .onTapGesture(perform: requestComposerDismissal)
-                .animation(.easeOut(duration: 0.2), value: vm.composer.isVisible)
-            // Mounted while hidden, so its field can take focus in the same action that shows it and the keyboard
-            // starts in the same frame. Opacity, not removal or `.hidden()`: the field stays focusable while hidden.
-            ComposerView(
-                isNameFocused: $isComposerNameFocused,
-                isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused,
-                onDismiss: requestComposerDismissal
-            )
-            .opacity(vm.composer.isVisible ? 1 : 0)
-            .allowsHitTesting(vm.composer.isVisible)
-            .accessibilityHidden(!vm.composer.isVisible)
-            // An alert, not a confirmation dialog: as a popover, iOS 27 hides the dialog's Keep Editing.
-            .alert(Text(.composerDiscardChanges), isPresented: $isConfirmingDiscard) {
-                Button(role: .destructive, action: dismissComposer) { Text(.composerDiscard) }
-                Button(role: .cancel, action: keepEditing) { Text(.composerKeepEditing) }
-            }
+            composerScrim
+            composerPanel
         }
         // Over the composer rather than in it, so the calendar can use the space above it.
         .overlayPreferenceValue(DayChipCalendarAnchorsKey.self) { anchors in
@@ -70,11 +52,7 @@ struct ScheduleView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
             vm.refresh()
         }
-        // Bound by hand: the picker's state is `nil` while it's closed.
-        .sheet(
-            isPresented: Binding { vm.dayPicker?.isVisible ?? false } set: { vm.dayPicker?.isVisible = $0 },
-            onDismiss: dayPickerDidClose
-        ) {
+        .sheet(isPresented: isDayPickerPresented, onDismiss: dayPickerDidClose) {
             DayPickerView()
                 .presentationDetents([.medium, .large])
         }
@@ -97,6 +75,32 @@ struct ScheduleView: View {
                 }
             }
             addFloatingButton
+        }
+    }
+
+    private var composerScrim: some View {
+        Color.black.opacity(vm.composer.isVisible ? 0.3 : 0)
+            .ignoresSafeArea()
+            .allowsHitTesting(vm.composer.isVisible)
+            .onTapGesture(perform: requestComposerDismissal)
+            .animation(.easeOut(duration: 0.2), value: vm.composer.isVisible)
+    }
+
+    private var composerPanel: some View {
+        // Mounted while hidden, so its field can take focus in the same action that shows it and the keyboard
+        // starts in the same frame. Opacity, not removal or `.hidden()`: the field stays focusable while hidden.
+        ComposerView(
+            isNameFocused: $isComposerNameFocused,
+            isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused,
+            onDismiss: requestComposerDismissal
+        )
+        .opacity(vm.composer.isVisible ? 1 : 0)
+        .allowsHitTesting(vm.composer.isVisible)
+        .accessibilityHidden(!vm.composer.isVisible)
+        // An alert, not a confirmation dialog: as a popover, iOS 27 hides the dialog's Keep Editing.
+        .alert(Text(.composerDiscardChanges), isPresented: $isConfirmingDiscard) {
+            Button(role: .destructive, action: dismissComposer) { Text(.composerDiscard) }
+            Button(role: .cancel, action: keepEditing) { Text(.composerKeepEditing) }
         }
     }
 
@@ -185,6 +189,11 @@ struct ScheduleView: View {
     }
 
     // MARK: - Helpers
+    /// Bound by hand: the picker's state is `nil` while it's closed.
+    private var isDayPickerPresented: Binding<Bool> {
+        Binding { vm.dayPicker?.isVisible ?? false } set: { vm.dayPicker?.isVisible = $0 }
+    }
+
     /// What the Schedule is observed for; a change restarts the observation.
     private struct ScheduleObservation: Equatable {
         let today: Date
