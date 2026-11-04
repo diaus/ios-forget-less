@@ -8,9 +8,8 @@ struct TaskRowView: View {
     let task: TodoTask
     /// Whether the row names its Day, which its section header doesn't.
     let showsDay: Bool
-    /// Asks the owner to show the composer on this Task, to edit it.
-    let onEdit: () -> Void
-    /// Asks the owner to show the floating Day calendar on this Task, to Move it.
+    /// Asks the list to show the floating Day calendar on this Task, to Move it: only the list knows where the row is
+    /// on screen, which the calendar grows from.
     let onChooseDay: () -> Void
 
     /// Where a tap on the row stops editing the Task and opens its calendar instead.
@@ -40,7 +39,7 @@ struct TaskRowView: View {
             // Listed after Edit, which comes first as the row's tap.
             .accessibilityActions { moveActions }
             // The row's tap, for VoiceOver, which activates the circle.
-            .accessibilityAction(named: Text(.taskEdit), onEdit)
+            .accessibilityAction(named: Text(.taskEdit), edit)
             .accessibilityFocused(returningTo: .task(task.id))
             HStack(spacing: 0) {
                 Text(task.name)
@@ -83,12 +82,17 @@ struct TaskRowView: View {
         }
     }
 
+    // MARK: - Actions
+    private func edit() {
+        vm.showComposer(editing: task)
+    }
+
     // MARK: - Gestures
     /// Edits the Task from the row's leading half, and opens its calendar from the trailing half, its Day included.
     private var halvesTap: some Gesture {
         SpatialTapGesture(coordinateSpace: .named(Self.rowSpace)).onEnded { value in
             if value.location.x < halvesSplitX {
-                onEdit()
+                edit()
             } else {
                 onChooseDay()
             }
@@ -103,8 +107,8 @@ struct TaskRowView: View {
 
 #Preview {
     List {
-        TaskRowView(task: .previewOverdue, showsDay: true) {} onChooseDay: {}
-        TaskRowView(task: .previewIncomplete, showsDay: false) {} onChooseDay: {}
-        TaskRowView(task: .previewComplete, showsDay: false) {} onChooseDay: {}
+        TaskRowView(task: .previewOverdue, showsDay: true) {}
+        TaskRowView(task: .previewIncomplete, showsDay: false) {}
+        TaskRowView(task: .previewComplete, showsDay: false) {}
     }
 }

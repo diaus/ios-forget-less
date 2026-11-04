@@ -7,15 +7,9 @@ struct ScheduleListView: UIViewRepresentable {
     @InjectedObservable(\.scheduleViewModel) private var vm
     /// The safe area the list's content clears, which a wrapped view doesn't get on its own.
     let safeAreaInsets: EdgeInsets
-    /// Asks the owner to show the composer on a Day, to add a Task.
-    let onAdd: (Date) -> Void
-    /// Asks the owner to show the composer on a Task, to edit it.
-    let onEdit: (TodoTask) -> Void
-    /// Asks the owner to show the floating Day calendar on a Task, by its row where it was tapped.
-    let onChooseDay: (TodoTask, TaskDayCalendarOrigin) -> Void
 
     func makeCoordinator() -> ScheduleListController {
-        ScheduleListController(listView: self)
+        ScheduleListController()
     }
 
     func makeUIView(context: Context) -> ScheduleCollectionView {
@@ -23,7 +17,6 @@ struct ScheduleListView: UIViewRepresentable {
     }
 
     func updateUIView(_ collectionView: ScheduleCollectionView, context: Context) {
-        context.coordinator.listView = self
         // Read here, so SwiftUI updates the list when they change. Animated only when SwiftUI animates the change, as
         // its `List` did.
         context.coordinator.show(

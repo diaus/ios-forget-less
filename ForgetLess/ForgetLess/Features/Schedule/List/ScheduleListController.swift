@@ -16,8 +16,6 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     final class DayHeaderCell: UICollectionViewListCell {}
 
     let collectionView = ScheduleCollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    /// The list as SwiftUI last described it, for the composer its rows and headers show.
-    var listView: ScheduleListView
     @Injected(\.scheduleViewModel) private var vm
     private var dataSource: UICollectionViewDiffableDataSource<Section, TodoTask.ID>?
     /// The Tasks the list shows.
@@ -35,8 +33,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     /// The Task whose row is drawn highlighted, while its floating Day calendar is open.
     private var highlightedTaskID: TodoTask.ID?
 
-    init(listView: ScheduleListView) {
-        self.listView = listView
+    override init() {
         super.init()
         // Set here rather than at creation, so its swipe actions can call back into `self`.
         collectionView.collectionViewLayout = makeLayout()
@@ -173,8 +170,6 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         guard let task = tasks[id] else { return }
         cell.contentConfiguration = UIHostingConfiguration {
             TaskRowView(task: task, showsDay: overdueTaskIDs.contains(id)) { [weak self] in
-                self?.edit(id)
-            } onChooseDay: { [weak self] in
                 self?.chooseDay(id)
             }
         }
@@ -194,9 +189,8 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     private func configure(_ header: DayHeaderCell, section: Int) {
         guard case let .day(day) = dataSource?.sectionIdentifier(for: section),
               let scheduleDay = scheduleDays[day] else { return }
-        let onAdd = { [weak self] in self?.listView.onAdd(day) ?? () }
         header.contentConfiguration = UIHostingConfiguration {
-            DayHeaderView(scheduleDay: scheduleDay, onAdd: onAdd)
+            DayHeaderView(scheduleDay: scheduleDay)
         }
         // Weeks delimiter line
         .background {
@@ -295,18 +289,13 @@ extension ScheduleListController {
         false
     }
 
-    private func edit(_ id: TodoTask.ID) {
-        if let task = tasks[id] {
-            listView.onEdit(task)
-        }
-    }
-
+    /// Opens the Task's floating Day calendar from its row, which only the list can place on screen.
     private func chooseDay(_ id: TodoTask.ID) {
         guard let task = tasks[id], let indexPath = dataSource?.indexPath(for: id),
               let cell = collectionView.cellForItem(at: indexPath) as? TaskRowCell else { return }
         let row = cell.convert(cell.bounds, to: nil)
         let tap = cell.lastTouchLocation ?? CGPoint(x: row.midX, y: row.midY)
-        listView.onChooseDay(task, TaskDayCalendarOrigin(row: row, tap: tap))
+        vm.showTaskDayCalendar(for: task, from: TaskDayCalendarOrigin(row: row, tap: tap))
     }
 
     private func swipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {

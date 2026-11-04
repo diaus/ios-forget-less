@@ -28,7 +28,7 @@ final class ScheduleViewModel {
     var showsComplete: Bool {
         didSet {
             UserDefaults.standard.showsComplete = showsComplete
-            releaseKeptTasks()
+            keptTasks.releaseAll()
             rebuildSchedule()
         }
     }
@@ -42,9 +42,7 @@ final class ScheduleViewModel {
     private var tasks: [TodoTask] = []
     /// The Tasks last observed in the store.
     private var observedTasks: [TodoTask] = []
-    /// Tasks completed while Complete Tasks are hidden that the Schedule still lists, so a mis-tap can be undone.
-    private(set) var keptTaskIDs: Set<UUID> = []
-    @ObservationIgnored private var keptTaskTimers: [UUID: Task<Void, Never>] = [:]
+    let keptTasks = KeptTasks()
 
     @ObservationIgnored @Injected(\.todoTaskRepository) private var repository
     @ObservationIgnored @Injected(\.addTask) private var addTask
@@ -57,6 +55,7 @@ final class ScheduleViewModel {
         self.composer = ComposerState(day: today)
         self.showsComplete = UserDefaults.standard.showsComplete
         self.movesTasks = UserDefaults.standard.movesTasks
+        keptTasks.onRelease = { [weak self] in self?.rebuildSchedule() }
     }
 
     // MARK: - Loading
@@ -88,18 +87,23 @@ final class ScheduleViewModel {
     // MARK: - Composer
     /// Shows the composer on `day`, to add a Task. VoiceOver goes back to `opener` when it closes.
     func showComposer(on day: Date, from opener: ComposerOpener) {
-        composer.start(on: day)
-        composer.isVisible = true
+        composer.show(on: day)
         composerOpenerFocus.opener = opener
     }
 
     /// Shows the composer filled in with `task`, to edit it.
     func showComposer(editing task: TodoTask) {
-        composer.editedTask = task
-        composer.taskName = task.name
-        composer.start(on: task.day)
-        composer.isVisible = true
+        composer.show(editing: task)
         composerOpenerFocus.opener = .task(task.id)
+    }
+
+    /// Dismisses the composer, first asking whether to discard what was typed.
+    func requestComposerDismissal() {
+        if composer.hasChanges {
+            composer.askToDiscard()
+        } else {
+            dismissComposer()
+        }
     }
 
     /// Hides the composer and drops what's typed, so the next add starts blank. VoiceOver goes back to what showed it,
@@ -110,9 +114,7 @@ final class ScheduleViewModel {
             dayReveal = DayReveal(day: composer.day)
         }
         let editedTaskID = composer.editedTask?.id
-        composer.isVisible = false
-        composer.editedTask = nil
-        composer.taskName = ""
+        composer.hide()
         composerOpenerFocus.returnToOpener()
         if let editedTaskID {
             restartGracePeriod(of: editedTaskID)
@@ -130,10 +132,18 @@ final class ScheduleViewModel {
         return changeComposerDay(to: day)
     }
 
-    /// Saves the typed name: adds a Task to the composer's Day, or renames the Task being edited. Returns `nil` and
-    /// saves nothing when the typed name can't be saved.
-    func submitComposer() -> ComposerSubmission? {
-        guard composer.canSubmit else { return nil }
+    /// Sets the composer's Day to `day`, chosen from a calendar, as a step does. VoiceOver says an edited Task's new
+    /// Day once its Move is saved. Returns whether the Day changed.
+    @discardableResult
+    func chooseComposerDay(_ day: Date) -> Bool {
+        changeComposerDay(to: day, onSaved: dayAnnouncement(day))
+    }
+
+    /// Saves the typed name: adds a Task to the composer's Day and stays up for the next one, or renames the Task
+    /// being edited and dismisses. Saves nothing when the typed name can't be saved.
+    func submitComposer() {
+        closeDayChipCalendar()
+        guard composer.canSubmit else { return }
         let name = composer.taskName
         if let editedTask = composer.editedTask {
             write {
@@ -142,12 +152,12 @@ final class ScheduleViewModel {
             }
             // Saved under the typed name, so dismissing now drops nothing.
             composer.editedTask?.name = name.trimmed
-            return .renamed
+            dismissComposer()
+            return
         }
         let day = composer.day
         // Cleared at once, so a second submit before the write lands adds nothing.
-        composer.taskName = ""
-        composer.daysAddedTo.insert(day)
+        composer.clearForNextTask(afterAddingTo: day)
         write {
             try await self.addTask(name: name, day: day)
             postAnnouncement(.taskAdded(name: name))
@@ -157,17 +167,16 @@ final class ScheduleViewModel {
                 self.composer.taskName = name
             }
         }
-        return .added
     }
 
     // MARK: - Completion
     func toggleComplete(_ task: TodoTask) {
         let isComplete = !task.isComplete
         if isComplete && !showsComplete {
-            keep(task.id, for: UserDefaults.standard.keptDuration)
+            keptTasks.keep(task.id, for: UserDefaults.standard.keptDuration)
         } else {
             // Stays kept, so no rebuild drops it before the Tasks observed hold it Incomplete.
-            keptTaskTimers.removeValue(forKey: task.id)?.cancel()
+            keptTasks.stopGracePeriod(of: task.id)
         }
         write { try await self.repository.setComplete(id: task.id, isComplete: isComplete, today: self.today) }
     }
@@ -241,24 +250,6 @@ final class ScheduleViewModel {
         }
     }
 
-    /// Gives the Task with `id` its grace period of `seconds` while Complete Tasks are hidden.
-    private func keep(_ id: UUID, for seconds: Double) {
-        keptTaskTimers.removeValue(forKey: id)?.cancel()
-        // With no grace period, the Task leaves with the next rebuild, even one kept by an earlier completion.
-        guard seconds > 0 else {
-            keptTaskIDs.remove(id)
-            return
-        }
-        keptTaskIDs.insert(id)
-        keptTaskTimers[id] = Task {
-            try? await Task.sleep(for: .seconds(seconds))
-            guard !Task.isCancelled else { return }
-            keptTaskTimers[id] = nil
-            keptTaskIDs.remove(id)
-            rebuildSchedule()
-        }
-    }
-
     /// Moves `task` to the end of `day` unless the move rule refuses it, and has VoiceOver say `day` once the Move is
     /// saved. Returns whether it moved.
     @discardableResult
@@ -278,7 +269,7 @@ final class ScheduleViewModel {
     /// period afresh when it's Complete and Complete Tasks are hidden, so it's seen before it leaves.
     private func restartGracePeriod(of id: UUID) {
         if !showsComplete, tasks.contains(where: { $0.id == id && $0.isComplete }) {
-            keep(id, for: UserDefaults.standard.keptDuration)
+            keptTasks.keep(id, for: UserDefaults.standard.keptDuration)
         }
     }
 
@@ -288,16 +279,10 @@ final class ScheduleViewModel {
         return { postAnnouncement(dayName) }
     }
 
-    private func releaseKeptTasks() {
-        keptTaskTimers.values.forEach { $0.cancel() }
-        keptTaskTimers = [:]
-        keptTaskIDs = []
-    }
-
     private func rebuildSchedule() {
         // The edited Task, and the one the Day picker or a row's calendar moves, stay listed until what has them
         // closes, even past their grace period, so they're seen as they move.
-        let listedTaskIDs = keptTaskIDs.union(
+        let listedTaskIDs = keptTasks.ids.union(
             [composer.editedTask?.id, dayPickerOrigin?.taskID, taskDayCalendar?.taskID].compactMap { $0 }
         )
         schedule = Schedule(tasks: tasks, today: today, showsComplete: showsComplete, keptTaskIDs: listedTaskIDs)
@@ -322,34 +307,11 @@ final class ScheduleViewModel {
 
 // In an extension, so the class's body stays within SwiftLint's length.
 extension ScheduleViewModel {
-    // MARK: - Day Chip Calendar
-    /// Opens the Day chip calendar on the composer's Day, or closes it when it's open.
-    func toggleDayChipCalendar() {
-        if dayChipCalendar == nil {
-            dayChipCalendar = FloatingDayCalendarState(today: today, day: composer.day)
-        } else {
-            closeDayChipCalendar()
-        }
-    }
-
-    func closeDayChipCalendar() {
-        dayChipCalendar = nil
-    }
-
-    /// Sets the composer to `day` as a step does, unless the Day chip calendar or the move rule refuses it. VoiceOver
-    /// says an edited Task's new Day once its Move is saved.
-    func chooseDayChipCalendarDay(_ day: Date) {
-        // Checked before the calendar draws the choice, so a refused Move shows nothing chosen.
-        guard let calendar = dayChipCalendar, !calendar.isClosing, calendar.canChoose(day),
-              day == composer.day || changeComposerDay(to: day, onSaved: dayAnnouncement(day)) else { return }
-        dayChipCalendar?.choose(day)
-    }
-
     // MARK: - Task Day Calendar
-    /// Opens the floating Day calendar on `task`'s Day, to Move it to another.
-    func showTaskDayCalendar(for task: TodoTask) {
+    /// Opens the floating Day calendar on `task`'s Day, by its row tapped as `origin` says, to Move it to another.
+    func showTaskDayCalendar(for task: TodoTask, from origin: TaskDayCalendarOrigin) {
         let calendar = FloatingDayCalendarState(today: today, day: task.day)
-        taskDayCalendar = TaskDayCalendar(taskID: task.id, calendar: calendar)
+        taskDayCalendar = TaskDayCalendar(taskID: task.id, origin: origin, calendar: calendar)
     }
 
     /// Moves the Task to the end of `day`, unless it's there already or the calendar or the move rule refuses it.
@@ -376,6 +338,14 @@ extension ScheduleViewModel {
         dayPicker?.isVisible = true
     }
 
+    /// Shows the Day picker on the composer's Day, to step it to another.
+    func showComposerDayPicker() {
+        // Dropped here rather than left to the sheet, so the keyboard reliably goes down while it's open.
+        composer.isNameFocused = false
+        closeDayChipCalendar()
+        showDayPicker(on: composer.day, from: .composer)
+    }
+
     /// Closes the Day picker and acts on the chosen Day, unless it's the Day the picker opened on: a row's Task moves
     /// to the end of it, and the composer's Day steps to it. VoiceOver says the new Day once a Move is saved.
     func confirmDayPicker() {
@@ -386,12 +356,16 @@ extension ScheduleViewModel {
             guard let task = tasks.first(where: { $0.id == id }) else { return }
             moveToEnd(task, of: day)
         case .composer:
-            changeComposerDay(to: day, onSaved: dayAnnouncement(day))
+            chooseComposerDay(day)
         }
     }
 
-    /// Ends the Day picker once its sheet has closed, however it closed.
+    /// Ends the Day picker once its sheet has closed, however it closed. One opened from the composer gives the name
+    /// field its focus back, and VoiceOver goes back to the Day chip, as when the Day chip calendar closes.
     func dayPickerDidClose() {
+        if dayPickerOrigin == .composer {
+            composer.returnFocusToDayChip(bringingBackKeyboard: true)
+        }
         let id = dayPickerOrigin?.taskID
         dayPicker = nil
         dayPickerOrigin = nil

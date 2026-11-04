@@ -4,8 +4,6 @@ import SwiftUI
 /// The floating Day calendar opened from a Task's row, with what closes it on a touch anywhere else.
 struct TaskDayCalendarOverlayView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
-    /// Where the Task's row was tapped.
-    let origin: TaskDayCalendarOrigin?
     /// What the list shows, between its bars, in the screen's coordinates.
     let listFrame: CGRect
 
@@ -21,9 +19,9 @@ struct TaskDayCalendarOverlayView: View {
                 if vm.taskDayCalendar != nil {
                     backdrop
                 }
-                if let open = vm.taskDayCalendar, let origin {
-                    let row = origin.row.offsetBy(dx: -screenOrigin.x, dy: -screenOrigin.y)
-                    let tap = CGPoint(x: origin.tap.x - screenOrigin.x, y: origin.tap.y - screenOrigin.y)
+                if let open = vm.taskDayCalendar {
+                    let row = open.origin.row.offsetBy(dx: -screenOrigin.x, dy: -screenOrigin.y)
+                    let tap = CGPoint(x: open.origin.tap.x - screenOrigin.x, y: open.origin.tap.y - screenOrigin.y)
                     let space = listFrame.offsetBy(dx: -screenOrigin.x, dy: -screenOrigin.y)
                     let placement = TaskDayCalendarPlacement(row: row, tap: tap, space: space, fullHeight: fullHeight)
                     FloatingDayCalendarView(

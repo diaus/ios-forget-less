@@ -1,15 +1,10 @@
 import FactoryKit
 import SwiftUI
-import Utils
 
 /// The Day chip calendar, with what closes it on a touch anywhere else.
 struct DayChipCalendarOverlayView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let anchors: DayChipCalendarAnchors
-    var isNameFocused: FocusState<Bool>.Binding
-    var isDayChipAccessibilityFocused: AccessibilityFocusState<Bool>.Binding
-    /// Asks the owner to dismiss the composer.
-    let onDismissComposer: () -> Void
 
     /// The widest the calendar grows, so its Days never spread out on a wide screen.
     private let maxWidth: CGFloat = 400
@@ -31,9 +26,9 @@ struct DayChipCalendarOverlayView: View {
                         calendar: binding(keeping: calendar),
                         availableHeight: composer.maxY - topMargin,
                         isKeyboardUp: !calendar.hasHiddenKeyboard,
-                        onHideKeyboard: hideKeyboard,
+                        onHideKeyboard: vm.hideKeyboardForDayChipCalendar,
                         onChoose: vm.chooseDayChipCalendarDay,
-                        onClose: close
+                        onClose: vm.closeDayChipCalendarRestoringFocus
                     )
                         .frame(width: min(composer.width, maxWidth))
                         .padding(.leading, composer.minX)
@@ -68,30 +63,11 @@ struct DayChipCalendarOverlayView: View {
                 if let composerFrame, composerFrame.contains(value.startLocation), value.dismissesComposer {
                     // The composer goes too, so the keyboard isn't brought back.
                     vm.closeDayChipCalendar()
-                    onDismissComposer()
+                    vm.requestComposerDismissal()
                 } else {
-                    close()
+                    vm.closeDayChipCalendarRestoringFocus()
                 }
             }
-    }
-
-    // MARK: - Actions
-    /// Closes the calendar, bringing back the keyboard it hid.
-    private func close() {
-        let hasHiddenKeyboard = vm.dayChipCalendar?.hasHiddenKeyboard ?? false
-        vm.closeDayChipCalendar()
-        if hasHiddenKeyboard {
-            isNameFocused.wrappedValue = true
-        }
-        // VoiceOver goes back to where the calendar opened from, rather than wherever the vanished calendar leaves it.
-        isDayChipAccessibilityFocused.wrappedValue = true
-    }
-
-    /// Takes the keyboard down to make room, and keeps it down until the calendar closes, so the calendar never
-    /// bounces as it refits.
-    private func hideKeyboard() {
-        vm.dayChipCalendar?.recordHiddenKeyboard()
-        UIApplication.shared.resignFocus()
     }
 
     // MARK: - Helpers

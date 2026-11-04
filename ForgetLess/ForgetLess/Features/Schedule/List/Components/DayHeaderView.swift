@@ -6,8 +6,6 @@ import SwiftUI
 struct DayHeaderView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let scheduleDay: Schedule.Day
-    /// Asks the owner to show the composer on this Day, to add a Task.
-    let onAdd: () -> Void
 
     var body: some View {
         let header = scheduleDay.day.dayHeader(today: vm.today)
@@ -16,7 +14,7 @@ struct DayHeaderView: View {
                 .italic(scheduleDay.startsMonth)
                 .underline(scheduleDay.startsMonth)
             Spacer()
-            Button(action: onAdd) {
+            Button { vm.showComposer(on: scheduleDay.day, from: .day(scheduleDay.day)) } label: {
                 Image(systemName: "plus")
             }
             // Only the "+" takes the tap, not the whole header.
@@ -32,5 +30,5 @@ struct DayHeaderView: View {
 }
 
 #Preview(traits: .sizeThatFitsLayout) {
-    DayHeaderView(scheduleDay: Schedule(tasks: [.previewIncomplete], today: .today).days[0]) {}
+    DayHeaderView(scheduleDay: Schedule(tasks: [.previewIncomplete], today: .today).days[0])
 }

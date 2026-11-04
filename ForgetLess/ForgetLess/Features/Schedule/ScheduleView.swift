@@ -6,11 +6,6 @@ import SwiftUI
 struct ScheduleView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @Environment(\.scenePhase) private var scenePhase
-    @FocusState private var isComposerNameFocused: Bool
-    @AccessibilityFocusState private var isDayChipAccessibilityFocused: Bool
-    @State private var isConfirmingDiscard = false
-    /// Where the row was tapped that opened the floating Day calendar last.
-    @State private var taskDayCalendarOrigin: TaskDayCalendarOrigin?
     /// What the list shows, between its bars, which the floating Day calendar opened from a row keeps within.
     @State private var listFrame: CGRect = .zero
 
@@ -25,16 +20,11 @@ struct ScheduleView: View {
         }
         // Over the composer rather than in it, so the calendar can use the space above it.
         .overlayPreferenceValue(DayChipCalendarAnchorsKey.self) { anchors in
-            DayChipCalendarOverlayView(
-                anchors: anchors,
-                isNameFocused: $isComposerNameFocused,
-                isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused,
-                onDismissComposer: requestComposerDismissal
-            )
+            DayChipCalendarOverlayView(anchors: anchors)
         }
         // Over everything, the add button included, so a touch anywhere else only closes it.
         .overlay {
-            TaskDayCalendarOverlayView(origin: taskDayCalendarOrigin, listFrame: listFrame)
+            TaskDayCalendarOverlayView(listFrame: listFrame)
         }
         // Restarts on a new Today and on coming back, when a fresh fetch also picks up changes made outside the app.
         .task(id: ScheduleObservation(today: vm.today, isActive: scenePhase == .active)) {
@@ -52,7 +42,7 @@ struct ScheduleView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
             vm.refresh()
         }
-        .sheet(isPresented: isDayPickerPresented, onDismiss: dayPickerDidClose) {
+        .sheet(isPresented: isDayPickerPresented, onDismiss: vm.dayPickerDidClose) {
             DayPickerView()
                 .presentationDetents([.medium, .large])
         }
@@ -82,30 +72,26 @@ struct ScheduleView: View {
         Color.black.opacity(vm.composer.isVisible ? 0.3 : 0)
             .ignoresSafeArea()
             .allowsHitTesting(vm.composer.isVisible)
-            .onTapGesture(perform: requestComposerDismissal)
+            .onTapGesture(perform: vm.requestComposerDismissal)
             .animation(.easeOut(duration: 0.2), value: vm.composer.isVisible)
     }
 
     private var composerPanel: some View {
-        // Mounted while hidden, so its field can take focus in the same action that shows it and the keyboard
-        // starts in the same frame. Opacity, not removal or `.hidden()`: the field stays focusable while hidden.
-        ComposerView(
-            isNameFocused: $isComposerNameFocused,
-            isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused,
-            onDismiss: requestComposerDismissal
-        )
-        .opacity(vm.composer.isVisible ? 1 : 0)
-        .allowsHitTesting(vm.composer.isVisible)
-        .accessibilityHidden(!vm.composer.isVisible)
-        // An alert, not a confirmation dialog: as a popover, iOS 27 hides the dialog's Keep Editing.
-        .alert(Text(.composerDiscardChanges), isPresented: $isConfirmingDiscard) {
-            Button(role: .destructive, action: dismissComposer) { Text(.composerDiscard) }
-            Button(role: .cancel, action: keepEditing) { Text(.composerKeepEditing) }
-        }
+        // Mounted while hidden, so its field can take focus in the same update that shows it and the keyboard starts
+        // in the same frame. Opacity, not removal or `.hidden()`: the field stays focusable while hidden.
+        ComposerView()
+            .opacity(vm.composer.isVisible ? 1 : 0)
+            .allowsHitTesting(vm.composer.isVisible)
+            .accessibilityHidden(!vm.composer.isVisible)
+            // An alert, not a confirmation dialog: as a popover, iOS 27 hides the dialog's Keep Editing.
+            .alert(Text(.composerDiscardChanges), isPresented: $vm.composer.isConfirmingDiscard) {
+                Button(role: .destructive, action: vm.dismissComposer) { Text(.composerDiscard) }
+                Button(role: .cancel) { vm.composer.keepEditing() } label: { Text(.composerKeepEditing) }
+            }
     }
 
     private var addFloatingButton: some View {
-        Button { showComposer(on: vm.today, from: .floating) } label: {
+        Button { vm.showComposer(on: vm.today, from: .floating) } label: {
             Image(systemName: "plus")
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(.white)
@@ -122,75 +108,18 @@ struct ScheduleView: View {
     private var scheduleList: some View {
         // A wrapped view gets no safe area of its own, so it's read here and passed in. The list runs under the bar.
         GeometryReader { proxy in
-            ScheduleListView(
-                safeAreaInsets: proxy.safeAreaInsets,
-                onAdd: { day in showComposer(on: day, from: .day(day)) },
-                onEdit: showComposer(editing:),
-                onChooseDay: showTaskDayCalendar
-            )
-            .ignoresSafeArea()
-            // A Task completed while Complete Tasks are hidden leaves when its grace period ends.
-            .animation(.default, value: vm.keptTaskIDs)
+            ScheduleListView(safeAreaInsets: proxy.safeAreaInsets)
+                .ignoresSafeArea()
+                // A Task completed while Complete Tasks are hidden leaves when its grace period ends.
+                .animation(.default, value: vm.keptTasks.ids)
         }
         // Already between the bars, though its safe area still names them for the list that runs under them.
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { listFrame = $0 }
     }
 
-    // MARK: - Actions
-    private func showComposer(on day: Date, from opener: ComposerOpener) {
-        vm.showComposer(on: day, from: opener)
-        focusComposer()
-    }
-
-    private func showComposer(editing task: TodoTask) {
-        vm.showComposer(editing: task)
-        focusComposer()
-    }
-
-    private func showTaskDayCalendar(for task: TodoTask, from origin: TaskDayCalendarOrigin) {
-        taskDayCalendarOrigin = origin
-        vm.showTaskDayCalendar(for: task)
-    }
-
-    /// Called in the same action that shows the panel, so the keyboard starts in the same frame.
-    private func focusComposer() {
-        isComposerNameFocused = true
-    }
-
-    /// Dismisses the composer, first asking whether to discard any change.
-    private func requestComposerDismissal() {
-        if vm.composer.hasChanges {
-            // The panel stays up behind the alert; only the keyboard goes.
-            isComposerNameFocused = false
-            isConfirmingDiscard = true
-        } else {
-            dismissComposer()
-        }
-    }
-
-    /// Ends the Day picker; one opened from the composer gives the name field its focus back.
-    private func dayPickerDidClose() {
-        let isFromComposer = vm.dayPickerOrigin == .composer
-        vm.dayPickerDidClose()
-        if isFromComposer {
-            isComposerNameFocused = true
-            // VoiceOver goes back to the Day chip, as when the Day chip calendar closes.
-            isDayChipAccessibilityFocused = true
-        }
-    }
-
-    private func keepEditing() {
-        isComposerNameFocused = true
-    }
-
-    private func dismissComposer() {
-        vm.dismissComposer()
-        isComposerNameFocused = false
-    }
-
     // MARK: - Helpers
-    /// Bound by hand: the picker's state is `nil` while it's closed.
     private var isDayPickerPresented: Binding<Bool> {
+        // Bound by hand: the picker's state is `nil` while it's closed.
         Binding { vm.dayPicker?.isVisible ?? false } set: { vm.dayPicker?.isVisible = $0 }
     }
 

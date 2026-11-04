@@ -4,10 +4,9 @@ import SwiftUI
 /// The quick-add panel for Tasks, which also edits one: renames it, or Moves it to another Day.
 struct ComposerView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
-    var isNameFocused: FocusState<Bool>.Binding
-    var isDayChipAccessibilityFocused: AccessibilityFocusState<Bool>.Binding
-    /// Asks the owner to dismiss the panel.
-    let onDismiss: () -> Void
+    // Focus state lives only in a view; it follows the view model's, which says where focus goes.
+    @FocusState private var isNameFocused: Bool
+    @AccessibilityFocusState private var isDayChipAccessibilityFocused: Bool
 
     // Animated reset, so a drag short of dismissing settles back instead of jumping.
     @GestureState(resetTransaction: Transaction(animation: .spring)) private var dragOffset: CGFloat = 0
@@ -39,7 +38,10 @@ struct ComposerView: View {
             TextField(text: $vm.composer.taskName, prompt: Text(.composerTaskName)) {
                 Text(.composerTaskName)
             }
-            .focused(isNameFocused)
+            .focused($isNameFocused)
+            // In step with the view model both ways, so it also learns of focus the field loses on its own.
+            .onChange(of: vm.composer.isNameFocused, initial: true) { isNameFocused = vm.composer.isNameFocused }
+            .onChange(of: isNameFocused) { vm.composer.isNameFocused = isNameFocused }
             // The Twitter layout has no Return key, so ▶ is the only submit on the software keyboard.
             .keyboardType(.twitter)
             .onSubmit(submit)
@@ -63,9 +65,10 @@ struct ComposerView: View {
         .gesture(dismissDrag)
         // A container, so VoiceOver's escape (two-finger scrub) from any of its elements dismisses, like the drag.
         .accessibilityElement(children: .contain)
-        .accessibilityAction(.escape, onDismiss)
+        .accessibilityAction(.escape, vm.requestComposerDismissal)
         // Typing goes straight back to the name field.
         .onChange(of: vm.composer.taskName) { vm.closeDayChipCalendar() }
+        .onChange(of: vm.composer.dayChipAccessibilityFocusCount) { isDayChipAccessibilityFocused = true }
     }
 
     // MARK: - UI Components
@@ -106,8 +109,8 @@ struct ComposerView: View {
             // A double-tap opens the calendar, as a tap does, while swiping up or down still steps.
             .accessibilityAction(.default, vm.toggleDayChipCalendar)
             // VoiceOver's way to the long press, which it can't make.
-            .accessibilityAction(named: Text(.taskChooseDay), showDayPicker)
-            .accessibilityFocused(isDayChipAccessibilityFocused)
+            .accessibilityAction(named: Text(.taskChooseDay), vm.showComposerDayPicker)
+            .accessibilityFocused($isDayChipAccessibilityFocused)
             .accessibilityAdjustableAction { direction in
                 switch direction {
                 case .increment: stepDay(forward: true)
@@ -135,24 +138,10 @@ struct ComposerView: View {
         }
     }
 
-    private func showDayPicker() {
-        // Dropped here rather than left to the sheet, so the keyboard reliably goes down while it's open.
-        isNameFocused.wrappedValue = false
-        vm.closeDayChipCalendar()
-        vm.showDayPicker(on: vm.composer.day, from: .composer)
-    }
-
     private func submit() {
-        vm.closeDayChipCalendar()
-        switch vm.submitComposer() {
-        case .added:
-            // Return would otherwise drop focus, and the panel stays up for the next Task.
-            isNameFocused.wrappedValue = true
-        case .renamed:
-            onDismiss()
-        case nil:
-            break
-        }
+        vm.submitComposer()
+        // Within the action, as Return drops focus right after it; the view model's focus hasn't changed to say so.
+        isNameFocused = vm.composer.isNameFocused
     }
 
     // MARK: - Gestures
@@ -164,7 +153,7 @@ struct ComposerView: View {
             }
             .onEnded { value in
                 if !isDayPickerOpen, value.dismissesComposer {
-                    onDismiss()
+                    vm.requestComposerDismissal()
                 }
             }
     }
@@ -175,7 +164,7 @@ struct ComposerView: View {
         LongPressGesture(minimumDuration: dayPickerPressDuration, maximumDistance: dayPickerPressDistance)
             .onEnded { _ in
                 dayPickerPressCount += 1
-                showDayPicker()
+                vm.showComposerDayPicker()
             }
             .exclusively(before: TapGesture().onEnded { vm.toggleDayChipCalendar() })
     }
@@ -197,16 +186,12 @@ struct ComposerView: View {
 }
 
 #Preview("Adding") {
-    @Previewable @FocusState var isNameFocused: Bool
-    @Previewable @AccessibilityFocusState var isDayChipAccessibilityFocused: Bool
-    ComposerView(isNameFocused: $isNameFocused, isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused) {}
+    ComposerView()
         .frame(maxHeight: .infinity, alignment: .bottom)
 }
 
 #Preview("Editing") {
-    @Previewable @FocusState var isNameFocused: Bool
-    @Previewable @AccessibilityFocusState var isDayChipAccessibilityFocused: Bool
-    ComposerView(isNameFocused: $isNameFocused, isDayChipAccessibilityFocused: $isDayChipAccessibilityFocused) {}
+    ComposerView()
         .frame(maxHeight: .infinity, alignment: .bottom)
         // The view resolves the same shared view model.
         .onAppear { Container.shared.scheduleViewModel().showComposer(editing: .previewIncomplete) }
