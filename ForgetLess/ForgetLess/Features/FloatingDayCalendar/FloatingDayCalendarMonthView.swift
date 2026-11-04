@@ -76,7 +76,7 @@ struct FloatingDayCalendarMonthView: View {
                     canChoose: calendar.canChoose(day),
                     isToday: calendar.today == day,
                     isInMonth: day.isInSameMonth(as: month.firstDay),
-                    incompleteTaskCount: vm.scheduleTasks.incompleteTaskCountsByDay[day] ?? 0,
+                    incompleteTaskCount: vm.scheduleTasks.incompleteTaskCount(on: day),
                     rowHeight: rowHeight
                 ) { onChoose(day) }
                 .frame(maxWidth: .infinity)

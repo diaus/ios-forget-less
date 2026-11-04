@@ -92,7 +92,7 @@ struct DayPickerView: View {
                             canChoose: dayPicker.canChoose(day),
                             isToday: dayPicker.today == day,
                             isInMonth: true,
-                            incompleteTaskCount: vm.scheduleTasks.incompleteTaskCountsByDay[day] ?? 0,
+                            incompleteTaskCount: vm.scheduleTasks.incompleteTaskCount(on: day),
                             rowHeight: PickerDayView.fullRowHeight
                         ) { vm.dayPicker?.choose(day) }
                     } else {
@@ -119,7 +119,7 @@ struct DayPickerView: View {
     private func summaryLine(_ dayPicker: DayPickerState) -> some View {
         Group {
             if let day = dayPicker.chosenDay {
-                let incompleteTaskCount = vm.scheduleTasks.incompleteTaskCountsByDay[day] ?? 0
+                let incompleteTaskCount = vm.scheduleTasks.incompleteTaskCount(on: day)
                 let taskCount = String(localized: .dayPickerTaskCount(count: incompleteTaskCount))
                 Text(.dayPickerSummary(
                     weekday: day.shortWeekday, day: day.shortDate(today: dayPicker.today), taskCount: taskCount

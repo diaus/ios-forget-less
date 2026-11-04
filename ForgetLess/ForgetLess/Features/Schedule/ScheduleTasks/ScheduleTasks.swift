@@ -32,6 +32,10 @@ struct ScheduleTasks {
         relist()
     }
 
+    func incompleteTaskCount(on day: Date) -> Int {
+        incompleteTaskCountsByDay[day] ?? 0
+    }
+
     mutating func relist() {
         let listing = listing()
         schedule = Schedule(
