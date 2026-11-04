@@ -100,7 +100,7 @@ struct ComposerView: View {
             .simultaneousGesture(dayStepSwipe)
             .sensoryFeedback(.selection, trigger: dayStepCount)
             .sensoryFeedback(.impact(weight: .medium), trigger: dayPickerPressCount)
-            .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.5), trigger: refusedDayStepCount)
+            .sensoryFeedback(.refusal, trigger: refusedDayStepCount)
             .accessibilityElement()
             .accessibilityLabel(Text(.composerDay))
             .accessibilityValue(label)

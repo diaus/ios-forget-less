@@ -146,7 +146,7 @@ struct FloatingDayCalendarView: View {
             instant.disablesAnimations = true
             withTransaction(instant) { position.scrollTo(id: offset) }
         }
-        .sensoryFeedback(.impact(flexibility: .rigid, intensity: 0.5), trigger: refusedPageCount)
+        .sensoryFeedback(.refusal, trigger: refusedPageCount)
     }
 
     private var buttons: some View {
