@@ -1,6 +1,6 @@
 import Foundation
 
-// In its own file, so the view model's stays within SwiftLint's length. It needs nothing private to the view model.
+// One file per Day chooser. Each gives its Day through the view model's shared Day chooser.
 extension ScheduleViewModel {
     // MARK: - Day Chip Calendar
     /// Opens the Day chip calendar on the composer's Day, or closes it when it's open.
@@ -35,9 +35,7 @@ extension ScheduleViewModel {
     /// Sets the composer to `day` as a step does, unless the Day chip calendar or the move rule refuses it. VoiceOver
     /// says an edited Task's new Day once its Move is saved.
     func chooseDayChipCalendarDay(_ day: Date) {
-        // Checked before the calendar draws the choice, so a refused Move shows nothing chosen.
-        guard let calendar = dayChipCalendar, !calendar.isClosing, calendar.canChoose(day),
-              day == composer.day || chooseComposerDay(day) else { return }
+        guard choose(day, in: dayChipCalendar, for: .composer) else { return }
         dayChipCalendar?.choose(day)
     }
 }

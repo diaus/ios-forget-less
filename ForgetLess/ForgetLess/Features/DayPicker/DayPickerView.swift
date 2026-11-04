@@ -92,7 +92,7 @@ struct DayPickerView: View {
                             canChoose: dayPicker.canChoose(day),
                             isToday: dayPicker.today == day,
                             isInMonth: true,
-                            incompleteTaskCount: vm.incompleteTaskCountsByDay[day] ?? 0,
+                            incompleteTaskCount: vm.scheduleTasks.incompleteTaskCountsByDay[day] ?? 0,
                             rowHeight: PickerDayView.fullRowHeight
                         ) { vm.dayPicker?.choose(day) }
                     } else {
@@ -119,7 +119,8 @@ struct DayPickerView: View {
     private func summaryLine(_ dayPicker: DayPickerState) -> some View {
         Group {
             if let day = dayPicker.chosenDay {
-                let taskCount = String(localized: .dayPickerTaskCount(count: vm.incompleteTaskCountsByDay[day] ?? 0))
+                let incompleteTaskCount = vm.scheduleTasks.incompleteTaskCountsByDay[day] ?? 0
+                let taskCount = String(localized: .dayPickerTaskCount(count: incompleteTaskCount))
                 Text(.dayPickerSummary(
                     weekday: day.shortWeekday, day: day.shortDate(today: dayPicker.today), taskCount: taskCount
                 ))
@@ -138,6 +139,6 @@ struct DayPickerView: View {
         // The view resolves the same shared view model.
         .onAppear {
             let task = TodoTask.previewTomorrow
-            Container.shared.scheduleViewModel().showDayPicker(on: task.day, from: .taskRow(task.id))
+            Container.shared.scheduleViewModel().showDayPicker(on: task.day, for: .task(task.id))
         }
 }

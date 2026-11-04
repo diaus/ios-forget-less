@@ -5,14 +5,17 @@ import Foundation
 struct DayPickerState {
     var isVisible = false
     private(set) var today: Date
+    /// What the Day it confirms is for.
+    let target: DayChoiceTarget
     private let openedDay: Date
     /// `nil` while nothing is chosen.
     private(set) var chosenDay: Date?
 
-    /// Opens on `day`, or with nothing chosen when `day` is before Today.
-    init(day: Date, today: Date) {
+    /// Opens on `day`, the Day of `target`, or with nothing chosen when `day` is before Today.
+    init(day: Date, today: Date, target: DayChoiceTarget) {
         self.openedDay = day
         self.today = today
+        self.target = target
         self.chosenDay = day.canBePlanned(today: today) ? day : nil
     }
 

@@ -73,10 +73,10 @@ struct TaskRowView: View {
     @ViewBuilder private var moveActions: some View {
         // In reverse, as VoiceOver lists them: Move Up first.
         if vm.movesTasks {
-            if let destination = vm.schedule.destinationOneStepDown(for: task) {
+            if let destination = vm.scheduleTasks.schedule.destinationOneStepDown(for: task) {
                 Button { vm.moveAnnouncingDay(task, to: destination) } label: { Text(.taskMoveDown) }
             }
-            if let destination = vm.schedule.destinationOneStepUp(for: task) {
+            if let destination = vm.scheduleTasks.schedule.destinationOneStepUp(for: task) {
                 Button { vm.moveAnnouncingDay(task, to: destination) } label: { Text(.taskMoveUp) }
             }
         }

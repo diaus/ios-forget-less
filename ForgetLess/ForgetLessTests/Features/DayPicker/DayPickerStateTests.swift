@@ -10,21 +10,21 @@ struct DayPickerStateTests {
 
     @Test(arguments: [0, 1, 40])
     func itOpensWithItsDayChosen(dayCount: Int) {
-        let picker = DayPickerState(day: today.addingDays(dayCount), today: today)
+        let picker = DayPickerState(day: today.addingDays(dayCount), today: today, target: .composer)
 
         #expect(picker.chosenDay == today.addingDays(dayCount))
     }
 
     @Test(arguments: [-1, -30])
     func itOpensWithNothingChosenOnADayBeforeToday(dayCount: Int) {
-        let picker = DayPickerState(day: today.addingDays(dayCount), today: today)
+        let picker = DayPickerState(day: today.addingDays(dayCount), today: today, target: .composer)
 
         #expect(picker.chosenDay == nil)
     }
 
     @Test(arguments: [0, 1, 400])
     func aDayFromTodayOnIsChosen(dayCount: Int) {
-        var picker = DayPickerState(day: today.addingDays(5), today: today)
+        var picker = DayPickerState(day: today.addingDays(5), today: today, target: .composer)
 
         picker.choose(today.addingDays(dayCount))
 
@@ -34,7 +34,7 @@ struct DayPickerStateTests {
 
     @Test(arguments: [-1, -30])
     func aDayBeforeTodayIsRefused(dayCount: Int) {
-        var picker = DayPickerState(day: today.addingDays(5), today: today)
+        var picker = DayPickerState(day: today.addingDays(5), today: today, target: .composer)
 
         picker.choose(today.addingDays(dayCount))
 
@@ -43,7 +43,7 @@ struct DayPickerStateTests {
     }
 
     @Test func aNewTodayClearsAChosenDayItLeavesBeforeIt() {
-        var picker = DayPickerState(day: today.addingDays(5), today: today)
+        var picker = DayPickerState(day: today.addingDays(5), today: today, target: .composer)
         picker.choose(today)
 
         picker.update(today: today.addingDays(1))
@@ -54,7 +54,7 @@ struct DayPickerStateTests {
 
     @Test(arguments: [1, 5])
     func aNewTodayKeepsAChosenDayOnOrAfterIt(dayCount: Int) {
-        var picker = DayPickerState(day: today.addingDays(5), today: today)
+        var picker = DayPickerState(day: today.addingDays(5), today: today, target: .composer)
         picker.choose(today.addingDays(dayCount))
 
         picker.update(today: today.addingDays(1))
@@ -63,7 +63,7 @@ struct DayPickerStateTests {
     }
 
     @Test func theChosenDayIsTheDayToMoveTo() {
-        var picker = DayPickerState(day: today.addingDays(5), today: today)
+        var picker = DayPickerState(day: today.addingDays(5), today: today, target: .composer)
 
         picker.choose(today.addingDays(2))
 
@@ -71,13 +71,13 @@ struct DayPickerStateTests {
     }
 
     @Test func thereIsNoDayToMoveToWhileNothingIsChosen() {
-        let picker = DayPickerState(day: today.addingDays(-3), today: today)
+        let picker = DayPickerState(day: today.addingDays(-3), today: today, target: .composer)
 
         #expect(picker.dayToMove == nil)
     }
 
     @Test func thereIsNoDayToMoveToOnTheDayItOpenedOn() {
-        var picker = DayPickerState(day: today.addingDays(5), today: today)
+        var picker = DayPickerState(day: today.addingDays(5), today: today, target: .composer)
         #expect(picker.dayToMove == nil)
 
         picker.choose(today)

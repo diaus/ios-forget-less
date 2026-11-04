@@ -304,7 +304,7 @@ extension ScheduleListController {
             self?.confirmDeletion(of: id)
         } onChooseDay: { [weak self] in
             if let task = self?.tasks[id] {
-                self?.vm.showDayPicker(on: task.day, from: .taskRow(task.id))
+                self?.vm.showDayPicker(on: task.day, for: .task(task.id))
             }
         }
     }

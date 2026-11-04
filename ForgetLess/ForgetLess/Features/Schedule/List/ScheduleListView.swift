@@ -20,7 +20,7 @@ struct ScheduleListView: UIViewRepresentable {
         // Read here, so SwiftUI updates the list when they change. Animated only when SwiftUI animates the change, as
         // its `List` did.
         context.coordinator.show(
-            vm.schedule,
+            vm.scheduleTasks.schedule,
             today: vm.today,
             movesTasks: vm.movesTasks,
             animated: context.transaction.animation != nil
