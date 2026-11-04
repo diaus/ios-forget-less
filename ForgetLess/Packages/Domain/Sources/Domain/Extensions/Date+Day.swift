@@ -86,7 +86,7 @@ public extension Date {
         Calendar.gmt.component(.day, from: self) == 1
     }
 
-    internal static let daysPerWeek = 7
+    static let daysPerWeek = 7
 
     /// How many Days of its week come before this Day, for weeks that start on `firstWeekday`.
     internal func dayCountIntoWeek(firstWeekday: Int) -> Int {

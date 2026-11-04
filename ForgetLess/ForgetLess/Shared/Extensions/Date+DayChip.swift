@@ -16,24 +16,23 @@ enum DayChipCategory {
 extension Date {
     // MARK: - Category
     func dayChipCategory(today: Date) -> DayChipCategory {
-        switch dayCount(from: today) {
-        case ..<0: .past
-        case 0: .today
-        case 1: .tomorrow
-        case ..<7: .weekday
-        default: .later
+        switch relativeDay(today: today) {
+        case .beforeToday: .past
+        case .today: .today
+        case .tomorrow: .tomorrow
+        case .later: dayCount(from: today) < Date.daysPerWeek ? .weekday : .later
         }
     }
 
     // MARK: - Label
     func dayChipLabel(today: Date) -> String {
-        switch dayChipCategory(today: today) {
-        case .today: String(localized: .dayToday)
-        case .tomorrow: String(localized: .dayTomorrow)
-        // The weekday is the whole label, so it's capitalised as a sentence's first word.
-        case .weekday: weekday(capitalizationContext: .beginningOfSentence)
-        case .later, .past: shortDate(today: today)
+        if let relativeName = relativeName(today: today) {
+            return relativeName
         }
+        // The weekday is the whole label, so it's capitalised as a sentence's first word.
+        return dayChipCategory(today: today) == .weekday
+            ? weekday(capitalizationContext: .beginningOfSentence)
+            : shortDate(today: today)
     }
 
     // MARK: - Colour

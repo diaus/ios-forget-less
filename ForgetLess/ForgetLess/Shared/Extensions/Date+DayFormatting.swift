@@ -16,10 +16,10 @@ extension Date {
     // MARK: - Relative Name
     /// This Day in a word when it has one: Today, Tomorrow, or `nil` for any other Day.
     func relativeName(today: Date) -> String? {
-        switch dayChipCategory(today: today) {
+        switch relativeDay(today: today) {
         case .today: String(localized: .dayToday)
         case .tomorrow: String(localized: .dayTomorrow)
-        case .weekday, .later, .past: nil
+        case .beforeToday, .later: nil
         }
     }
 
