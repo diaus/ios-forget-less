@@ -34,13 +34,14 @@ struct DayChipCalendarOverlayView: View {
                         .padding(.leading, composer.minX)
                         // Covers the composer, for the most height for its month.
                         .frame(width: proxy.size.width, height: composer.maxY, alignment: .bottomLeading)
-                        .transition(
-                            .scale(scale: 0.1, anchor: chipCorner(chip, in: proxy.size, above: composer.maxY))
-                                .combined(with: .opacity)
-                        )
+                        // From the chip's corner, in the calendar's frame, which ends at the composer's bottom.
+                        .transition(FloatingDayCalendarView.transition(
+                            growingFrom: CGPoint(x: chip.minX, y: chip.maxY),
+                            in: CGSize(width: proxy.size.width, height: composer.maxY)
+                        ))
                 }
             }
-            .animation(.snappy(duration: 0.25), value: vm.dayChipCalendar == nil)
+            .animation(FloatingDayCalendarView.appearanceAnimation, value: vm.dayChipCalendar == nil)
         }
         .coordinateSpace(.named(coordinateSpaceName))
     }
@@ -79,10 +80,5 @@ struct DayChipCalendarOverlayView: View {
                 vm.dayChipCalendar = newValue
             }
         }
-    }
-
-    /// Where the calendar grows from and shrinks back into.
-    private func chipCorner(_ chip: CGRect, in size: CGSize, above bottom: CGFloat) -> UnitPoint {
-        UnitPoint(x: chip.minX / max(size.width, 1), y: chip.maxY / max(bottom, 1))
     }
 }

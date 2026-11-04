@@ -39,12 +39,10 @@ struct TaskDayCalendarOverlayView: View {
                     .padding(.leading, placement.frame.minX)
                     .padding(.top, placement.frame.minY)
                     .frame(width: proxy.size.width, height: proxy.size.height, alignment: .topLeading)
-                    .transition(
-                        .scale(scale: 0.1, anchor: unitPoint(tap, in: proxy.size)).combined(with: .opacity)
-                    )
+                    .transition(FloatingDayCalendarView.transition(growingFrom: tap, in: proxy.size))
                 }
             }
-            .animation(.snappy(duration: 0.25), value: vm.taskDayCalendar == nil)
+            .animation(FloatingDayCalendarView.appearanceAnimation, value: vm.taskDayCalendar == nil)
         }
         .ignoresSafeArea()
     }
@@ -62,9 +60,5 @@ struct TaskDayCalendarOverlayView: View {
     /// no change.
     private func binding(keeping calendar: FloatingDayCalendarState) -> Binding<FloatingDayCalendarState> {
         Binding { vm.taskDayCalendar?.calendar ?? calendar } set: { vm.taskDayCalendar?.calendar = $0 }
-    }
-
-    private func unitPoint(_ point: CGPoint, in size: CGSize) -> UnitPoint {
-        UnitPoint(x: point.x / max(size.width, 1), y: point.y / max(size.height, 1))
     }
 }

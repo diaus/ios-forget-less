@@ -211,3 +211,16 @@ struct FloatingDayCalendarView: View {
         )
     }
 }
+
+extension FloatingDayCalendarView {
+    /// How the calendar comes and goes as it opens and closes.
+    static var appearanceAnimation: Animation {
+        .snappy(duration: 0.25)
+    }
+
+    /// The calendar growing from `point`, in a frame of `size`, as it opens, and shrinking back into it as it closes.
+    static func transition(growingFrom point: CGPoint, in size: CGSize) -> AnyTransition {
+        let anchor = UnitPoint(x: point.x / max(size.width, 1), y: point.y / max(size.height, 1))
+        return .scale(scale: 0.1, anchor: anchor).combined(with: .opacity)
+    }
+}
