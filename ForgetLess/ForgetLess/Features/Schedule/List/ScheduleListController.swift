@@ -112,7 +112,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         let changedIDs = [highlightedTaskID, id].compactMap { $0 }
         highlightedTaskID = id
         for changedID in changedIDs {
-            dataSource?.indexPath(for: changedID).flatMap(collectionView.cellForItem)?.setNeedsUpdateConfiguration()
+            visibleCell(for: changedID)?.setNeedsUpdateConfiguration()
         }
     }
 
@@ -264,11 +264,16 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
     private func canStartOrContinueMove(_ id: TodoTask.ID) -> Bool {
         guard movesTasks else { return false }
-        let row = dataSource?.indexPath(for: id).flatMap { collectionView.cellForItem(at: $0) } as? TaskRowCell
+        let row = visibleCell(for: id) as? TaskRowCell
         return rowMove.taskID == id || row?.isHandleTouched == true
     }
 
     // MARK: - Helpers
+    /// The row of the Task with `id`, or `nil` while it's off screen.
+    private func visibleCell(for id: TodoTask.ID) -> UICollectionViewCell? {
+        dataSource?.indexPath(for: id).flatMap(collectionView.cellForItem)
+    }
+
     /// Whether two snapshots hold the same sections, each with the same rows in the same order.
     private static func sameRows(
         _ snapshot: NSDiffableDataSourceSnapshot<Section, TodoTask.ID>,
@@ -291,8 +296,7 @@ extension ScheduleListController {
 
     /// Opens the Task's floating Day calendar from its row, which only the list can place on screen.
     private func chooseDay(_ id: TodoTask.ID) {
-        guard let task = tasks[id], let indexPath = dataSource?.indexPath(for: id),
-              let cell = collectionView.cellForItem(at: indexPath) as? TaskRowCell else { return }
+        guard let task = tasks[id], let cell = visibleCell(for: id) as? TaskRowCell else { return }
         let row = cell.convert(cell.bounds, to: nil)
         let tap = cell.lastTouchLocation ?? CGPoint(x: row.midX, y: row.midY)
         vm.showTaskDayCalendar(for: task, from: TaskDayCalendarOrigin(row: row, tap: tap))
@@ -311,8 +315,7 @@ extension ScheduleListController {
 
     private func confirmDeletion(of id: TodoTask.ID) {
         guard let task = tasks[id],
-              let indexPath = dataSource?.indexPath(for: id),
-              let cell = collectionView.cellForItem(at: indexPath),
+              let cell = visibleCell(for: id),
               var presenter = collectionView.window?.rootViewController else { return }
         while let presented = presenter.presentedViewController {
             presenter = presented
