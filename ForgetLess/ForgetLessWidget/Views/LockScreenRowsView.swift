@@ -3,8 +3,8 @@ import UIKit
 import Utils
 import WidgetKit
 
-/// The Tasks the widget lists, in the Schedule's order.
-struct UpcomingRowsView: View {
+/// The Tasks the Lock Screen widget lists, in the Schedule's order.
+struct LockScreenRowsView: View {
     let rows: [UpcomingRow]
     let cutEnding: CutEnding
 
@@ -17,7 +17,7 @@ struct UpcomingRowsView: View {
     var body: some View {
         GeometryReader { proxy in
             let rowHeight = proxy.size.height / CGFloat(Self.columnRowCount)
-            let font = UIFont.systemFont(ofSize: Self.fontSize(fittingRowHeight: rowHeight))
+            let font = UIFont.systemFont(ofSize: UIFont.largestSystemFontSize(fittingLineHeight: rowHeight))
             if rows.count <= Self.columnRowCount {
                 column(rows, rowHeight: rowHeight, font: font, cutWidth: nil)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -58,13 +58,6 @@ struct UpcomingRowsView: View {
                     .frame(height: rowHeight)
             }
         }
-    }
-
-    // MARK: - Helpers
-    /// The largest font size whose line fits in `rowHeight`.
-    private static func fontSize(fittingRowHeight rowHeight: CGFloat) -> CGFloat {
-        let lineHeightPerPoint = UIFont.systemFont(ofSize: 100).lineHeight / 100
-        return (rowHeight / lineHeightPerPoint).rounded(.down)
     }
 }
 
@@ -107,5 +100,5 @@ struct UpcomingRowsView: View {
 #Preview("Two columns off, 8 Tasks, the first 4 listed", as: .accessoryRectangular) {
     UpcomingWidget()
 } timeline: {
-    UpcomingWidgetEntry.preview(taskCount: 8, showsTwoColumns: false)
+    UpcomingWidgetEntry.preview(taskCount: 8, rowLimit: UpcomingWidgetContent.columnRowCount)
 }

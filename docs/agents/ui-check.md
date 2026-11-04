@@ -40,6 +40,17 @@ The simulator's Lock Screen can be driven, so a widget check is not skipped for 
 - **Update after a save.** Save in the app, then lock. iOS lets one reload through per foreground session and runs the rest when the app goes to the background, so lock before judging.
 - **Midnight.** Settings has no Date & Time page, so move the simulator's time zone instead. Boot it with a `TZ` whose midnight is a few minutes away: `xcrun simctl shutdown <udid>`, then `SIMCTL_CHILD_TZ=GMT+HHMM xcrun simctl boot <udid>`, then `xcrun simctl bootstatus <udid> -b`. Work out HHMM from `date -u` (a whole number of minutes is fine). Every process then runs in that zone, the Lock Screen clock and the widget extension included, and chronod rebuilds the timeline at boot. `launchctl setenv TZ` doesn't work: it never reaches the widget extension. Lock, take a screenshot after midnight, then boot again without `SIMCTL_CHILD_TZ` to put the Mac's zone back.
 
+- **Its settings sheet.** In the editor, tap the widget through its elementRef (`ForgetLess|Widget` in `snapshot_ui`). A coordinate tap opens the gallery or, once the gallery is closed, lands on the clock's Font & Colour panel.
+
+## Home Screen widget
+
+The small size is checked on the Home Screen the same way: screenshots to see it, `sim-tap.sh` and axe batches to act.
+
+- **Add the widget.** Press `button home` through an axe batch, then long-press an empty spot (about 1.8 s). Tap the edit button at the top left (about 76, 33), then Add Widget, ForgetLess in the list, and the Add Widget button under the sample. Tap the check mark at the top right to leave edit mode.
+- **Its settings sheet.** While the icons jiggle, tap the placed widget. The sheet shows a spinner for up to 15 s before its settings load. Close it by tapping outside it.
+- **Update after a save.** Save in the app, then go Home. The reload runs once the app is in the background.
+- **Tinted and clear looks.** In edit mode, the top-left button's Customise offers Default, Dark, Clear and Tinted. Tinted starts with a grey tint, so drag the hue slider's handle (an axe `swipe`; a tap doesn't move it) to see the accent group stand apart. Choose Default again when done.
+
 ## Time-based states
 
 A check is never skipped because a state needs a past Day or another time. Set it up directly:

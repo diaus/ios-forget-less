@@ -7,21 +7,22 @@ nonisolated enum UpcomingWidgetContent: Hashable {
     case empty
     /// The store couldn't be read.
     case unreadable
-    /// One row per Task, never empty and never more than two columns of `columnRowCount`.
+    /// One row per Task, never empty and never more than `maxRowCount`.
     case rows([UpcomingRow])
 
-    /// The most rows a column holds.
+    /// The most rows a Lock Screen column holds.
     static let columnRowCount = 4
+    /// The most rows the widget lists.
+    static let maxRowCount = 2 * columnRowCount
 
-    /// The rows for `tasks`, given in the Schedule's order, keeping only as many as fit in one column, or in two when
-    /// `showsTwoColumns`.
-    init(tasks: [TodoTask], today: Date, showsTwoColumns: Bool) {
-        guard !tasks.isEmpty else {
+    /// The rows for `tasks`, given in the Schedule's order: the first `rowLimit` of them, which must be at most
+    /// `maxRowCount`. No Task, or a `rowLimit` of 0, gives `.empty`.
+    init(tasks: [TodoTask], today: Date, rowLimit: Int = Self.maxRowCount) {
+        guard !tasks.isEmpty, rowLimit > 0 else {
             self = .empty
             return
         }
-        let maxRowCount = Self.columnRowCount * (showsTwoColumns ? 2 : 1)
-        self = .rows(tasks.prefix(maxRowCount).map { UpcomingRow(task: $0, today: today) })
+        self = .rows(tasks.prefix(rowLimit).map { UpcomingRow(task: $0, today: today) })
     }
 }
 

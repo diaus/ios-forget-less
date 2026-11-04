@@ -22,20 +22,28 @@ struct UpcomingWidgetIntent: WidgetConfigurationIntent {
     @Parameter(title: "widget.cutEnding", default: .empty)
     var cutEnding: CutEnding
 
-    // The truncation mark applies only to two columns, so the settings sheet hides it while they're off.
+    // The Home Screen never shows two columns, so its sheet hides both layout settings. On the Lock Screen, the
+    // cut ending applies only to two columns, so the sheet hides it while they're off.
     static var parameterSummary: some ParameterSummary {
-        When(\.$showsTwoColumns, .equalTo, true) {
+        When(widgetFamily: .equalTo, .systemSmall) {
             Summary {
                 \.$showsOverdueTasks
                 \.$showsTomorrowTasks
-                \.$showsTwoColumns
-                \.$cutEnding
             }
         } otherwise: {
-            Summary {
-                \.$showsOverdueTasks
-                \.$showsTomorrowTasks
-                \.$showsTwoColumns
+            When(\.$showsTwoColumns, .equalTo, true) {
+                Summary {
+                    \.$showsOverdueTasks
+                    \.$showsTomorrowTasks
+                    \.$showsTwoColumns
+                    \.$cutEnding
+                }
+            } otherwise: {
+                Summary {
+                    \.$showsOverdueTasks
+                    \.$showsTomorrowTasks
+                    \.$showsTwoColumns
+                }
             }
         }
     }

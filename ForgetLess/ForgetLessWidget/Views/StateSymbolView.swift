@@ -5,15 +5,20 @@ import WidgetKit
 struct StateSymbolView: View {
     let badgeSystemName: String
 
-    /// The composed symbol's height, as a share of the widget's.
-    private static let heightShare: CGFloat = 2 / 3
+    @Environment(\.widgetFamily) private var family
+
+    /// The composed symbol's height, as a share of the Lock Screen widget's.
+    private static let lockScreenHeightShare: CGFloat = 2 / 3
+    /// The composed symbol's height, as a share of the Home Screen widget's.
+    private static let homeScreenHeightShare: CGFloat = 0.4
     /// The square cut out of the checklist around the badge, as a share of the badge's size.
     private static let gapShare: CGFloat = 1.2
 
     var body: some View {
         GeometryReader { proxy in
             // The badge, as large as the checklist, is centred on its corner, so half of it stands above.
-            let checklistSize = proxy.size.height * Self.heightShare / 1.5
+            let heightShare = family.isOnLockScreen ? Self.lockScreenHeightShare : Self.homeScreenHeightShare
+            let checklistSize = proxy.size.height * heightShare / 1.5
             let badgeSize = checklistSize
             Image(systemName: "checklist.unchecked")
                 .resizable()
@@ -50,6 +55,18 @@ struct StateSymbolView: View {
 }
 
 #Preview("Unreadable", as: .accessoryRectangular) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry(date: .now, content: .unreadable)
+}
+
+#Preview("Home Screen, empty", as: .systemSmall) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry(date: .now, content: .empty)
+}
+
+#Preview("Home Screen, unreadable", as: .systemSmall) {
     UpcomingWidget()
 } timeline: {
     UpcomingWidgetEntry(date: .now, content: .unreadable)

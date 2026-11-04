@@ -8,13 +8,16 @@ extension UpcomingWidgetEntry {
         "Book a haircut", "Fix the bike", "Read a chapter", "Bake bread", "Wash the car", "Post the letter",
     ]
 
-    /// The first `taskCount` sample Tasks, all on Today.
-    static func preview(taskCount count: Int, showsTwoColumns: Bool = true) -> UpcomingWidgetEntry {
+    /// The first `taskCount` sample Tasks, all on Today, listing at most `rowLimit` of them.
+    static func preview(
+        taskCount count: Int,
+        rowLimit: Int = UpcomingWidgetContent.maxRowCount
+    ) -> UpcomingWidgetEntry {
         let today = Date.today
         let tasks = previewNames.prefix(count).enumerated().map { index, name in
             TodoTask(id: UUID(), name: name, day: today, completeDay: nil, sortIndex: index)
         }
-        let content = UpcomingWidgetContent(tasks: tasks, today: today, showsTwoColumns: showsTwoColumns)
+        let content = UpcomingWidgetContent(tasks: tasks, today: today, rowLimit: rowLimit)
         return UpcomingWidgetEntry(date: .now, content: content)
     }
 
@@ -32,7 +35,7 @@ extension UpcomingWidgetEntry {
             )
         }
         .sorted { $0.day < $1.day }
-        let content = UpcomingWidgetContent(tasks: tasks, today: today, showsTwoColumns: true)
+        let content = UpcomingWidgetContent(tasks: tasks, today: today)
         return UpcomingWidgetEntry(date: .now, content: content, cutEnding: cutEnding)
     }
 
@@ -55,7 +58,7 @@ extension UpcomingWidgetEntry {
         }
         return UpcomingWidgetEntry(
             date: .now,
-            content: UpcomingWidgetContent(tasks: listed, today: today, showsTwoColumns: true)
+            content: UpcomingWidgetContent(tasks: listed, today: today)
         )
     }
 }

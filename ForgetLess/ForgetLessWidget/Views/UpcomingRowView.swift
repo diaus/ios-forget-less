@@ -11,16 +11,24 @@ struct UpcomingRowView: View {
     /// What ends a name the widget cuts itself.
     let cutEnding: CutEnding
 
+    @Environment(\.widgetFamily) private var family
+
     // MARK: - Body
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: markerSpacing) {
             if let marker {
-                Text(verbatim: marker)
-                    .font(Font(markerFont))
-                    .fixedSize()
+                let markerText = Text(verbatim: marker).font(Font(markerFont))
+                // The Lock Screen renders in one vibrant tint, so only the Home Screen colours the "!". Any other
+                // marker takes the row's own style.
+                if row.marker == .overdue && !family.isOnLockScreen {
+                    markerText.foregroundStyle(Color(.overdueDay)).fixedSize()
+                } else {
+                    markerText.fixedSize()
+                }
             }
             if let cutWidth {
-                let name = Self.name(row.name, cutToFit: cutWidth - markerWidth, font: font, ending: cutEnding.text)
+                let nameWidth = cutWidth - markerWidth - markerSpacing
+                let name = Self.name(row.name, cutToFit: nameWidth, font: font, ending: cutEnding.text)
                 Text(verbatim: name)
                     .font(Font(font))
                     // Already cut to fit, so the system never adds its own "…".
@@ -31,9 +39,21 @@ struct UpcomingRowView: View {
                     .lineLimit(1)
             }
         }
+        .foregroundStyle(rowStyle)
+        // Takes the accent tint in the tinted and clear looks, which drop the "!"'s own colour.
+        .widgetAccentable(row.marker == .overdue)
     }
 
     // MARK: - Helpers
+    private var rowStyle: HierarchicalShapeStyle {
+        row.marker == .tomorrow ? .secondary : .primary
+    }
+
+    // Width is scarce on the Lock Screen, so only the Home Screen puts a space after the marker.
+    private var markerSpacing: CGFloat {
+        marker != nil && !family.isOnLockScreen ? Self.width(of: " ", font: font) : 0
+    }
+
     private var marker: String? {
         switch row.marker {
         case .overdue: "!"
@@ -104,4 +124,16 @@ struct UpcomingRowView: View {
     UpcomingWidget()
 } timeline: {
     UpcomingWidgetEntry.previewLongNames(count: 6, cutEnding: .empty)
+}
+
+#Preview("Home Screen, markers", as: .systemSmall) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(showsOverdueTasks: true, showsTomorrowTasks: true)
+}
+
+#Preview("Home Screen, long names", as: .systemSmall) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.previewLongNames(count: 6)
 }

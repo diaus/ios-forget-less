@@ -15,7 +15,12 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
 
     func snapshot(for configuration: UpcomingWidgetIntent, in context: Context) async -> UpcomingWidgetEntry {
         guard !context.isPreview else { return UpcomingWidgetEntry(date: .now, content: .sample) }
-        return await entry(at: .now, for: configuration, in: Result { try TodoTaskReader.repository() })
+        return await entry(
+            at: .now,
+            for: configuration,
+            family: context.family,
+            in: Result { try TodoTaskReader.repository() }
+        )
     }
 
     /// One entry for now and one at the next rollover, so the widget reaches the next Day without the app. WidgetKit
@@ -25,7 +30,7 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
         let repository = Result { try TodoTaskReader.repository() }
         var entries: [UpcomingWidgetEntry] = []
         for moment in [now, Date.nextRollover(after: now)] {
-            entries.append(await entry(at: moment, for: configuration, in: repository))
+            entries.append(await entry(at: moment, for: configuration, family: context.family, in: repository))
         }
         let policy: TimelineReloadPolicy = entries.contains { $0.content == .unreadable }
             ? .after(now.addingTimeInterval(Self.retryDelay))
@@ -38,6 +43,7 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
     private func entry(
         at moment: Date,
         for configuration: UpcomingWidgetIntent,
+        family: WidgetFamily,
         in repository: Result<(any TodoTaskRepository)?, any Error>
     ) async -> UpcomingWidgetEntry {
         let today = Date.today(at: moment)
@@ -48,11 +54,11 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
                     from: configuration.showsOverdueTasks ? nil : today,
                     through: configuration.showsTomorrowTasks ? today.addingDays(1) : today
                 )
-                content = UpcomingWidgetContent(
-                    tasks: tasks,
-                    today: today,
-                    showsTwoColumns: configuration.showsTwoColumns
-                )
+                // The Home Screen never shows two columns, so the setting is hidden there and doesn't apply.
+                let rowLimit = family.isOnLockScreen && !configuration.showsTwoColumns
+                    ? UpcomingWidgetContent.columnRowCount
+                    : UpcomingWidgetContent.maxRowCount
+                content = UpcomingWidgetContent(tasks: tasks, today: today, rowLimit: rowLimit)
             } else {
                 content = .empty
             }

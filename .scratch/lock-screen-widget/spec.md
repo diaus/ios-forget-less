@@ -168,7 +168,7 @@ A good test exercises behaviour through a public interface and asserts on outcom
 ## Out of Scope
 
 - Completing or otherwise changing Tasks from the widget (interactive widgets).
-- Home Screen and StandBy widgets, and every accessory family other than rectangular.
+- Home Screen and StandBy widgets, and every accessory family other than rectangular. The small Home Screen size came later, in ticket 04 (`issues/04-home-screen-size.md`), which brings StandBy with it.
 - Opening a specific screen or Task on tap.
 - Moving the old sandbox store into the App Group.
 - A widget test target.
@@ -180,4 +180,4 @@ A good test exercises behaviour through a public interface and asserts on outcom
 - This feature lifts v1's "Widgets" out-of-scope line. The v1 spec stays as it shipped.
 - Prior art: PillsTracker's Lock Screen widget, with its App Group store (its ADR 0003), per-save reload hook (its ADR 0005), read-only widget repository and midnight timeline entry.
 - With Show Overdue Tasks off, no "!" ever shows. With more than 8 Tasks, Tomorrow's Tasks are the first to drop, since they come last.
-- Tickets are in `issues/`: 01 (one shared order) and 02 (the App Group store and reload hook) can run in parallel, and 03 (the whole widget, settings included) follows both.
+- Tickets are in `issues/`: 01 (one shared order) and 02 (the App Group store and reload hook) can run in parallel, and 03 (the whole widget, settings included) follows both. 04 (the Home Screen size) came after 03 shipped.

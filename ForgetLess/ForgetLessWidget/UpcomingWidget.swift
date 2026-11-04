@@ -1,7 +1,7 @@
 import SwiftUI
 import WidgetKit
 
-/// The Lock Screen widget: Overdue and Today's Incomplete Tasks, and Tomorrow's when its setting is on.
+/// The Lock Screen and Home Screen widget: Overdue and Today's Incomplete Tasks, and Tomorrow's when its setting is on.
 struct UpcomingWidget: Widget {
     nonisolated static let kind = "UpcomingWidget"
 
@@ -12,11 +12,10 @@ struct UpcomingWidget: Widget {
             provider: UpcomingTimelineProvider()
         ) { entry in
             UpcomingWidgetView(content: entry.content, cutEnding: entry.cutEnding)
-                .containerBackground(for: .widget) { Color.clear }
         }
         .configurationDisplayName(Text(.widgetTitle))
         .description(Text(.widgetDescription))
-        .supportedFamilies([.accessoryRectangular])
+        .supportedFamilies([.accessoryRectangular, .systemSmall])
     }
 }
 
@@ -48,4 +47,16 @@ struct UpcomingWidget: Widget {
     UpcomingWidget()
 } timeline: {
     UpcomingWidgetEntry.preview(showsOverdueTasks: false, showsTomorrowTasks: true)
+}
+
+#Preview("Home Screen, gallery sample", as: .systemSmall) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry(date: .now, content: .sample)
+}
+
+#Preview("Home Screen, Overdue on, Tomorrow on", as: .systemSmall) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(showsOverdueTasks: true, showsTomorrowTasks: true)
 }

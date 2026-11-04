@@ -63,6 +63,7 @@
 		AA00000000000000000000E4 /* Exceptions for "ForgetLess" folder in "ForgetLessWidget" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Resources/Assets.xcassets,
 				Resources/Localizable.xcstrings,
 			);
 			target = AA00000000000000000000E5 /* ForgetLessWidget */;

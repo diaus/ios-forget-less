@@ -1,25 +1,45 @@
 import SwiftUI
 import WidgetKit
 
-/// What the widget shows on the Lock Screen.
+/// What the widget shows, on the Lock Screen or the Home Screen.
 struct UpcomingWidgetView: View {
     let content: UpcomingWidgetContent
     let cutEnding: CutEnding
 
+    @Environment(\.widgetFamily) private var family
+
     var body: some View {
-        switch content {
-        case .empty:
-            StateSymbolView(badgeSystemName: "checkmark")
-        case .unreadable:
-            StateSymbolView(badgeSystemName: "exclamationmark.triangle")
-        case .rows(let rows):
-            UpcomingRowsView(rows: rows, cutEnding: cutEnding)
+        Group {
+            switch content {
+            case .empty:
+                StateSymbolView(badgeSystemName: "checkmark")
+            case .unreadable:
+                StateSymbolView(badgeSystemName: "exclamationmark.triangle")
+            case .rows(let rows):
+                if family.isOnLockScreen {
+                    LockScreenRowsView(rows: rows, cutEnding: cutEnding)
+                } else {
+                    HomeScreenRowsView(rows: rows)
+                }
+            }
         }
+        .containerBackground(
+            family.isOnLockScreen ? AnyShapeStyle(.clear) : AnyShapeStyle(.background),
+            for: .widget
+        )
     }
 }
 
 // One entry per kind of content: step through them in the canvas.
 #Preview("Each content", as: .accessoryRectangular) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry(date: .now, content: .sample)
+    UpcomingWidgetEntry(date: .now, content: .empty)
+    UpcomingWidgetEntry(date: .now, content: .unreadable)
+}
+
+#Preview("Home Screen, each content", as: .systemSmall) {
     UpcomingWidget()
 } timeline: {
     UpcomingWidgetEntry(date: .now, content: .sample)
