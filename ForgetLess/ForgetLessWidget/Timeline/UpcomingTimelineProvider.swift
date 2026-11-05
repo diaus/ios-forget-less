@@ -19,7 +19,7 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
             at: .now,
             for: configuration,
             family: context.family,
-            in: Result { try TodoTaskReader.repository() }
+            in: Result { try AppGroupStore.repository(writable: false) }
         )
     }
 
@@ -27,7 +27,7 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
     /// asks again after the last entry, or after `retryDelay` when the store couldn't be read.
     func timeline(for configuration: UpcomingWidgetIntent, in context: Context) async -> Timeline<UpcomingWidgetEntry> {
         let now = Date.now
-        let repository = Result { try TodoTaskReader.repository() }
+        let repository = Result { try AppGroupStore.repository(writable: false) }
         var entries: [UpcomingWidgetEntry] = []
         for moment in [now, Date.nextRollover(after: now)] {
             entries.append(await entry(at: moment, for: configuration, family: context.family, in: repository))

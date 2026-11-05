@@ -15,7 +15,7 @@ enum WidgetStoreWrite {
         _ write: (_ repository: any TodoTaskRepository, _ id: UUID) async throws -> Void
     ) async {
         do {
-            if let id = UUID(uuidString: taskID), let repository = try TodoTaskWriter.repository() {
+            if let id = UUID(uuidString: taskID), let repository = try AppGroupStore.repository(writable: true) {
                 try await write(repository, id)
                 // WidgetKit reloads only the tapped widget, so the others catch the write here (ADR 0005).
                 WidgetCenter.shared.reloadAllTimelines()
