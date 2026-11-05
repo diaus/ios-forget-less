@@ -64,24 +64,21 @@ struct ArrayTodoTaskMoveStepsTests {
         #expect(steps[0].destinationOneStepDown == nil)
     }
 
-    @Test func anOverdueTaskStepsOnlyWithinItsOwnDay() {
+    @Test func anOverdueTasksOnlyStepIsTheTopOfToday() {
         let twoDaysAgo = today.addingDays(-2)
-        let yesterday = today.addingDays(-1)
-        let tasks = [
+        let overdue = [
             task("Pay rent", day: twoDaysAgo),
             task("Post the letter", day: twoDaysAgo),
-            task("Fix the bike", day: yesterday),
-            task("Buy milk", day: today),
+            task("Fix the bike", day: today.addingDays(-1)),
         ]
+        let tasks = overdue + [task("Buy milk", day: today)]
 
         let steps = tasks.oneStepDestinations(today: today, listsTomorrow: true)
 
-        #expect(steps[0].destinationOneStepUp == nil)
-        #expect(steps[0].destinationOneStepDown == MoveDestination(day: twoDaysAgo, after: tasks[1].id))
-        #expect(steps[1].destinationOneStepUp == MoveDestination(day: twoDaysAgo, after: nil))
-        #expect(steps[1].destinationOneStepDown == nil)
-        #expect(steps[2].destinationOneStepUp == nil)
-        #expect(steps[2].destinationOneStepDown == nil)
+        for step in steps.prefix(overdue.count) {
+            #expect(step.destinationOneStepUp == nil)
+            #expect(step.destinationOneStepDown == MoveDestination(day: today, after: nil))
+        }
     }
 
     @Test func theLastRowShownCanNotStepDownPastARowLeftOut() {
@@ -99,6 +96,20 @@ struct ArrayTodoTaskMoveStepsTests {
         let steps = tasks.oneStepDestinations(today: today, listsTomorrow: true)
 
         #expect(steps[0].destinationOneStepDownFromLastShownRow == MoveDestination(day: tomorrow, after: nil))
+    }
+
+    @Test func theLastRowShownStepsDownFromOverdueOnlyWhenNoOverdueTaskIsLeftOut() {
+        let yesterday = today.addingDays(-1)
+        let tasks = [
+            task("Pay rent", day: yesterday),
+            task("Fix the bike", day: yesterday),
+            task("Buy milk", day: today),
+        ]
+
+        let steps = tasks.oneStepDestinations(today: today, listsTomorrow: false)
+
+        #expect(steps[0].destinationOneStepDownFromLastShownRow == nil)
+        #expect(steps[1].destinationOneStepDownFromLastShownRow == MoveDestination(day: today, after: nil))
     }
 
     // MARK: - Helpers

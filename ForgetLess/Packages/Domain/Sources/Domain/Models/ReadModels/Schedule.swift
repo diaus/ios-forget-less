@@ -1,6 +1,6 @@
 import Foundation
 
-/// What the Schedule screen lists.
+/// What the Schedule screen lists. The widget lists its first Days.
 public struct Schedule: Sendable {
     /// A Day of the Schedule and its Tasks.
     public struct Day: Identifiable, Sendable {
@@ -18,28 +18,28 @@ public struct Schedule: Sendable {
     public let overdue: [TodoTask]
     public let days: [Day]
 
-    /// How many Days the window holds, Today included.
-    private static let windowDayCount = 100
-
     /// - Parameters:
     ///   - tasks: In order of Day, then position within it, as the repository sends them.
     ///   - showsComplete: Whether Complete Tasks are listed.
     ///   - keptTaskIDs: Complete Tasks listed even while Complete Tasks are hidden, so a mis-tap can be undone.
     ///   - firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
+    ///   - windowDayCount: How many Days from Today on are listed, with Tasks or not. A later Day is listed only for
+    ///     its Tasks.
     public init(
         tasks: [TodoTask],
         today: Date,
         showsComplete: Bool = true,
         keptTaskIDs: Set<UUID> = [],
-        firstWeekday: Int = Date.firstWeekday
+        firstWeekday: Int = Date.firstWeekday,
+        windowDayCount: Int = 100
     ) {
         let tasks = showsComplete ? tasks : tasks.filter { !$0.isComplete || keptTaskIDs.contains($0.id) }
         // A Task completed from Overdue stays there until Today rolls over, so a mis-tap can be undone.
         overdue = tasks.filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }
         // Grouping keeps each Day's Tasks in the order given.
         let tasksByDay = Dictionary(grouping: tasks) { $0.day }
-        let window = (0..<Self.windowDayCount).map { today.addingDays($0) }
-        let afterWindow = today.addingDays(Self.windowDayCount)
+        let window = (0..<windowDayCount).map { today.addingDays($0) }
+        let afterWindow = today.addingDays(windowDayCount)
         var laterDays: [Date] = []
         // The input is in Day order, so each Day's Tasks are next to each other and its first one adds it.
         for task in tasks where task.day >= afterWindow && laterDays.last != task.day {
