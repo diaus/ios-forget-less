@@ -11,7 +11,7 @@ struct ScheduleTasksTests {
     // MARK: - Tests
     @Test func aMoveListsTheTaskAtItsDestinationBeforeTheStoreHasIt() {
         let (first, second) = (task("Buy milk", day: 0, sortIndex: 0), task("Call Mum", day: 0, sortIndex: 1))
-        var scheduleTasks = observed([first, second])
+        let scheduleTasks = observed([first, second])
         let destination = MoveDestination(day: today.addingDays(1), after: nil)
 
         let moved = scheduleTasks.move(first, to: destination)
@@ -25,7 +25,7 @@ struct ScheduleTasksTests {
     @Test func aMoveToTheEndOfADayListsTheTaskLastThere() {
         let moving = task("Buy milk", day: 0, sortIndex: 0)
         let other = task("Call Mum", day: 2, sortIndex: 0)
-        var scheduleTasks = observed([moving, other])
+        let scheduleTasks = observed([moving, other])
 
         let destination = scheduleTasks.moveToEnd(moving, of: today.addingDays(2))
 
@@ -35,7 +35,7 @@ struct ScheduleTasksTests {
 
     @Test func droppingUnsavedMovesListsTheTasksAsTheStoreLastHeldThem() {
         let moving = task("Buy milk", day: 0, sortIndex: 0)
-        var scheduleTasks = observed([moving])
+        let scheduleTasks = observed([moving])
         _ = scheduleTasks.moveToEnd(moving, of: today.addingDays(3))
 
         scheduleTasks.dropUnsavedMoves()
@@ -47,7 +47,7 @@ struct ScheduleTasksTests {
 
     @Test func observingTasksReplacesAnyUnsavedMove() {
         let moving = task("Buy milk", day: 0, sortIndex: 0)
-        var scheduleTasks = observed([moving])
+        let scheduleTasks = observed([moving])
         _ = scheduleTasks.moveToEnd(moving, of: today.addingDays(3))
         let stored = task("Buy milk", id: moving.id, day: 5, sortIndex: 0)
 
@@ -60,7 +60,7 @@ struct ScheduleTasksTests {
     @Test(arguments: [-1, -30])
     func aMoveToTheEndOfADayBeforeTodayIsRefusedAndMovesNothing(dayCount: Int) {
         let moving = task("Buy milk", day: 0, sortIndex: 0)
-        var scheduleTasks = observed([moving])
+        let scheduleTasks = observed([moving])
 
         let destination = scheduleTasks.moveToEnd(moving, of: today.addingDays(dayCount))
 
@@ -70,7 +70,7 @@ struct ScheduleTasksTests {
 
     @Test func aMoveOfATaskTheScheduleDoesNotListIsRefusedAndMovesNothing() {
         let hidden = task("Buy milk", day: 0, sortIndex: 0, isComplete: true)
-        var scheduleTasks = observed([hidden]) { listing(showsComplete: false) }
+        let scheduleTasks = observed([hidden]) { listing(showsComplete: false) }
 
         let moved = scheduleTasks.move(hidden, to: MoveDestination(day: today.addingDays(1), after: nil))
 
@@ -80,7 +80,7 @@ struct ScheduleTasksTests {
 
     @Test func relistingReadsTheListingAfreshSoATaskKeptSinceIsListedWhileCompleteTasksAreHidden() {
         let complete = task("Buy milk", day: 0, sortIndex: 0, isComplete: true)
-        var scheduleTasks = observed([complete]) { listing(showsComplete: false) }
+        let scheduleTasks = observed([complete]) { listing(showsComplete: false) }
         #expect(names(on: 0, in: scheduleTasks).isEmpty)
 
         scheduleTasks.listing = { listing(showsComplete: false, keptTaskIDs: [complete.id]) }
@@ -95,7 +95,7 @@ struct ScheduleTasksTests {
             task("Call Mum", day: 0, sortIndex: 1, isComplete: true),
             task("Pay rent", day: 1, sortIndex: 0),
         ]
-        var scheduleTasks = observed(tasks)
+        let scheduleTasks = observed(tasks)
 
         _ = scheduleTasks.moveToEnd(tasks[2], of: today)
 
@@ -111,7 +111,7 @@ struct ScheduleTasksTests {
     private func observed(
         _ tasks: [TodoTask], listedBy listingNow: (@MainActor () -> ScheduleListing)? = nil
     ) -> ScheduleTasks {
-        var scheduleTasks = ScheduleTasks(today: today)
+        let scheduleTasks = ScheduleTasks(today: today)
         scheduleTasks.listing = listingNow ?? { listing() }
         scheduleTasks.observe(tasks)
         return scheduleTasks

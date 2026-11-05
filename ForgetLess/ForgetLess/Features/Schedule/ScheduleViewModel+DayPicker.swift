@@ -12,9 +12,9 @@ extension ScheduleViewModel {
     /// Shows the Day picker on the composer's Day, to step it to another.
     func showComposerDayPicker() {
         // Dropped here rather than left to the sheet, so the keyboard reliably goes down while it's open.
-        composer.isNameFocused = false
-        closeDayChipCalendar()
-        showDayPicker(on: composer.day, for: .composer)
+        composerSession.composer.isNameFocused = false
+        composerSession.closeDayChipCalendar()
+        showDayPicker(on: composerSession.composer.day, for: .composer)
     }
 
     /// Closes the Day picker and acts on the chosen Day, unless it's the Day the picker opened on: a row's Task moves
@@ -30,7 +30,7 @@ extension ScheduleViewModel {
     func dayPickerDidClose() {
         let target = dayPicker?.target
         if target == .composer {
-            composer.returnFocusToDayChip(bringingBackKeyboard: true)
+            composerSession.composer.returnFocusToDayChip(bringingBackKeyboard: true)
         }
         dayPicker = nil
         if let id = target?.taskID { stopListing(id) }

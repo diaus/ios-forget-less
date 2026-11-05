@@ -9,12 +9,16 @@ struct ScheduleView: View {
     /// What the list shows, between its bars, which the floating Day calendar opened from a row keeps within.
     @State private var listFrame: CGRect = .zero
 
+    private var session: ComposerSession {
+        vm.composerSession
+    }
+
     // MARK: - Body
     var body: some View {
         ZStack(alignment: .bottom) {
             content
                 .ignoresSafeArea(.keyboard)
-                .accessibilityHidden(vm.composer.isVisible)
+                .accessibilityHidden(session.composer.isVisible)
             composerScrim
             composerPanel
         }
@@ -46,7 +50,7 @@ struct ScheduleView: View {
             DayPickerView()
                 .presentationDetents([.medium, .large])
         }
-        .errorAlert(message: $vm.errorMessage)
+        .errorAlert(message: Bindable(vm.writes).errorMessage)
         // The quick settings bar stands in for a navigation bar; only screens pushed from it show one.
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -69,29 +73,29 @@ struct ScheduleView: View {
     }
 
     private var composerScrim: some View {
-        Color.black.opacity(vm.composer.isVisible ? 0.3 : 0)
+        Color.black.opacity(session.composer.isVisible ? 0.3 : 0)
             .ignoresSafeArea()
-            .allowsHitTesting(vm.composer.isVisible)
-            .onTapGesture(perform: vm.requestComposerDismissal)
-            .animation(.easeOut(duration: 0.2), value: vm.composer.isVisible)
+            .allowsHitTesting(session.composer.isVisible)
+            .onTapGesture(perform: session.requestDismissal)
+            .animation(.easeOut(duration: 0.2), value: session.composer.isVisible)
     }
 
     private var composerPanel: some View {
         // Mounted while hidden, so its field can take focus in the same update that shows it and the keyboard starts
         // in the same frame. Opacity, not removal or `.hidden()`: the field stays focusable while hidden.
         ComposerView()
-            .opacity(vm.composer.isVisible ? 1 : 0)
-            .allowsHitTesting(vm.composer.isVisible)
-            .accessibilityHidden(!vm.composer.isVisible)
+            .opacity(session.composer.isVisible ? 1 : 0)
+            .allowsHitTesting(session.composer.isVisible)
+            .accessibilityHidden(!session.composer.isVisible)
             // An alert, not a confirmation dialog: as a popover, iOS 27 hides the dialog's Keep Editing.
-            .alert(Text(.composerDiscardChanges), isPresented: $vm.composer.isConfirmingDiscard) {
-                Button(role: .destructive, action: vm.dismissComposer) { Text(.composerDiscard) }
-                Button(role: .cancel) { vm.composer.keepEditing() } label: { Text(.composerKeepEditing) }
+            .alert(Text(.composerDiscardChanges), isPresented: Bindable(session).composer.isConfirmingDiscard) {
+                Button(role: .destructive, action: session.dismiss) { Text(.composerDiscard) }
+                Button(role: .cancel) { session.composer.keepEditing() } label: { Text(.composerKeepEditing) }
             }
     }
 
     private var addFloatingButton: some View {
-        Button { vm.showComposer(on: vm.today, from: .floating) } label: {
+        Button { session.show(on: vm.today, from: .floating) } label: {
             Image(systemName: "plus")
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(.white)

@@ -84,7 +84,7 @@ struct TaskRowView: View {
 
     // MARK: - Actions
     private func edit() {
-        vm.showComposer(editing: task)
+        vm.composerSession.show(editing: task)
     }
 
     // MARK: - Gestures

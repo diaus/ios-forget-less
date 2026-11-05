@@ -19,8 +19,8 @@ private struct ComposerOpenerFocusModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .accessibilityFocused($isFocused)
-            .onChange(of: vm.composerOpenerFocus.returnCount) {
-                if vm.composerOpenerFocus.opener == opener {
+            .onChange(of: vm.composerSession.openerFocus.returnCount) {
+                if vm.composerSession.openerFocus.opener == opener {
                     isFocused = true
                 }
             }

@@ -1,13 +1,15 @@
 import Domain
 import Foundation
+import Observation
 
 /// The Tasks the Schedule lists, with any Move not yet saved already made, and the Schedule listing them.
-struct ScheduleTasks {
+@MainActor @Observable
+final class ScheduleTasks {
     private(set) var schedule: Schedule
     /// How many Incomplete Tasks each Day holds; a Day with none has no entry.
     private(set) var incompleteTaskCountsByDay: [Date: Int] = [:]
     /// What the Tasks are listed by, read afresh each time they're listed.
-    var listing: @MainActor () -> ScheduleListing
+    @ObservationIgnored var listing: @MainActor () -> ScheduleListing
     /// The Tasks listed: those stored, with any Move not yet saved already made.
     private var listed: [TodoTask] = []
     /// The Tasks last observed in the store.
@@ -26,7 +28,7 @@ struct ScheduleTasks {
     }
 
     /// Lists `tasks`, just observed in the store, in place of any Move not yet saved.
-    mutating func observe(_ tasks: [TodoTask]) {
+    func observe(_ tasks: [TodoTask]) {
         stored = tasks
         listed = tasks
         relist()
@@ -36,7 +38,7 @@ struct ScheduleTasks {
         incompleteTaskCountsByDay[day] ?? 0
     }
 
-    mutating func relist() {
+    func relist() {
         let listing = listing()
         schedule = Schedule(
             tasks: listed,
@@ -50,7 +52,7 @@ struct ScheduleTasks {
     // MARK: - Moving
     /// Moves `task` to `destination` ahead of the store, unless the move rule refuses it. Returns whether it moved. A
     /// refused Move relists all the same, so a list that already moved the row puts it back.
-    mutating func move(_ task: TodoTask, to destination: MoveDestination) -> Bool {
+    func move(_ task: TodoTask, to destination: MoveDestination) -> Bool {
         guard schedule.canMove(task, to: destination) else {
             relist()
             return false
@@ -62,7 +64,7 @@ struct ScheduleTasks {
 
     /// Moves `task` to the end of `day` ahead of the store, unless the move rule refuses it. Returns where it moved
     /// to, or `nil` when refused.
-    mutating func moveToEnd(_ task: TodoTask, of day: Date) -> MoveDestination? {
+    func moveToEnd(_ task: TodoTask, of day: Date) -> MoveDestination? {
         guard schedule.canMove(task, toDay: day) else { return nil }
         let destination = listed.destinationAtEnd(of: day, forTaskWithID: task.id)
         listed = listed.movingTask(id: task.id, to: destination)
@@ -71,7 +73,7 @@ struct ScheduleTasks {
     }
 
     /// Lists the Tasks as the store last held them, once a Move failed to save.
-    mutating func dropUnsavedMoves() {
+    func dropUnsavedMoves() {
         listed = stored
         relist()
     }

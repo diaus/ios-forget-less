@@ -12,23 +12,27 @@ struct DayChipCalendarOverlayView: View {
     private let topMargin: CGFloat = 8
     private let coordinateSpaceName = "dayChipCalendarOverlay"
 
+    private var session: ComposerSession {
+        vm.composerSession
+    }
+
     // MARK: - Body
     var body: some View {
         GeometryReader { proxy in
             let chip = anchors.chip.map { proxy[$0] }
             let composer = anchors.composer.map { proxy[$0] }
             ZStack(alignment: .topLeading) {
-                if vm.dayChipCalendar != nil {
+                if session.dayChipCalendar != nil {
                     backdrop(composerFrame: composer)
                 }
-                if let calendar = vm.dayChipCalendar, let chip, let composer {
+                if let calendar = session.dayChipCalendar, let chip, let composer {
                     FloatingDayCalendarView(
                         calendar: binding(keeping: calendar),
                         availableHeight: composer.maxY - topMargin,
                         isKeyboardUp: !calendar.hasHiddenKeyboard,
-                        onHideKeyboard: vm.hideKeyboardForDayChipCalendar,
-                        onChoose: vm.chooseDayChipCalendarDay,
-                        onClose: vm.closeDayChipCalendarRestoringFocus
+                        onHideKeyboard: session.hideKeyboardForDayChipCalendar,
+                        onChoose: session.chooseDayChipCalendarDay,
+                        onClose: session.closeDayChipCalendarRestoringFocus
                     )
                         .frame(width: min(composer.width, maxWidth))
                         .padding(.leading, composer.minX)
@@ -41,7 +45,7 @@ struct DayChipCalendarOverlayView: View {
                         ))
                 }
             }
-            .animation(FloatingDayCalendarView.appearanceAnimation, value: vm.dayChipCalendar == nil)
+            .animation(FloatingDayCalendarView.appearanceAnimation, value: session.dayChipCalendar == nil)
         }
         .coordinateSpace(.named(coordinateSpaceName))
     }
@@ -63,10 +67,10 @@ struct DayChipCalendarOverlayView: View {
             .onEnded { value in
                 if let composerFrame, composerFrame.contains(value.startLocation), value.dismissesComposer {
                     // The composer goes too, so the keyboard isn't brought back.
-                    vm.closeDayChipCalendar()
-                    vm.requestComposerDismissal()
+                    session.closeDayChipCalendar()
+                    session.requestDismissal()
                 } else {
-                    vm.closeDayChipCalendarRestoringFocus()
+                    session.closeDayChipCalendarRestoringFocus()
                 }
             }
     }
@@ -75,9 +79,9 @@ struct DayChipCalendarOverlayView: View {
     /// The open calendar's state, or `calendar` once it has closed, while it animates out. A closed calendar takes
     /// no change, so it never opens again from one.
     private func binding(keeping calendar: FloatingDayCalendarState) -> Binding<FloatingDayCalendarState> {
-        Binding { vm.dayChipCalendar ?? calendar } set: { newValue in
-            if vm.dayChipCalendar != nil {
-                vm.dayChipCalendar = newValue
+        Binding { session.dayChipCalendar ?? calendar } set: { newValue in
+            if session.dayChipCalendar != nil {
+                session.dayChipCalendar = newValue
             }
         }
     }

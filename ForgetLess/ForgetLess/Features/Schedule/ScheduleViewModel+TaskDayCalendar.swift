@@ -10,10 +10,11 @@ extension ScheduleViewModel {
         taskDayCalendar = TaskDayCalendar(taskID: task.id, origin: origin, calendar: calendar)
     }
 
-    /// Moves the Task to the end of `day`, unless it's there already or the calendar or the move rule refuses it.
-    /// VoiceOver says the new Day once the Move is saved.
+    /// Moves the Task to the end of `day`, unless it's there already, the calendar is closing, or it or the move rule
+    /// refuses `day`. VoiceOver says the new Day once the Move is saved.
     func chooseTaskDayCalendarDay(_ day: Date) {
-        guard let open = taskDayCalendar, choose(day, in: open.calendar, for: .task(open.taskID)) else { return }
+        guard let open = taskDayCalendar, open.calendar.takesChoice(of: day), choose(day, for: .task(open.taskID))
+        else { return }
         taskDayCalendar?.calendar.choose(day)
     }
 

@@ -26,6 +26,10 @@ struct ComposerView: View {
     /// How far a press on the Day chip can move before it's a swipe instead.
     private let dayPickerPressDistance: CGFloat = 10
 
+    private var session: ComposerSession {
+        vm.composerSession
+    }
+
     /// Whether the Day picker is up or closing; a drag ending meanwhile is the rest of the press that opened it.
     private var isDayPickerOpen: Bool {
         vm.dayPicker != nil
@@ -35,13 +39,15 @@ struct ComposerView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // TextField(_:text:) takes a catalog symbol only from iOS 26; on iOS 18 it goes through a Text.
-            TextField(text: $vm.composer.taskName, prompt: Text(.composerTaskName)) {
+            TextField(text: Bindable(session).composer.taskName, prompt: Text(.composerTaskName)) {
                 Text(.composerTaskName)
             }
             .focused($isNameFocused)
             // In step with the view model both ways, so it also learns of focus the field loses on its own.
-            .onChange(of: vm.composer.isNameFocused, initial: true) { isNameFocused = vm.composer.isNameFocused }
-            .onChange(of: isNameFocused) { vm.composer.isNameFocused = isNameFocused }
+            .onChange(of: session.composer.isNameFocused, initial: true) {
+                isNameFocused = session.composer.isNameFocused
+            }
+            .onChange(of: isNameFocused) { session.composer.isNameFocused = isNameFocused }
             // The Twitter layout has no Return key, so ▶ is the only submit on the software keyboard.
             .keyboardType(.twitter)
             .onSubmit(submit)
@@ -52,8 +58,8 @@ struct ComposerView: View {
                     Image(systemName: "arrowtriangle.right.fill")
                         .font(.title3)
                 }
-                .disabled(!vm.composer.canSubmit)
-                .accessibilityLabel(Text(vm.composer.editedTask == nil ? .taskAdd : .taskSave))
+                .disabled(!session.composer.canSubmit)
+                .accessibilityLabel(Text(session.composer.editedTask == nil ? .taskAdd : .taskSave))
             }
         }
         .padding(16)
@@ -65,21 +71,21 @@ struct ComposerView: View {
         .gesture(dismissDrag)
         // A container, so VoiceOver's escape (two-finger scrub) from any of its elements dismisses, like the drag.
         .accessibilityElement(children: .contain)
-        .accessibilityAction(.escape, vm.requestComposerDismissal)
+        .accessibilityAction(.escape, session.requestDismissal)
         // Typing goes straight back to the name field.
-        .onChange(of: vm.composer.taskName) { vm.closeDayChipCalendar() }
-        .onChange(of: vm.composer.dayChipAccessibilityFocusCount) { isDayChipAccessibilityFocused = true }
+        .onChange(of: session.composer.taskName) { session.closeDayChipCalendar() }
+        .onChange(of: session.composer.dayChipAccessibilityFocusCount) { isDayChipAccessibilityFocused = true }
     }
 
     // MARK: - UI Components
     private var dayChip: some View {
-        let label = vm.composer.day.dayChipLabel(today: vm.today)
+        let label = session.composer.day.dayChipLabel(today: vm.today)
         // A container of its own, so a step slides the label within the capsule rather than the whole capsule.
         return ZStack {
             Text(label)
-                .foregroundStyle(vm.composer.day.dayChipColor(today: vm.today))
+                .foregroundStyle(session.composer.day.dayChipColor(today: vm.today))
                 // A new identity per Day, so a step slides the old label out and the new one in.
-                .id(vm.composer.day)
+                .id(session.composer.day)
                 .transition(.push(from: isDaySteppedForward ? .trailing : .leading))
         }
             .font(.subheadline)
@@ -107,7 +113,7 @@ struct ComposerView: View {
             .accessibilityHint(Text(.composerDayHint))
             .accessibilityAddTraits(.isButton)
             // A double-tap opens the calendar, as a tap does, while swiping up or down still steps.
-            .accessibilityAction(.default, vm.toggleDayChipCalendar)
+            .accessibilityAction(.default, session.toggleDayChipCalendar)
             // VoiceOver's way to the long press, which it can't make.
             .accessibilityAction(named: Text(.taskChooseDay), vm.showComposerDayPicker)
             .accessibilityFocused($isDayChipAccessibilityFocused)
@@ -129,7 +135,7 @@ struct ComposerView: View {
             return
         }
         let isStepped = withAnimation(.snappy(duration: 0.25)) {
-            vm.stepComposerDay(forward: forward)
+            session.stepDay(forward: forward)
         }
         if isStepped {
             dayStepCount += 1
@@ -139,9 +145,9 @@ struct ComposerView: View {
     }
 
     private func submit() {
-        vm.submitComposer()
+        session.submit()
         // Within the action, as Return drops focus right after it; the view model's focus hasn't changed to say so.
-        isNameFocused = vm.composer.isNameFocused
+        isNameFocused = session.composer.isNameFocused
     }
 
     // MARK: - Gestures
@@ -153,7 +159,7 @@ struct ComposerView: View {
             }
             .onEnded { value in
                 if !isDayPickerOpen, value.dismissesComposer {
-                    vm.requestComposerDismissal()
+                    session.requestDismissal()
                 }
             }
     }
@@ -166,7 +172,7 @@ struct ComposerView: View {
                 dayPickerPressCount += 1
                 vm.showComposerDayPicker()
             }
-            .exclusively(before: TapGesture().onEnded { vm.toggleDayChipCalendar() })
+            .exclusively(before: TapGesture().onEnded { session.toggleDayChipCalendar() })
     }
 
     /// A swipe left steps to the next Day, and a swipe right to the one before, as a calendar pages.
@@ -194,5 +200,5 @@ struct ComposerView: View {
     ComposerView()
         .frame(maxHeight: .infinity, alignment: .bottom)
         // The view resolves the same shared view model.
-        .onAppear { Container.shared.scheduleViewModel().showComposer(editing: .previewIncomplete) }
+        .onAppear { Container.shared.scheduleViewModel().composerSession.show(editing: .previewIncomplete) }
 }

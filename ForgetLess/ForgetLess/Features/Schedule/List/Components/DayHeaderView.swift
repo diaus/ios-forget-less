@@ -14,7 +14,7 @@ struct DayHeaderView: View {
                 .italic(scheduleDay.startsMonth)
                 .underline(scheduleDay.startsMonth)
             Spacer()
-            Button { vm.showComposer(on: scheduleDay.day, from: .day(scheduleDay.day)) } label: {
+            Button { vm.composerSession.show(on: scheduleDay.day, from: .day(scheduleDay.day)) } label: {
                 Image(systemName: "plus")
             }
             // Only the "+" takes the tap, not the whole header.
