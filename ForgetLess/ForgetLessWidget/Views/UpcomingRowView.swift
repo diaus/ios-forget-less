@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Utils
 import WidgetKit
 
 /// One Task the widget lists.
@@ -28,7 +29,7 @@ struct UpcomingRowView: View {
             }
             if let cutWidth {
                 let nameWidth = cutWidth - markerWidth - markerSpacing
-                let name = Self.name(row.name, cutToFit: nameWidth, font: font, ending: cutEnding.text)
+                let name = row.name.cut(toFit: nameWidth, ending: cutEnding.text) { Self.width(of: $0, font: font) }
                 Text(verbatim: name)
                     .font(Font(font))
                     // Already cut to fit, so the system never adds its own "…".
@@ -68,27 +69,6 @@ struct UpcomingRowView: View {
 
     private var markerWidth: CGFloat {
         marker.map { Self.width(of: $0, font: markerFont) } ?? 0
-    }
-
-    /// `name` whole when it fits in `width`, or else its longest start that fits followed by `ending`.
-    private static func name(_ name: String, cutToFit width: CGFloat, font: UIFont, ending: String) -> String {
-        guard Self.width(of: name, font: font) > width else { return name }
-        let characters = Array(name)
-        // Binary search for the longest start that fits with the ending.
-        var fitting = 0
-        var tooLong = characters.count
-        while tooLong - fitting > 1 {
-            let count = (fitting + tooLong) / 2
-            let cut = String(characters[..<count]) + ending
-            if Self.width(of: cut, font: font) <= width {
-                fitting = count
-            } else {
-                tooLong = count
-            }
-        }
-        let start = String(characters[..<fitting])
-        // A word cut before its space would read as a whole word, so the space goes too.
-        return String(start.reversed().drop { $0.isWhitespace }.reversed()) + ending
     }
 
     private static func width(of text: String, font: UIFont) -> CGFloat {
