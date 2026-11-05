@@ -19,7 +19,7 @@ struct StoreReaderTests {
         try await TodoTaskRepositoryLive(modelContainer: try ForgetLessModelContainer.make(url: store))
             .create(name: "Buy milk", day: day)
 
-        let container = try #require(try ForgetLessModelContainer.makeReader(existingStoreAt: store))
+        let container = try #require(try ForgetLessModelContainer.makeExisting(at: store, allowsSave: false))
 
         let tasks = try await TodoTaskRepositoryLive(modelContainer: container).tasks(on: day)
         #expect(tasks.map(\.name) == ["Buy milk"])
@@ -32,7 +32,7 @@ struct StoreReaderTests {
         let saves = Mutex(0)
         Container.shared.afterStoreSave.register { { saves.withLock { $0 += 1 } } }
         let reader = TodoTaskRepositoryLive(
-            modelContainer: try #require(try ForgetLessModelContainer.makeReader(existingStoreAt: store))
+            modelContainer: try #require(try ForgetLessModelContainer.makeExisting(at: store, allowsSave: false))
         )
 
         await #expect(throws: (any Error).self) {
@@ -45,7 +45,7 @@ struct StoreReaderTests {
     @Test func opensNothingAndCreatesNoStoreWhileThereIsNone() throws {
         defer { try? FileManager.default.removeItem(at: root) }
 
-        #expect(try ForgetLessModelContainer.makeReader(existingStoreAt: store) == nil)
+        #expect(try ForgetLessModelContainer.makeExisting(at: store, allowsSave: false) == nil)
         #expect(!FileManager.default.fileExists(atPath: store.path(percentEncoded: false)))
     }
 

@@ -17,13 +17,13 @@ struct StoreWriterTests {
         try await app.create(name: "Buy milk", day: day)
         let id = try #require(try await app.tasks(on: day).first?.id)
         let writer = TodoTaskRepositoryLive(
-            modelContainer: try #require(try ForgetLessModelContainer.makeWriter(existingStoreAt: store))
+            modelContainer: try #require(try ForgetLessModelContainer.makeExisting(at: store, allowsSave: true))
         )
 
         try await writer.setComplete(id: id, isComplete: true, today: day)
 
         let reader = TodoTaskRepositoryLive(
-            modelContainer: try #require(try ForgetLessModelContainer.makeReader(existingStoreAt: store))
+            modelContainer: try #require(try ForgetLessModelContainer.makeExisting(at: store, allowsSave: false))
         )
         #expect(try await reader.tasks(on: day).map(\.completeDay) == [day])
     }
@@ -31,7 +31,7 @@ struct StoreWriterTests {
     @Test func opensNothingAndCreatesNoStoreWhileThereIsNone() throws {
         defer { try? FileManager.default.removeItem(at: root) }
 
-        #expect(try ForgetLessModelContainer.makeWriter(existingStoreAt: store) == nil)
+        #expect(try ForgetLessModelContainer.makeExisting(at: store, allowsSave: true) == nil)
         #expect(!FileManager.default.fileExists(atPath: store.path(percentEncoded: false)))
     }
 

@@ -6,6 +6,7 @@ public enum TodoTaskWriter {
     /// A fresh repository, opened once per write so it starts from the app's latest save. nil until the app has
     /// created the store.
     public static func repository() throws -> (any TodoTaskRepository)? {
-        try ForgetLessModelContainer.makeWriterInAppGroup().map { TodoTaskRepositoryLive(modelContainer: $0) }
+        try ForgetLessModelContainer.makeExisting(at: ForgetLessStoreLocation.appGroupStoreURL(), allowsSave: true)
+            .map { TodoTaskRepositoryLive(modelContainer: $0) }
     }
 }
