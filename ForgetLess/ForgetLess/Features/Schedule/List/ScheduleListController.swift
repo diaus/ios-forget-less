@@ -6,11 +6,7 @@ import UIKit
 /// Feeds a `Schedule` to the Schedule's collection view, and runs the actions of its rows and headers.
 final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
-    /// A section of the Schedule's list.
-    nonisolated enum Section: Hashable, Sendable {
-        case overdue
-        case day(Date)
-    }
+    private typealias Section = ScheduleListContent.Section
 
     /// A Day's header, a type of its own so it's never reused for the Overdue header.
     final class DayHeaderCell: UICollectionViewListCell {}
@@ -18,15 +14,10 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     let collectionView = ScheduleCollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     @Injected(\.scheduleViewModel) private var vm
     private var dataSource: UICollectionViewDiffableDataSource<Section, TodoTask.ID>?
-    /// The Tasks the list shows.
-    private var tasks: [TodoTask.ID: TodoTask] = [:]
-    private var overdueTaskIDs: Set<TodoTask.ID> = []
-    /// The Days the list shows.
-    private var scheduleDays: [Date: Schedule.Day] = [:]
-    private var today = Date.today
-    /// The Schedule the list shows, which the move rule answers for.
-    private var schedule = Schedule(tasks: [], today: .today)
-    private var movesTasks = false
+    /// What the list last showed.
+    private var content = ScheduleListContent(
+        schedule: Schedule(tasks: [], today: .today), today: .today, movesTasks: false
+    )
     private let rowMove = TaskRowMove()
     /// The reveal last carried out, so each is carried out once.
     private var lastReveal: DayReveal?
@@ -45,28 +36,14 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     /// Shows `schedule`, animating the change when `animated` and it isn't the first.
     func show(_ schedule: Schedule, today: Date, movesTasks: Bool, animated: Bool) {
         guard let dataSource else { return }
-        var snapshot = NSDiffableDataSourceSnapshot<Section, TodoTask.ID>()
-        if !schedule.overdue.isEmpty {
-            snapshot.appendSections([.overdue])
-            snapshot.appendItems(schedule.overdue.map(\.id), toSection: .overdue)
-        }
-        for scheduleDay in schedule.days {
-            snapshot.appendSections([.day(scheduleDay.day)])
-            snapshot.appendItems(scheduleDay.tasks.map(\.id), toSection: .day(scheduleDay.day))
-        }
+        let content = ScheduleListContent(schedule: schedule, today: today, movesTasks: movesTasks)
+        var snapshot = content.snapshot
         let shownSnapshot = dataSource.snapshot()
         let isFirst = shownSnapshot.numberOfSections == 0
-        let shownTasks = schedule.overdue + schedule.days.flatMap(\.tasks)
-        let newOverdueTaskIDs = Set(schedule.overdue.map(\.id))
-        let changedTaskIDs = shownTasks.filter { task in tasks[task.id].map { $0 != task } ?? false }.map(\.id)
-        // A row names its Day only in Overdue, which a Task joins unchanged when Today rolls over.
-        let overdueChangedTaskIDs = shownTasks.map(\.id).filter { id in
-            tasks[id] != nil && overdueTaskIDs.contains(id) != newOverdueTaskIDs.contains(id)
-        }
+        let redraw = content.redraw(from: self.content)
         // SwiftUI updates the list whenever the screen changes, the composer included, mostly with nothing new.
-        let movesTasksChanged = movesTasks != self.movesTasks
-        if !isFirst, changedTaskIDs.isEmpty, overdueChangedTaskIDs.isEmpty, today == self.today, !movesTasksChanged,
-           Self.sameRows(snapshot, shownSnapshot) {
+        // Compared with the rows on screen, not the last content: a refused drop leaves its row moved there.
+        if !isFirst, redraw == nil, Self.sameRows(snapshot, shownSnapshot) {
             return
         }
         if rowMove.taskID != nil {
@@ -74,19 +51,10 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             collectionView.cancelInteractiveMovement()
             rowMove.end()
         }
-        tasks = Dictionary(shownTasks.map { ($0.id, $0) }) { first, _ in first }
-        overdueTaskIDs = newOverdueTaskIDs
-        scheduleDays = Dictionary(schedule.days.map { ($0.day, $0) }) { first, _ in first }
-        self.today = today
-        self.schedule = schedule
-        self.movesTasks = movesTasks
-        // Rows are keyed by Task ID, so a renamed or completed Task is redrawn in place, and every row shows or hides
-        // its handle.
-        let reconfiguredTaskIDs = movesTasksChanged ? snapshot.itemIdentifiers : changedTaskIDs
-        snapshot.reconfigureItems(reconfiguredTaskIDs.filter { !overdueChangedTaskIDs.contains($0) })
-        // Reloaded rather than reconfigured: a reconfigured row that also changes section lays out its new Day but
-        // isn't redrawn until it scrolls.
-        snapshot.reloadItems(overdueChangedTaskIDs)
+        self.content = content
+        // Rows are keyed by Task ID, so a renamed or completed Task is redrawn in place.
+        snapshot.reconfigureItems(redraw?.reconfiguredTaskIDs ?? [])
+        snapshot.reloadItems(redraw?.reloadedTaskIDs ?? [])
         dataSource.apply(snapshot, animatingDifferences: animated && !isFirst)
         // Headers aren't reconfigured by the snapshot, and an emptied Day or a new Today changes how one reads.
         reconfigureVisibleHeaders()
@@ -167,15 +135,15 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     }
 
     private func configure(_ cell: UICollectionViewListCell, id: TodoTask.ID) {
-        guard let task = tasks[id] else { return }
+        guard let task = content.tasks[id] else { return }
         cell.contentConfiguration = UIHostingConfiguration {
-            TaskRowView(task: task, showsDay: overdueTaskIDs.contains(id)) { [weak self] in
+            TaskRowView(task: task, showsDay: content.overdueTaskIDs.contains(id)) { [weak self] in
                 self?.chooseDay(id)
             }
         }
         // The row draws its margins above and below as padding, so they take its taps.
         .margins(.vertical, 0)
-        cell.accessories = movesTasks ? [.reorder(displayed: .always)] : []
+        cell.accessories = content.movesTasks ? [.reorder(displayed: .always)] : []
         cell.configurationUpdateHandler = { [weak self] cell, state in
             self?.rowStateChanged(state, id: id)
             var background = cell.defaultBackgroundConfiguration().updated(for: state)
@@ -188,7 +156,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
     private func configure(_ header: DayHeaderCell, section: Int) {
         guard case let .day(day) = dataSource?.sectionIdentifier(for: section),
-              let scheduleDay = scheduleDays[day] else { return }
+              let scheduleDay = content.scheduleDays[day] else { return }
         header.contentConfiguration = UIHostingConfiguration {
             DayHeaderView(scheduleDay: scheduleDay)
         }
@@ -247,25 +215,62 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         rowMove.end()
         let finalSnapshot = transaction.finalSnapshot
         guard case let .insert(_, id, _)? = transaction.difference.insertions.first,
-              let task = tasks[id],
+              let task = content.tasks[id],
               case let .day(day)? = finalSnapshot.sectionIdentifier(containingItem: id),
               let index = finalSnapshot.itemIdentifiers(inSection: .day(day)).firstIndex(of: id) else { return }
-        vm.move(task, to: schedule.destination(forDropOf: task, on: day, at: index))
+        vm.move(task, to: content.schedule.destination(forDropOf: task, on: day, at: index))
     }
 
     /// The move rule's answer for the row with `id` dropped at `indexPath`.
     private func canMove(_ id: TodoTask.ID, to indexPath: IndexPath) -> Bool {
         // Overdue has no Day to give a Task.
-        guard let task = tasks[id], case let .day(day)? = dataSource?.sectionIdentifier(for: indexPath.section) else {
-            return false
-        }
-        return schedule.canMove(task, droppedOn: day, at: indexPath.item)
+        guard let task = content.tasks[id],
+              case let .day(day)? = dataSource?.sectionIdentifier(for: indexPath.section) else { return false }
+        return content.schedule.canMove(task, droppedOn: day, at: indexPath.item)
     }
 
     private func canStartOrContinueMove(_ id: TodoTask.ID) -> Bool {
-        guard movesTasks else { return false }
+        guard content.movesTasks else { return false }
         let row = visibleCell(for: id) as? TaskRowCell
         return rowMove.taskID == id || row?.isHandleTouched == true
+    }
+
+    // MARK: - Row Actions
+    func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
+        // Rows take taps in SwiftUI, never as a selection: a row tap edits the Task or opens its calendar.
+        false
+    }
+
+    /// Opens the Task's floating Day calendar from its row, which only the list can place on screen.
+    private func chooseDay(_ id: TodoTask.ID) {
+        guard let task = content.tasks[id], let cell = visibleCell(for: id) as? TaskRowCell else { return }
+        let row = cell.convert(cell.bounds, to: nil)
+        let tap = cell.lastTouchLocation ?? CGPoint(x: row.midX, y: row.midY)
+        vm.showTaskDayCalendar(for: task, from: TaskDayCalendarOrigin(row: row, tap: tap))
+    }
+
+    private func swipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard let id = dataSource?.itemIdentifier(for: indexPath) else { return nil }
+        return .taskRowActions { [weak self] in
+            self?.confirmDeletion(of: id)
+        } onChooseDay: { [weak self] in
+            if let task = self?.content.tasks[id] {
+                self?.vm.showDayPicker(on: task.day, for: .task(task.id))
+            }
+        }
+    }
+
+    private func confirmDeletion(of id: TodoTask.ID) {
+        guard let task = content.tasks[id],
+              let cell = visibleCell(for: id),
+              var presenter = collectionView.window?.rootViewController else { return }
+        while let presented = presenter.presentedViewController {
+            presenter = presented
+        }
+        let alert = UIAlertController.taskDeletionConfirmation(of: task, from: cell) { [weak self] in
+            self?.vm.delete(task)
+        }
+        presenter.present(alert, animated: true)
     }
 
     // MARK: - Helpers
@@ -283,55 +288,5 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             && snapshot.sectionIdentifiers.allSatisfy { section in
                 snapshot.itemIdentifiers(inSection: section) == other.itemIdentifiers(inSection: section)
             }
-    }
-}
-
-// In an extension, so the class's body stays within SwiftLint's length.
-extension ScheduleListController {
-    // MARK: - Row Actions
-    func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
-        // Rows take taps in SwiftUI, never as a selection: a row tap edits the Task or opens its calendar.
-        false
-    }
-
-    /// Opens the Task's floating Day calendar from its row, which only the list can place on screen.
-    private func chooseDay(_ id: TodoTask.ID) {
-        guard let task = tasks[id], let cell = visibleCell(for: id) as? TaskRowCell else { return }
-        let row = cell.convert(cell.bounds, to: nil)
-        let tap = cell.lastTouchLocation ?? CGPoint(x: row.midX, y: row.midY)
-        vm.showTaskDayCalendar(for: task, from: TaskDayCalendarOrigin(row: row, tap: tap))
-    }
-
-    private func swipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard let id = dataSource?.itemIdentifier(for: indexPath) else { return nil }
-        return .taskRowActions { [weak self] in
-            self?.confirmDeletion(of: id)
-        } onChooseDay: { [weak self] in
-            if let task = self?.tasks[id] {
-                self?.vm.showDayPicker(on: task.day, for: .task(task.id))
-            }
-        }
-    }
-
-    private func confirmDeletion(of id: TodoTask.ID) {
-        guard let task = tasks[id],
-              let cell = visibleCell(for: id),
-              var presenter = collectionView.window?.rootViewController else { return }
-        while let presented = presenter.presentedViewController {
-            presenter = presented
-        }
-        let alert = UIAlertController(
-            title: String(localized: .taskDeleteConfirmation(name: task.name)),
-            message: nil,
-            preferredStyle: .actionSheet
-        )
-        alert.addAction(UIAlertAction(title: String(localized: .taskDelete), style: .destructive) { [weak self] _ in
-            self?.vm.delete(task)
-        })
-        alert.addAction(UIAlertAction(title: String(localized: .taskDeleteCancel), style: .cancel))
-        // Pointing at the row, as the dialog did when SwiftUI drew it.
-        alert.popoverPresentationController?.sourceView = cell
-        alert.popoverPresentationController?.sourceRect = cell.bounds
-        presenter.present(alert, animated: true)
     }
 }
