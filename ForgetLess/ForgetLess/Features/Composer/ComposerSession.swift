@@ -98,26 +98,9 @@ final class ComposerSession {
         let name = composer.taskName
         guard let savedName = TodoTask.savedName(from: name) else { return }
         if let editedTask = composer.editedTask {
-            writes.run {
-                try await self.renameTask(id: editedTask.id, name: name)
-                postAnnouncement(.taskRenamed(name: name))
-            }
-            // Saved under the typed name, so dismissing now drops nothing.
-            composer.editedTask?.name = savedName
-            dismiss()
-            return
-        }
-        let day = composer.day
-        // Cleared at once, so a second submit before the write lands adds nothing.
-        composer.clearForNextTask(afterAddingTo: day)
-        writes.run {
-            try await self.addTask(name: name, day: day)
-            postAnnouncement(.taskAdded(name: name))
-        } onFailure: {
-            // Give the name back unless the user has started typing another.
-            if self.composer.taskName.isEmpty {
-                self.composer.taskName = name
-            }
+            submitRename(of: editedTask, to: name, savedName: savedName)
+        } else {
+            submitAdd(name)
         }
     }
 
@@ -159,6 +142,33 @@ final class ComposerSession {
     }
 
     // MARK: - Helpers
+    /// Renames `editedTask` to `name`, which saves as `savedName`, and dismisses.
+    private func submitRename(of editedTask: TodoTask, to name: String, savedName: String) {
+        writes.run {
+            try await self.renameTask(id: editedTask.id, name: name)
+            postAnnouncement(.taskRenamed(name: name))
+        }
+        // Saved under the typed name, so dismissing now drops nothing.
+        composer.editedTask?.name = savedName
+        dismiss()
+    }
+
+    /// Adds a Task named `name` to the composer's Day, and clears the composer for the next one.
+    private func submitAdd(_ name: String) {
+        let day = composer.day
+        // Cleared at once, so a second submit before the write lands adds nothing.
+        composer.clearForNextTask(afterAddingTo: day)
+        writes.run {
+            try await self.addTask(name: name, day: day)
+            postAnnouncement(.taskAdded(name: name))
+        } onFailure: {
+            // Give the name back unless the user has started typing another.
+            if self.composer.taskName.isEmpty {
+                self.composer.taskName = name
+            }
+        }
+    }
+
     /// Sets the composer's Day to `day`, which can be planned for; an edited Task moves to the end of it at once, and
     /// `onSaved` runs once that's saved. Returns whether the Day changed: never on the composer's own Day.
     @discardableResult
