@@ -10,7 +10,9 @@ final class ScheduleTasks {
     private(set) var incompleteTaskCountsByDay: [Date: Int] = [:]
     /// What the Tasks are listed by, read afresh each time they're listed. The owner sets it right after creating
     /// these Tasks, before it lists any.
-    @ObservationIgnored var listing: (@MainActor () -> ScheduleListing)!
+    @ObservationIgnored var listing: @MainActor () -> ScheduleListing = {
+        preconditionFailure("ScheduleTasks listed before its owner set the listing")
+    }
     /// The Tasks listed: those stored, with any Move not yet saved already made.
     private var listed: [TodoTask] = []
     /// The Tasks last observed in the store.

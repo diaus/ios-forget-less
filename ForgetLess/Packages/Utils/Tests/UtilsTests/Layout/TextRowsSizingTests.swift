@@ -12,7 +12,6 @@ struct TextRowsSizingTests {
         lineHeightPerPoint: 2
     )
 
-    // MARK: - Tests
     @Test func rowsWithRoomToSpareTakeTheFullFontAndGap() {
         let layout = sizing.layout(rowCount: 2, height: 100)
 
@@ -37,5 +36,11 @@ struct TextRowsSizingTests {
         let layout = sizing.layout(rowCount: 10, height: 99)
 
         #expect(layout == TextRowsSizing.Layout(fontSize: 12, gap: 1, rowCount: 4))
+    }
+
+    @Test func aLoneRowFillsTheHeightAndKeepsTheFullGap() {
+        let layout = sizing.layout(rowCount: 1, height: 30)
+
+        #expect(layout == TextRowsSizing.Layout(fontSize: 15, gap: 5, rowCount: 1))
     }
 }

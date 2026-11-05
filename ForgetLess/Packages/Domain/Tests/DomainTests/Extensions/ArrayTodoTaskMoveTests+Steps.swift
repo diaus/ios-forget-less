@@ -86,7 +86,8 @@ struct ArrayTodoTaskMoveStepsTests {
 
         let steps = tasks.oneStepDestinations(today: today, listsTomorrow: true)
 
-        #expect(steps[0].stepDownPassesATask)
+        #expect(steps[0].stepDown(allowingPassingATask: true) == steps[0].stepDown)
+        #expect(steps[0].stepDown(allowingPassingATask: false) == nil)
     }
 
     @Test func aStepDownToTheTopOfTomorrowPassesNoTask() {
@@ -94,8 +95,7 @@ struct ArrayTodoTaskMoveStepsTests {
 
         let steps = tasks.oneStepDestinations(today: today, listsTomorrow: true)
 
-        #expect(steps[0].stepDown == MoveDestination(day: tomorrow, after: nil))
-        #expect(!steps[0].stepDownPassesATask)
+        #expect(steps[0].stepDown(allowingPassingATask: false) == MoveDestination(day: tomorrow, after: nil))
     }
 
     @Test func aStepDownFromOverduePassesATaskOnlyWhileAnOverdueTaskIsListedAfterIt() {
@@ -108,8 +108,8 @@ struct ArrayTodoTaskMoveStepsTests {
 
         let steps = tasks.oneStepDestinations(today: today, listsTomorrow: false)
 
-        #expect(steps[0].stepDownPassesATask)
-        #expect(!steps[1].stepDownPassesATask)
+        #expect(steps[0].stepDown(allowingPassingATask: false) == nil)
+        #expect(steps[1].stepDown(allowingPassingATask: false) == MoveDestination(day: today, after: nil))
     }
 
     // MARK: - Helpers

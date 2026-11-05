@@ -46,6 +46,14 @@ struct UpcomingWidgetContentTests {
         #expect(rows(of: content).map(\.marker) == [.overdue, nil, .tomorrow])
     }
 
+    @Test func aRowAfterTomorrowIsMarkedAsTomorrowsAre() {
+        let content = UpcomingWidgetContent(
+            tasks: [task("Renew passport", day: today.addingDays(5))], today: today, listsTomorrow: true
+        )
+
+        #expect(rows(of: content).map(\.marker) == [.tomorrow])
+    }
+
     // MARK: - Helpers
     private func task(_ name: String, day: Date) -> TodoTask {
         TodoTask(id: UUID(), name: name, day: day, completeDay: nil, sortIndex: 0)

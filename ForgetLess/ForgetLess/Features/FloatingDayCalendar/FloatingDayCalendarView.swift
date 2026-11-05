@@ -213,15 +213,15 @@ struct FloatingDayCalendarView: View {
 }
 
 extension FloatingDayCalendarView {
-    /// The open calendar's state from `open`, or `lastState` once it has closed, while it animates out. A change goes
-    /// to `update` only while the calendar is open, so a closed one never opens again from it.
+    /// The open calendar's state from `openState`, or `lastState` once it has closed, while it animates out. A change
+    /// goes to `update` only while the calendar is open, so a closed one never opens again from it.
     static func binding(
         keeping lastState: FloatingDayCalendarState,
-        open: @escaping () -> FloatingDayCalendarState?,
+        openState: @escaping () -> FloatingDayCalendarState?,
         update: @escaping (FloatingDayCalendarState) -> Void
     ) -> Binding<FloatingDayCalendarState> {
-        Binding { open() ?? lastState } set: { newValue in
-            if open() != nil {
+        Binding { openState() ?? lastState } set: { newValue in
+            if openState() != nil {
                 update(newValue)
             }
         }

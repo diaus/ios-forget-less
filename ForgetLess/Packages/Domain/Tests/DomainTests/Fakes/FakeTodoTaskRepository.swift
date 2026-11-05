@@ -5,10 +5,6 @@ import Foundation
 actor FakeTodoTaskRepository: TodoTaskRepository {
     private(set) var tasks: [TodoTask] = []
 
-    private func tasks(on day: Date) -> [TodoTask] {
-        tasks.filter { $0.day == day }
-    }
-
     /// Sends the Tasks once, then ends.
     func scheduleTasks(today: Date) -> AsyncStream<[TodoTask]> {
         let scheduleTasks = tasks.filter { $0.day >= today || ($0.completeDay ?? .distantFuture) >= today }
@@ -28,7 +24,7 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
             name: name,
             day: day,
             completeDay: nil,
-            sortIndex: TodoTask.nextSortIndex(in: tasks(on: day))
+            sortIndex: TodoTask.nextSortIndex(in: tasks.filter { $0.day == day })
         )
         tasks.append(task)
     }
@@ -45,7 +41,7 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
 
     func move(id: UUID, to destination: MoveDestination) {
         guard let task = tasks.first(where: { $0.id == id }) else { return }
-        let order = TodoTask.order(afterMoving: task, to: destination, in: tasks(on: destination.day))
+        let order = TodoTask.order(afterMoving: task, to: destination, in: tasks.filter { $0.day == destination.day })
         tasks.removeAll { $0.day == destination.day || $0.id == id }
         for (sortIndex, var task) in order.enumerated() {
             task.day = destination.day

@@ -8,8 +8,8 @@ import WidgetKit
 /// half, under the down arrow, down. A half with nowhere to go is dimmed and does nothing.
 struct MoveStepsView: View {
     let taskID: UUID
-    let destinationOneStepUp: MoveDestination?
-    let destinationOneStepDown: MoveDestination?
+    let stepUp: MoveDestination?
+    let stepDown: MoveDestination?
     let font: UIFont
 
     private static let symbolName = "arrow.up.forward.and.arrow.down.backward.rectangle.fill"
@@ -20,8 +20,8 @@ struct MoveStepsView: View {
     // MARK: - Body
     var body: some View {
         HStack(spacing: 0) {
-            half(.leading, destination: destinationOneStepUp, label: .taskMoveUp)
-            half(.trailing, destination: destinationOneStepDown, label: .taskMoveDown)
+            half(.leading, destination: stepUp, label: .taskMoveUp)
+            half(.trailing, destination: stepDown, label: .taskMoveDown)
         }
         .foregroundStyle(.secondary)
     }
