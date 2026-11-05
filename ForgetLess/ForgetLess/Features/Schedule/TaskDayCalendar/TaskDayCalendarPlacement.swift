@@ -7,8 +7,6 @@ struct TaskDayCalendarPlacement {
     /// Whether it's under the row, at the top of `frame`, rather than above the row, at its bottom.
     let opensBelow: Bool
 
-    /// The widest the calendar grows, so its Days never spread out on a wide screen.
-    private static let maxWidth: CGFloat = 400
     /// Kept clear between the calendar and the row, and the edges of the space.
     private static let margin: CGFloat = 8
 
@@ -19,7 +17,7 @@ struct TaskDayCalendarPlacement {
         let heightAbove = row.minY - Self.margin - (space.minY + Self.margin)
         let opensBelow = heightBelow >= fullHeight || (heightAbove < fullHeight && heightBelow >= heightAbove)
         let height = max(opensBelow ? heightBelow : heightAbove, 0)
-        let width = min(row.width, Self.maxWidth)
+        let width = min(row.width, FloatingDayCalendarLayout.maxWidth)
         // Centred on the tap, but never past the row's edges, which keep the list's margins.
         let minX = min(max(tap.x - width / 2, row.minX), row.maxX - width)
         let minY = opensBelow ? row.maxY + Self.margin : row.minY - Self.margin - height

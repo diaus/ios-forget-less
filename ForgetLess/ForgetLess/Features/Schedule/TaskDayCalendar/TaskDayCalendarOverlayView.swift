@@ -25,7 +25,11 @@ struct TaskDayCalendarOverlayView: View {
                     let space = listFrame.offsetBy(dx: -screenOrigin.x, dy: -screenOrigin.y)
                     let placement = TaskDayCalendarPlacement(row: row, tap: tap, space: space, fullHeight: fullHeight)
                     FloatingDayCalendarView(
-                        calendar: binding(keeping: open.calendar),
+                        calendar: FloatingDayCalendarView.binding(keeping: open.calendar) {
+                            vm.taskDayCalendar?.calendar
+                        } update: {
+                            vm.taskDayCalendar?.calendar = $0
+                        },
                         availableHeight: placement.frame.height,
                         onFullHeightChange: { fullHeight = $0 },
                         onChoose: vm.chooseTaskDayCalendarDay,
@@ -53,12 +57,5 @@ struct TaskDayCalendarOverlayView: View {
         Color.clear
             .contentShape(.rect)
             .gesture(DragGesture(minimumDistance: 0).onEnded { _ in vm.closeTaskDayCalendar() })
-    }
-
-    // MARK: - Helpers
-    /// The open calendar's state, or `calendar` once it has closed, while it animates out. A closed calendar takes
-    /// no change.
-    private func binding(keeping calendar: FloatingDayCalendarState) -> Binding<FloatingDayCalendarState> {
-        Binding { vm.taskDayCalendar?.calendar ?? calendar } set: { vm.taskDayCalendar?.calendar = $0 }
     }
 }

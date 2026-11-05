@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// How the floating Day calendar fits the height it has.
+/// How the floating Day calendar fits the space it has.
 struct FloatingDayCalendarLayout: Equatable {
     let rowHeight: CGFloat
     let showsButtons: Bool
@@ -9,6 +9,8 @@ struct FloatingDayCalendarLayout: Equatable {
 }
 
 extension FloatingDayCalendarLayout {
+    /// The widest the calendar grows, so its Days never spread out on a wide screen.
+    static let maxWidth: CGFloat = 400
     /// Every month as many weeks, so paging never changes the calendar's height.
     static let weekCount = 5
     /// The shortest a row shrinks before the keyboard goes down to make room.

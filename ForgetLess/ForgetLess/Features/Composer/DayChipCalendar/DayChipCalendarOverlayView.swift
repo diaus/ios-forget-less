@@ -6,8 +6,6 @@ struct DayChipCalendarOverlayView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let anchors: DayChipCalendarAnchors
 
-    /// The widest the calendar grows, so its Days never spread out on a wide screen.
-    private let maxWidth: CGFloat = 400
     /// Kept clear above the calendar, so it never touches the top of the safe area.
     private let topMargin: CGFloat = 8
     private let coordinateSpaceName = "dayChipCalendarOverlay"
@@ -27,14 +25,18 @@ struct DayChipCalendarOverlayView: View {
                 }
                 if let calendar = session.dayChipCalendar, let chip, let composer {
                     FloatingDayCalendarView(
-                        calendar: binding(keeping: calendar),
+                        calendar: FloatingDayCalendarView.binding(keeping: calendar) {
+                            session.dayChipCalendar
+                        } update: {
+                            session.dayChipCalendar = $0
+                        },
                         availableHeight: composer.maxY - topMargin,
                         isKeyboardUp: !calendar.hasHiddenKeyboard,
                         onHideKeyboard: session.hideKeyboardForDayChipCalendar,
                         onChoose: session.chooseDayChipCalendarDay,
                         onClose: session.closeDayChipCalendarRestoringFocus
                     )
-                        .frame(width: min(composer.width, maxWidth))
+                        .frame(width: min(composer.width, FloatingDayCalendarLayout.maxWidth))
                         .padding(.leading, composer.minX)
                         // Covers the composer, for the most height for its month.
                         .frame(width: proxy.size.width, height: composer.maxY, alignment: .bottomLeading)
@@ -73,16 +75,5 @@ struct DayChipCalendarOverlayView: View {
                     session.closeDayChipCalendarRestoringFocus()
                 }
             }
-    }
-
-    // MARK: - Helpers
-    /// The open calendar's state, or `calendar` once it has closed, while it animates out. A closed calendar takes
-    /// no change, so it never opens again from one.
-    private func binding(keeping calendar: FloatingDayCalendarState) -> Binding<FloatingDayCalendarState> {
-        Binding { session.dayChipCalendar ?? calendar } set: { newValue in
-            if session.dayChipCalendar != nil {
-                session.dayChipCalendar = newValue
-            }
-        }
     }
 }
