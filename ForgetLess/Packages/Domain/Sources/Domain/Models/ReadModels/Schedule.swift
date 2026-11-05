@@ -65,7 +65,7 @@ public struct Schedule: Sendable {
     }
 
     /// The move rule for a Move to the end of `day`, listed or not: whether `task` can go there.
-    public func canMove(_ task: TodoTask, toDay day: Date) -> Bool {
+    public func canMoveToEnd(_ task: TodoTask, of day: Date) -> Bool {
         // The window opens on Today, and Overdue is never a destination.
         guard let today = days.first?.day, day.canBePlanned(today: today) else { return false }
         return isListed(task)

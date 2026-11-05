@@ -65,7 +65,7 @@ final class ScheduleTasks {
     /// Moves `task` to the end of `day` ahead of the store, unless the move rule refuses it. Returns where it moved
     /// to, or `nil` when refused.
     func moveToEnd(_ task: TodoTask, of day: Date) -> MoveDestination? {
-        guard schedule.canMove(task, toDay: day) else { return nil }
+        guard schedule.canMoveToEnd(task, of: day) else { return nil }
         let destination = listed.destinationAtEnd(of: day, forTaskWithID: task.id)
         listed = listed.movingTask(id: task.id, to: destination)
         relist()
