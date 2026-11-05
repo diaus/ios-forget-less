@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: accepted, partly superseded by ADR 0005
 ---
 
 # The store lives in the App Group so the widget reads Tasks itself
@@ -13,5 +13,5 @@ The Lock Screen widget lists Overdue and Today's Incomplete Tasks. It runs in it
 ## Consequences
 
 - The widget learns of a write only when the app reloads its timelines. The repository runs an injected after-save hook on every successful save, and the app wires `WidgetCenter.shared.reloadAllTimelines()` into it, so Data stays free of WidgetKit. The hook is kept apart from the `ChangeNotifier` (ADR 0002) because it must fire on every save, even when no stream is open.
-- The widget never writes, so ADR 0002's single notifying save still sees every write.
+- ~~The widget never writes, so ADR 0002's single notifying save still sees every write.~~ Superseded by ADR 0005: the large Home Screen widget makes Tasks Complete and Moves them.
 - No install held real data when the store moved, so the old sandbox store isn't migrated. Moving the store again needs a file migration.

@@ -8,16 +8,23 @@ extension UpcomingWidgetEntry {
         "Book a haircut", "Fix the bike", "Read a chapter", "Bake bread", "Wash the car", "Post the letter",
     ]
 
-    /// The first `taskCount` sample Tasks, all on Today, listing at most `rowLimit` of them.
+    /// The first `taskCount` sample Tasks, all on Today, listing at most `rowLimit` of them, or all when it's nil.
+    /// Past the sample's names, they repeat.
     static func preview(
         taskCount count: Int,
-        rowLimit: Int = UpcomingWidgetContent.maxRowCount
+        rowLimit: Int? = UpcomingWidgetContent.maxRowCount
     ) -> UpcomingWidgetEntry {
         let today = Date.today
-        let tasks = previewNames.prefix(count).enumerated().map { index, name in
-            TodoTask(id: UUID(), name: name, day: today, completeDay: nil, sortIndex: index)
+        let tasks = (0..<count).map { index in
+            TodoTask(
+                id: UUID(),
+                name: previewNames[index % previewNames.count],
+                day: today,
+                completeDay: nil,
+                sortIndex: index
+            )
         }
-        let content = UpcomingWidgetContent(tasks: tasks, today: today, rowLimit: rowLimit)
+        let content = UpcomingWidgetContent(tasks: tasks, today: today, listsTomorrow: false, rowLimit: rowLimit)
         return UpcomingWidgetEntry(date: .now, content: content)
     }
 
@@ -35,12 +42,16 @@ extension UpcomingWidgetEntry {
             )
         }
         .sorted { $0.day < $1.day }
-        let content = UpcomingWidgetContent(tasks: tasks, today: today)
+        let content = UpcomingWidgetContent(tasks: tasks, today: today, listsTomorrow: true)
         return UpcomingWidgetEntry(date: .now, content: content, cutEnding: cutEnding)
     }
 
     /// The Tasks the repository returns with these settings, from a sample of Overdue, Today's and Tomorrow's Tasks.
-    static func preview(showsOverdueTasks: Bool, showsTomorrowTasks: Bool) -> UpcomingWidgetEntry {
+    static func preview(
+        showsOverdueTasks: Bool,
+        showsTomorrowTasks: Bool,
+        rowLimit: Int? = UpcomingWidgetContent.maxRowCount
+    ) -> UpcomingWidgetEntry {
         let today = Date.today
         let tasks = [
             TodoTask(id: UUID(), name: "Pay rent", day: today.addingDays(-2), completeDay: nil, sortIndex: 0),
@@ -58,7 +69,12 @@ extension UpcomingWidgetEntry {
         }
         return UpcomingWidgetEntry(
             date: .now,
-            content: UpcomingWidgetContent(tasks: listed, today: today)
+            content: UpcomingWidgetContent(
+                tasks: listed,
+                today: today,
+                listsTomorrow: showsTomorrowTasks,
+                rowLimit: rowLimit
+            )
         )
     }
 }

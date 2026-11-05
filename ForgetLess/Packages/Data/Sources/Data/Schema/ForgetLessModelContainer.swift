@@ -22,6 +22,11 @@ public enum ForgetLessModelContainer {
         try makeReader(existingStoreAt: ForgetLessStoreLocation.appGroupStoreURL())
     }
 
+    /// The App Group store opened for writing, for the widget (ADR 0005), or nil while the app hasn't created it.
+    static func makeWriterInAppGroup() throws -> ModelContainer? {
+        try makeWriter(existingStoreAt: ForgetLessStoreLocation.appGroupStoreURL())
+    }
+
     /// The store at `url`, created when there is none.
     static func make(url: URL) throws -> ModelContainer {
         let configuration = ModelConfiguration(schema: schema, url: url)
@@ -41,12 +46,22 @@ public enum ForgetLessModelContainer {
 
     /// The store at `url` opened read-only, or nil when there is none, in which case nothing is created.
     static func makeReader(existingStoreAt url: URL) throws -> ModelContainer? {
-        guard FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else { return nil }
-        let configuration = ModelConfiguration(schema: schema, url: url, allowsSave: false)
-        return try ModelContainer(for: schema, configurations: configuration)
+        try open(existingStoreAt: url, allowsSave: false)
+    }
+
+    /// The store at `url` opened for writing, or nil when there is none, in which case nothing is created. A store
+    /// that won't open throws and is left as it is.
+    static func makeWriter(existingStoreAt url: URL) throws -> ModelContainer? {
+        try open(existingStoreAt: url, allowsSave: true)
     }
 
     // MARK: - Helpers
+    private static func open(existingStoreAt url: URL, allowsSave: Bool) throws -> ModelContainer? {
+        guard FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else { return nil }
+        let configuration = ModelConfiguration(schema: schema, url: url, allowsSave: allowsSave)
+        return try ModelContainer(for: schema, configurations: configuration)
+    }
+
     #if targetEnvironment(simulator)
     private static func removeStore(at url: URL) {
         for suffix in ["", "-wal", "-shm"] {

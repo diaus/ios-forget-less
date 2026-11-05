@@ -39,6 +39,16 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
     }
 
     // MARK: - Helpers
+    /// How many rows the content holds: nil for every Task.
+    private static func rowLimit(for family: WidgetFamily, showsTwoColumns: Bool) -> Int? {
+        // The large size lists as many as fit, which only its view can tell.
+        guard family != .systemLarge else { return nil }
+        // The Home Screen never shows two columns, so the setting is hidden there and doesn't apply.
+        return family.isOnLockScreen && !showsTwoColumns
+            ? UpcomingWidgetContent.columnRowCount
+            : UpcomingWidgetContent.maxRowCount
+    }
+
     /// The entry for the Today of `moment`. `repository` is nil while the app hasn't created the store.
     private func entry(
         at moment: Date,
@@ -54,11 +64,12 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
                     from: configuration.showsOverdueTasks ? nil : today,
                     through: configuration.showsTomorrowTasks ? today.addingDays(1) : today
                 )
-                // The Home Screen never shows two columns, so the setting is hidden there and doesn't apply.
-                let rowLimit = family.isOnLockScreen && !configuration.showsTwoColumns
-                    ? UpcomingWidgetContent.columnRowCount
-                    : UpcomingWidgetContent.maxRowCount
-                content = UpcomingWidgetContent(tasks: tasks, today: today, rowLimit: rowLimit)
+                content = UpcomingWidgetContent(
+                    tasks: tasks,
+                    today: today,
+                    listsTomorrow: configuration.showsTomorrowTasks,
+                    rowLimit: Self.rowLimit(for: family, showsTwoColumns: configuration.showsTwoColumns)
+                )
             } else {
                 content = .empty
             }

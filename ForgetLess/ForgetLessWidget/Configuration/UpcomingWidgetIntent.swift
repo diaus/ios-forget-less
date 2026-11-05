@@ -25,12 +25,7 @@ struct UpcomingWidgetIntent: WidgetConfigurationIntent {
     // The Home Screen never shows two columns, so its sheet hides both layout settings. On the Lock Screen, the
     // cut ending applies only to two columns, so the sheet hides it while they're off.
     static var parameterSummary: some ParameterSummary {
-        When(widgetFamily: .equalTo, .systemSmall) {
-            Summary {
-                \.$showsOverdueTasks
-                \.$showsTomorrowTasks
-            }
-        } otherwise: {
+        When(widgetFamily: .equalTo, .accessoryRectangular) {
             When(\.$showsTwoColumns, .equalTo, true) {
                 Summary {
                     \.$showsOverdueTasks
@@ -44,6 +39,11 @@ struct UpcomingWidgetIntent: WidgetConfigurationIntent {
                     \.$showsTomorrowTasks
                     \.$showsTwoColumns
                 }
+            }
+        } otherwise: {
+            Summary {
+                \.$showsOverdueTasks
+                \.$showsTomorrowTasks
             }
         }
     }

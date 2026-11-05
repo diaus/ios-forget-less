@@ -780,6 +780,40 @@
         }
       }
     },
+    "widget.afterTask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After Task"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Після завдання"
+          }
+        }
+      }
+    },
+    "widget.completeTask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Позначити виконаним"
+          }
+        }
+      }
+    },
     "widget.cutEnding" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -814,6 +848,23 @@
         }
       }
     },
+    "widget.day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "День"
+          }
+        }
+      }
+    },
     "widget.description" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -827,6 +878,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Заплановані завдання"
+          }
+        }
+      }
+    },
+    "widget.moveTask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move Task"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перемістити завдання"
           }
         }
       }
@@ -929,6 +997,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Показувати дві колонки"
+          }
+        }
+      }
+    },
+    "widget.task" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Task"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завдання"
           }
         }
       }

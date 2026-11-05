@@ -1,3 +1,4 @@
+import Domain
 import SwiftUI
 import UIKit
 import WidgetKit
@@ -13,6 +14,8 @@ struct HomeScreenRowsView: View {
 
     let rows: [UpcomingRow]
 
+    @Environment(\.widgetFamily) private var family
+
     // Tuned with RenderPreview on iPhone 18 Pro: 5 rows at the full font and gap fill the height, and 6 still fit at
     // the full font with the smallest gap.
     private static let fullFontSize: CGFloat = 17
@@ -25,14 +28,44 @@ struct HomeScreenRowsView: View {
     var body: some View {
         GeometryReader { proxy in
             let layout = Self.layout(rowCount: rows.count, height: proxy.size.height)
+            let leavesRowsOut = layout.rowCount < rows.count
             VStack(alignment: .leading, spacing: layout.gap) {
-                ForEach(rows.prefix(layout.rowCount)) { row in
-                    UpcomingRowView(row: row, font: layout.font, cutWidth: nil, cutEnding: .empty)
-                        .frame(height: layout.font.lineHeight)
+                ForEach(Array(rows.prefix(layout.rowCount).enumerated()), id: \.element.id) { index, row in
+                    if family == .systemLarge {
+                        rowWithControls(
+                            row,
+                            font: layout.font,
+                            isLastShownBeforeRowsLeftOut: leavesRowsOut && index == layout.rowCount - 1
+                        )
+                    } else {
+                        UpcomingRowView(row: row, font: layout.font, cutWidth: nil, cutEnding: .empty)
+                            .frame(height: layout.font.lineHeight)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
+    }
+
+    // MARK: - UI Components
+    /// The large size's row, with its circle and arrows. `isLastShownBeforeRowsLeftOut` is whether rows listed after it
+    /// don't fit, so a step down mustn't put the Task among them.
+    private func rowWithControls(_ row: UpcomingRow, font: UIFont, isLastShownBeforeRowsLeftOut: Bool) -> some View {
+        HStack(spacing: 0) {
+            CompleteCircleView(taskID: row.id, font: font)
+            UpcomingRowView(row: row, font: font, cutWidth: nil, cutEnding: .empty)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            let destinations = row.oneStepDestinations
+            MoveStepsView(
+                taskID: row.id,
+                destinationOneStepUp: destinations.destinationOneStepUp,
+                destinationOneStepDown: isLastShownBeforeRowsLeftOut
+                    ? destinations.destinationOneStepDownFromLastShownRow
+                    : destinations.destinationOneStepDown,
+                font: font
+            )
+        }
+        .frame(height: font.lineHeight)
     }
 
     // MARK: - Helpers
