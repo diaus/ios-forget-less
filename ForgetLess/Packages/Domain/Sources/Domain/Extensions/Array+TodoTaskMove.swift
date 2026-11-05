@@ -25,19 +25,18 @@ public extension Array where Element == TodoTask {
         let schedule = Schedule(tasks: self, today: today, windowDayCount: listsTomorrow ? 2 : 1)
         return indices.map { index in
             let task = self[index]
-            let destinationOneStepDown = schedule.destinationOneStepDown(for: task)
+            let stepDown = schedule.destinationOneStepDown(for: task)
             let next = index < count - 1 ? self[index + 1] : nil
-            // A step to the top of a Day the next listed Task isn't before passes no listed Task, so it takes the place
-            // the Task leaves and stays shown.
-            let keepsItsPlace = if let destinationOneStepDown, destinationOneStepDown.after == nil {
-                next.map { $0.day >= destinationOneStepDown.day } ?? true
+            // A step to the top of a Day passes the next listed Task only while that Task is on a Day before it.
+            let stepDownPassesATask = if let stepDown {
+                stepDown.after != nil || next.map { $0.day < stepDown.day } == true
             } else {
                 false
             }
             return OneStepDestinations(
-                destinationOneStepUp: schedule.destinationOneStepUp(for: task),
-                destinationOneStepDown: destinationOneStepDown,
-                destinationOneStepDownFromLastShownRow: keepsItsPlace ? destinationOneStepDown : nil
+                stepUp: schedule.destinationOneStepUp(for: task),
+                stepDown: stepDown,
+                stepDownPassesATask: stepDownPassesATask
             )
         }
     }

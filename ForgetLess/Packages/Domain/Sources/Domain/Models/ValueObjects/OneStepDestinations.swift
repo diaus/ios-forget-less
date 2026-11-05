@@ -1,18 +1,14 @@
-/// Where a listed Task goes one step up or one step down, past the Task listed beside it; nil where it can't go.
+/// Where a listed Task goes one step up or one step down; nil where it can't go.
 public struct OneStepDestinations: Hashable, Sendable {
-    public let destinationOneStepUp: MoveDestination?
-    public let destinationOneStepDown: MoveDestination?
-    /// `destinationOneStepDown` for the last row shown while rows listed after it are left out: nil when the step would
-    /// put the Task among them.
-    public let destinationOneStepDownFromLastShownRow: MoveDestination?
+    public let stepUp: MoveDestination?
+    public let stepDown: MoveDestination?
+    /// Whether the step down puts the Task after a listed Task that was below it, rather than only giving it the next
+    /// Day.
+    public let stepDownPassesATask: Bool
 
-    public init(
-        destinationOneStepUp: MoveDestination?,
-        destinationOneStepDown: MoveDestination?,
-        destinationOneStepDownFromLastShownRow: MoveDestination?
-    ) {
-        self.destinationOneStepUp = destinationOneStepUp
-        self.destinationOneStepDown = destinationOneStepDown
-        self.destinationOneStepDownFromLastShownRow = destinationOneStepDownFromLastShownRow
+    public init(stepUp: MoveDestination?, stepDown: MoveDestination?, stepDownPassesATask: Bool) {
+        self.stepUp = stepUp
+        self.stepDown = stepDown
+        self.stepDownPassesATask = stepDownPassesATask
     }
 }

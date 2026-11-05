@@ -58,10 +58,10 @@ struct HomeScreenRowsView: View {
             let destinations = row.oneStepDestinations
             MoveStepsView(
                 taskID: row.id,
-                destinationOneStepUp: destinations.destinationOneStepUp,
-                destinationOneStepDown: isLastShownBeforeRowsLeftOut
-                    ? destinations.destinationOneStepDownFromLastShownRow
-                    : destinations.destinationOneStepDown,
+                destinationOneStepUp: destinations.stepUp,
+                destinationOneStepDown: isLastShownBeforeRowsLeftOut && destinations.stepDownPassesATask
+                    ? nil
+                    : destinations.stepDown,
                 font: font
             )
         }
