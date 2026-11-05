@@ -49,7 +49,8 @@ final class ScheduleViewModel {
         self.composerSession = ComposerSession(
             today: today, scheduleTasks: scheduleTasks, taskMoves: taskMoves, writes: writes
         )
-        // Unowned: the view model holds the Tasks, so it outlives them.
+        // Unowned: the view model holds the Tasks, so it outlives them. Only now, with `self` whole, can the listing
+        // read the composer session, which itself holds the Tasks.
         scheduleTasks.listing = { [unowned self] in listing }
         keptTasks.onRelease = { [weak self] in self?.scheduleTasks.relist() }
         composerSession.onStopEditing = { [weak self] in self?.stopListing($0) }

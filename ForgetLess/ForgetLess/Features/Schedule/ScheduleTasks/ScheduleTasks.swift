@@ -8,8 +8,9 @@ final class ScheduleTasks {
     private(set) var schedule: Schedule
     /// How many Incomplete Tasks each Day holds; a Day with none has no entry.
     private(set) var incompleteTaskCountsByDay: [Date: Int] = [:]
-    /// What the Tasks are listed by, read afresh each time they're listed.
-    @ObservationIgnored var listing: @MainActor () -> ScheduleListing
+    /// What the Tasks are listed by, read afresh each time they're listed. The owner sets it right after creating
+    /// these Tasks, before it lists any.
+    @ObservationIgnored var listing: (@MainActor () -> ScheduleListing)!
     /// The Tasks listed: those stored, with any Move not yet saved already made.
     private var listed: [TodoTask] = []
     /// The Tasks last observed in the store.
@@ -18,7 +19,6 @@ final class ScheduleTasks {
     /// Lists no Task yet, on `today`.
     init(today: Date) {
         schedule = Schedule(tasks: [], today: today)
-        listing = { ScheduleListing(today: today, showsComplete: true, keptTaskIDs: []) }
     }
 
     // MARK: - Listing
