@@ -19,31 +19,31 @@ public struct TextRowsSizing: Sendable {
     public let fullGap: CGFloat
     public let smallestGap: CGFloat
     public let smallestFontSize: CGFloat
-    /// A line's height per point of font size.
-    public let lineHeightPerPoint: CGFloat
+    public let lineMetrics: FontLineMetrics
 
     public init(
         fullFontSize: CGFloat,
         fullGap: CGFloat,
         smallestGap: CGFloat,
         smallestFontSize: CGFloat,
-        lineHeightPerPoint: CGFloat
+        lineMetrics: FontLineMetrics
     ) {
         self.fullFontSize = fullFontSize
         self.fullGap = fullGap
         self.smallestGap = smallestGap
         self.smallestFontSize = smallestFontSize
-        self.lineHeightPerPoint = lineHeightPerPoint
+        self.lineMetrics = lineMetrics
     }
 
     // MARK: - Layout
     /// How `rowCount` rows fit in `height`. Rows that don't fit even at `smallestFontSize` are left out from the end.
     public func layout(rowCount: Int, height: CGFloat) -> Layout {
+        let linesAtFullFont = lineMetrics.lineHeight(ofSize: fullFontSize) * CGFloat(rowCount)
         var fontSize = fullFontSize
-        if lineHeight(ofSize: fontSize) * CGFloat(rowCount) + smallestGap * CGFloat(rowCount - 1) > height {
+        if linesAtFullFont + smallestGap * CGFloat(rowCount - 1) > height {
             fontSize = max(largestFontSize(rowCount: rowCount, gap: smallestGap, height: height), smallestFontSize)
         }
-        let rowHeight = lineHeight(ofSize: fontSize)
+        let rowHeight = lineMetrics.lineHeight(ofSize: fontSize)
         let fittingCount = min(rowCount, Int((height + smallestGap) / (rowHeight + smallestGap)))
         let gap = fittingCount > 1
             ? min(fullGap, (height - rowHeight * CGFloat(fittingCount)) / CGFloat(fittingCount - 1))
@@ -52,13 +52,9 @@ public struct TextRowsSizing: Sendable {
     }
 
     // MARK: - Helpers
-    private func lineHeight(ofSize size: CGFloat) -> CGFloat {
-        lineHeightPerPoint * size
-    }
-
     /// The largest whole font size whose `rowCount` lines, with `gap` between them, fit in `height`.
     private func largestFontSize(rowCount: Int, gap: CGFloat, height: CGFloat) -> CGFloat {
         let rowHeight = (height - gap * CGFloat(rowCount - 1)) / CGFloat(rowCount)
-        return (rowHeight / lineHeightPerPoint).rounded(.down)
+        return lineMetrics.largestFontSize(fittingLineHeight: rowHeight)
     }
 }

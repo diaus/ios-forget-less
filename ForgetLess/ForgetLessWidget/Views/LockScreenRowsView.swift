@@ -18,7 +18,8 @@ struct LockScreenRowsView: View {
     var body: some View {
         GeometryReader { proxy in
             let rowHeight = proxy.size.height / CGFloat(Self.columnRowCount)
-            let font = UIFont.systemFont(ofSize: UIFont.largestSystemFontSize(fittingLineHeight: rowHeight))
+            let fontSize = UIFont.systemLineMetrics.largestFontSize(fittingLineHeight: rowHeight)
+            let font = UIFont.systemFont(ofSize: fontSize)
             if rows.count <= Self.columnRowCount {
                 column(rows, rowHeight: rowHeight, font: font, cutWidth: nil)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)

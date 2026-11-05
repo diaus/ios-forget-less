@@ -17,7 +17,7 @@ struct HomeScreenRowsView: View {
         fullGap: 5,
         smallestGap: 1,
         smallestFontSize: 12,
-        lineHeightPerPoint: UIFont.systemLineHeight(ofSize: 1)
+        lineMetrics: UIFont.systemLineMetrics
     )
 
     // MARK: - Body

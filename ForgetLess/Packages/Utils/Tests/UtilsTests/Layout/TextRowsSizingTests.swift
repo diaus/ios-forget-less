@@ -9,7 +9,7 @@ struct TextRowsSizingTests {
         fullGap: 5,
         smallestGap: 1,
         smallestFontSize: 12,
-        lineHeightPerPoint: 2
+        lineMetrics: FontLineMetrics(lineHeightPerPoint: 2)
     )
 
     @Test func rowsWithRoomToSpareTakeTheFullFontAndGap() {
