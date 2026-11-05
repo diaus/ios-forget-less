@@ -88,9 +88,8 @@ struct DayPickerView: View {
                     if let day = days[index] {
                         PickerDayView(
                             day: day,
-                            isChosen: dayPicker.chosenDay == day,
-                            canChoose: dayPicker.canChoose(day),
-                            isToday: dayPicker.today == day,
+                            chosenDay: dayPicker.chosenDay,
+                            today: dayPicker.today,
                             isInMonth: true,
                             incompleteTaskCount: vm.scheduleTasks.incompleteTaskCount(on: day),
                             rowHeight: PickerDayView.fullRowHeight

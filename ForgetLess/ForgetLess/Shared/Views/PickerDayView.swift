@@ -4,9 +4,9 @@ import SwiftUI
 /// A Day in a month to choose a Day from, chosen by a tap.
 struct PickerDayView: View {
     let day: Date
-    let isChosen: Bool
-    let canChoose: Bool
-    let isToday: Bool
+    /// The Day chosen so far, if any.
+    let chosenDay: Date?
+    let today: Date
     /// Whether `day` is in the month shown, rather than a Day of the months either side.
     let isInMonth: Bool
     let incompleteTaskCount: Int
@@ -52,6 +52,18 @@ struct PickerDayView: View {
     }
 
     // MARK: - Helpers
+    private var isChosen: Bool {
+        day == chosenDay
+    }
+
+    private var canChoose: Bool {
+        day.canBePlanned(today: today)
+    }
+
+    private var isToday: Bool {
+        day == today
+    }
+
     private var numberStyle: AnyShapeStyle {
         if !canChoose {
             AnyShapeStyle(.tertiary)
@@ -68,22 +80,13 @@ struct PickerDayView: View {
 }
 
 #Preview(traits: .sizeThatFitsLayout) {
+    let today = Date.today
     HStack {
-        PickerDayView(
-            day: Date.today.addingDays(-1), isChosen: false, canChoose: false, isToday: false, isInMonth: true,
-            incompleteTaskCount: 1, rowHeight: PickerDayView.fullRowHeight
-        ) {}
-        PickerDayView(
-            day: .today, isChosen: false, canChoose: true, isToday: true, isInMonth: true,
-            incompleteTaskCount: 2, rowHeight: PickerDayView.fullRowHeight
-        ) {}
-        PickerDayView(
-            day: Date.today.addingDays(1), isChosen: true, canChoose: true, isToday: false, isInMonth: true,
-            incompleteTaskCount: 1, rowHeight: PickerDayView.fullRowHeight
-        ) {}
-        PickerDayView(
-            day: Date.today.addingDays(2), isChosen: false, canChoose: true, isToday: false, isInMonth: false,
-            incompleteTaskCount: 1, rowHeight: PickerDayView.fullRowHeight
-        ) {}
+        ForEach(-1..<3, id: \.self) { dayCount in
+            PickerDayView(
+                day: today.addingDays(dayCount), chosenDay: today.addingDays(1), today: today, isInMonth: dayCount < 2,
+                incompleteTaskCount: 1, rowHeight: PickerDayView.fullRowHeight
+            ) {}
+        }
     }
 }

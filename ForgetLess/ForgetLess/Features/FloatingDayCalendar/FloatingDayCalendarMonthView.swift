@@ -72,9 +72,8 @@ struct FloatingDayCalendarMonthView: View {
             ForEach(days, id: \.self) { day in
                 PickerDayView(
                     day: day,
-                    isChosen: calendar.chosenDay == day,
-                    canChoose: calendar.canChoose(day),
-                    isToday: calendar.today == day,
+                    chosenDay: calendar.chosenDay,
+                    today: calendar.today,
                     isInMonth: day.isInSameMonth(as: month.firstDay),
                     incompleteTaskCount: vm.scheduleTasks.incompleteTaskCount(on: day),
                     rowHeight: rowHeight
