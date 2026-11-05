@@ -2,8 +2,6 @@ import Foundation
 
 /// Stores Tasks.
 public protocol TodoTaskRepository: Sendable {
-    /// The Tasks planned for `day`, in order of Day, then position within it.
-    func tasks(on day: Date) async throws -> [TodoTask]
     /// The Tasks the Schedule lists on `today`, in order of Day, then position within it: sent at once, then again
     /// after every change, until the consumer stops iterating. Throws when the first fetch fails; a later fetch that
     /// fails sends nothing.

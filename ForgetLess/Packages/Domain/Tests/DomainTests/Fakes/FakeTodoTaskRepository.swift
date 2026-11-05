@@ -5,7 +5,7 @@ import Foundation
 actor FakeTodoTaskRepository: TodoTaskRepository {
     private(set) var tasks: [TodoTask] = []
 
-    func tasks(on day: Date) -> [TodoTask] {
+    private func tasks(on day: Date) -> [TodoTask] {
         tasks.filter { $0.day == day }
     }
 

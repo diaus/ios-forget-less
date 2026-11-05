@@ -10,8 +10,9 @@ struct SampleTasks: PreviewModifier {
         for task in TodoTask.previewAll {
             try await repository.create(name: task.name, day: task.day)
             guard let completeDay = task.completeDay else { continue }
-            // `create` picks its own ID, so the stored Task is found by its name.
-            if let stored = try await repository.tasks(on: task.day).first(where: { $0.name == task.name }) {
+            // `create` picks its own ID, so the stored Task, Incomplete until now, is found by its name.
+            let createdOnDay = try await repository.incompleteTasks(from: task.day, through: task.day)
+            if let stored = createdOnDay.first(where: { $0.name == task.name }) {
                 try await repository.setComplete(id: stored.id, isComplete: true, today: completeDay)
             }
         }

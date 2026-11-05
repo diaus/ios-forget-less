@@ -21,10 +21,6 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     }
 
     // MARK: - TodoTaskRepository
-    func tasks(on day: Date) throws -> [TodoTask] {
-        try models(on: day).map { $0.toDomain() }
-    }
-
     func scheduleTasks(today: Date) throws -> AsyncStream<[TodoTask]> {
         // Subscribed before the first fetch, so a write during it still sends.
         let changes = notifier.changes
@@ -107,6 +103,11 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         return try fetchInScheduleOrder(
             #Predicate { $0.day >= today || ($0.completeDay ?? distantFuture) >= today }
         ).map { $0.toDomain() }
+    }
+
+    /// The Tasks planned for `day`, in order of position. Internal, not private, so tests read the store through it.
+    func tasks(on day: Date) throws -> [TodoTask] {
+        try models(on: day).map { $0.toDomain() }
     }
 
     private func models(on day: Date) throws -> [TodoTaskModel] {
