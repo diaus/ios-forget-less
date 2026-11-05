@@ -10,17 +10,17 @@ final class KeptTasks {
     @ObservationIgnored var onRelease: @MainActor () -> Void = {}
     @ObservationIgnored private var timers: [UUID: Task<Void, Never>] = [:]
 
-    /// Keeps the Task with `id` for a grace period of `seconds`, in place of any it had. With no grace period, it's no
-    /// longer kept, and `onRelease` doesn't run for it.
-    func keep(_ id: UUID, for seconds: Double) {
+    /// Keeps the Task with `id` for `gracePeriod`, in place of any grace period it had. With none, it's no longer kept,
+    /// and `onRelease` doesn't run for it.
+    func keep(_ id: UUID, for gracePeriod: Duration) {
         timers.removeValue(forKey: id)?.cancel()
-        guard seconds > 0 else {
+        guard gracePeriod > .zero else {
             ids.remove(id)
             return
         }
         ids.insert(id)
         timers[id] = Task {
-            try? await Task.sleep(for: .seconds(seconds))
+            try? await Task.sleep(for: gracePeriod)
             guard !Task.isCancelled else { return }
             timers[id] = nil
             ids.remove(id)

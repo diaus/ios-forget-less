@@ -140,7 +140,7 @@ final class ScheduleViewModel {
     }
 
     private func startGracePeriod(of id: UUID) {
-        keptTasks.keep(id, for: UserDefaults.standard.keptDuration)
+        keptTasks.keep(id, for: .seconds(UserDefaults.standard.keptDuration))
     }
 
     /// What the Schedule lists its Tasks by now.

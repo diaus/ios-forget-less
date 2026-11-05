@@ -11,7 +11,7 @@ struct KeptTasksTests {
         let releases = releaseStream(of: keptTasks)
         let id = UUID()
 
-        keptTasks.keep(id, for: 0.01)
+        keptTasks.keep(id, for: .seconds(0.01))
         #expect(keptTasks.ids == [id])
         for await _ in releases { break }
 
@@ -21,9 +21,9 @@ struct KeptTasksTests {
     @Test func aTaskKeptForNoTimeIsNoLongerKeptEvenIfItWasBefore() {
         let keptTasks = KeptTasks()
         let id = UUID()
-        keptTasks.keep(id, for: 60)
+        keptTasks.keep(id, for: .seconds(60))
 
-        keptTasks.keep(id, for: 0)
+        keptTasks.keep(id, for: .zero)
 
         #expect(keptTasks.ids.isEmpty)
     }
@@ -33,11 +33,11 @@ struct KeptTasksTests {
         let keptTasks = KeptTasks()
         let releases = releaseStream(of: keptTasks)
         let stopped = UUID()
-        keptTasks.keep(stopped, for: 0.01)
+        keptTasks.keep(stopped, for: .seconds(0.01))
         keptTasks.stopGracePeriod(of: stopped)
 
         // Released well after the stopped Task's grace period would have ended.
-        keptTasks.keep(UUID(), for: 0.3)
+        keptTasks.keep(UUID(), for: .seconds(0.3))
         for await _ in releases { break }
 
         #expect(keptTasks.ids == [stopped])
@@ -45,8 +45,8 @@ struct KeptTasksTests {
 
     @Test func releasingAllKeepsNoTask() {
         let keptTasks = KeptTasks()
-        keptTasks.keep(UUID(), for: 60)
-        keptTasks.keep(UUID(), for: 60)
+        keptTasks.keep(UUID(), for: .seconds(60))
+        keptTasks.keep(UUID(), for: .seconds(60))
 
         keptTasks.releaseAll()
 
