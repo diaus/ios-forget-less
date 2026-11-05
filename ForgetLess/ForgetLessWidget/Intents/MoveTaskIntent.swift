@@ -1,9 +1,7 @@
 import AppIntents
-import Data
 import Domain
 import Foundation
 import os
-import WidgetKit
 
 // App Intents metadata takes only string literals, not catalog symbols, so the titles are their catalog keys, which
 // the system looks up in the widget's copy of the String Catalog.
@@ -36,16 +34,11 @@ struct MoveTaskIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        do {
-            if let id = UUID(uuidString: taskID), let repository = try TodoTaskWriter.repository() {
-                let destination = MoveDestination(day: day, after: afterTaskID.flatMap(UUID.init(uuidString:)))
-                try await repository.move(id: id, to: destination)
-                // WidgetKit reloads only the tapped widget, so the others catch the write here (ADR 0005).
-                WidgetCenter.shared.reloadAllTimelines()
-            }
-        } catch {
-            // A widget can't show an alert: the reload after this shows the Task where it still is.
-            Self.logger.error("Could not move the Task: \(String(describing: error))")
+        let destination = MoveDestination(day: day, after: afterTaskID.flatMap(UUID.init(uuidString:)))
+        await WidgetStoreWrite.run(
+            taskID: taskID, logger: Self.logger, failureMessage: "Could not move the Task"
+        ) { repository, id in
+            try await repository.move(id: id, to: destination)
         }
         return .result()
     }

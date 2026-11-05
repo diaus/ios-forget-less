@@ -1,9 +1,7 @@
 import AppIntents
-import Data
 import Domain
 import Foundation
 import os
-import WidgetKit
 
 // App Intents metadata takes only string literals, not catalog symbols, so the titles are their catalog keys, which
 // the system looks up in the widget's copy of the String Catalog.
@@ -27,15 +25,10 @@ struct CompleteTaskIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        do {
-            if let id = UUID(uuidString: taskID), let repository = try TodoTaskWriter.repository() {
-                try await repository.setComplete(id: id, isComplete: true, today: .today)
-                // WidgetKit reloads only the tapped widget, so the others catch the write here (ADR 0005).
-                WidgetCenter.shared.reloadAllTimelines()
-            }
-        } catch {
-            // A widget can't show an alert: the reload after this shows the Task as it still is.
-            Self.logger.error("Could not make the Task Complete: \(String(describing: error))")
+        await WidgetStoreWrite.run(
+            taskID: taskID, logger: Self.logger, failureMessage: "Could not make the Task Complete"
+        ) { repository, id in
+            try await repository.setComplete(id: id, isComplete: true, today: .today)
         }
         return .result()
     }
