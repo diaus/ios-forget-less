@@ -11,8 +11,10 @@ extension ScheduleViewModel {
     }
 
     /// Opens the floating Day picker by the Overdue header tapped as `origin` says, with nothing chosen, to Move every
-    /// Overdue Task to a Day.
+    /// Overdue Task to a Day. Does nothing while the sheet Day picker is up.
     func showOverdueFloatingDayPicker(from origin: FloatingDayPickerOrigin) {
+        // The lift that ends the long press opening the sheet also reaches the header's button, as a tap.
+        guard sheetDayPicker == nil else { return }
         // A Day before Today, which can't be chosen, so the picker opens on Today's month with nothing chosen.
         let picker = FloatingDayPickerState(today: today, day: today.addingDays(-1))
         floatingDayPicker = FloatingDayPickerPresentation(target: .overdueTasks, origin: origin, picker: picker)

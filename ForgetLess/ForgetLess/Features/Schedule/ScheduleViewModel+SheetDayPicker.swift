@@ -1,3 +1,4 @@
+import Domain
 import Foundation
 
 // One file per Day chooser. Each gives its Day through the view model's shared Day chooser.
@@ -17,8 +18,17 @@ extension ScheduleViewModel {
         showSheetDayPicker(on: composerSession.composer.day, for: .composer)
     }
 
+    /// Shows the sheet Day picker with nothing chosen, to Move every Overdue Task to a Day.
+    func showOverdueSheetDayPicker() {
+        // VoiceOver reaches the label's action past the floating Day picker, which would stay open behind the sheet.
+        closeFloatingDayPicker()
+        // A Day before Today, which can't be chosen, so the picker opens with nothing chosen.
+        showSheetDayPicker(on: today.addingDays(-1), for: .overdueTasks)
+    }
+
     /// Closes the sheet Day picker and acts on the chosen Day, unless it's the Day the picker opened on: a row's Task
-    /// moves to the end of it, and the composer's Day steps to it. VoiceOver says the new Day once a Move is saved.
+    /// moves to the end of it, the Overdue Tasks to the top of it, and the composer's Day steps to it. VoiceOver says
+    /// the new Day once a Move is saved.
     func confirmSheetDayPicker() {
         sheetDayPicker?.isVisible = false
         guard let sheetDayPicker, let day = sheetDayPicker.dayToMove else { return }
@@ -34,5 +44,13 @@ extension ScheduleViewModel {
         }
         sheetDayPicker = nil
         if let id = target?.taskID { stopListing(id) }
+    }
+
+    /// Closes the sheet Day picker for the Overdue Tasks once every one has moved elsewhere.
+    func closeSheetDayPickerWithNothingToMove() {
+        guard let sheetDayPicker, sheetDayPicker.isVisible, sheetDayPicker.target == .overdueTasks,
+              scheduleTasks.schedule.overdueIncomplete.isEmpty
+        else { return }
+        self.sheetDayPicker?.isVisible = false
     }
 }

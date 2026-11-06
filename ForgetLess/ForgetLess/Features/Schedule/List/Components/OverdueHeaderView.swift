@@ -32,7 +32,10 @@ struct OverdueHeaderView: View {
             Text(.scheduleOverdueMoveAll)
         }
         .buttonStyle(MoveAllButtonStyle(isPickerOpen: vm.floatingDayPicker?.target == .overdueTasks))
+        .dayPickerLongPress(vm.showOverdueSheetDayPicker)
         .accessibilityHint(Text(.scheduleOverdueMoveAllHint))
+        // VoiceOver's way to the long press, which it can't make.
+        .accessibilityAction(named: Text(.taskChooseDay), vm.showOverdueSheetDayPicker)
     }
 }
 

@@ -16,15 +16,9 @@ struct ComposerView: View {
     @State private var dayStepCount = 0
     /// Counts the steps refused before Today, for a bounce and a haptic on each.
     @State private var refusedDayStepCount = 0
-    /// Counts the long presses that opened the sheet Day picker, for a haptic on each.
-    @State private var sheetDayPickerPressCount = 0
 
     /// How far a swipe on the Day chip must go to step its Day.
     private let dayStepDistance: CGFloat = 24
-    /// How long a press on the Day chip takes to open the sheet Day picker.
-    private let sheetDayPickerPressDuration = 0.35
-    /// How far a press on the Day chip can move before it's a swipe instead.
-    private let sheetDayPickerPressDistance: CGFloat = 10
 
     private var session: ComposerSession {
         vm.composerSession
@@ -102,10 +96,9 @@ struct ComposerView: View {
             }
             .contentShape(.capsule)
             .transformAnchorPreference(key: DayChipPickerAnchorsKey.self, value: .bounds) { $0.chip = $1 }
-            .gesture(dayChipPress)
+            .dayPickerPress(onTap: session.toggleDayChipPicker, onLongPress: vm.showComposerSheetDayPicker)
             .simultaneousGesture(dayStepSwipe)
             .sensoryFeedback(.selection, trigger: dayStepCount)
-            .sensoryFeedback(.impact(weight: .medium), trigger: sheetDayPickerPressCount)
             .sensoryFeedback(.refusal, trigger: refusedDayStepCount)
             .accessibilityElement()
             .accessibilityLabel(Text(.composerDay))
@@ -162,17 +155,6 @@ struct ComposerView: View {
                     session.requestDismissal()
                 }
             }
-    }
-
-    /// A long press opens the sheet Day picker, and a shorter tap the Day chip picker.
-    private var dayChipPress: some Gesture {
-        // The tap waits only for the press to fail, which a lift does at once.
-        LongPressGesture(minimumDuration: sheetDayPickerPressDuration, maximumDistance: sheetDayPickerPressDistance)
-            .onEnded { _ in
-                sheetDayPickerPressCount += 1
-                vm.showComposerSheetDayPicker()
-            }
-            .exclusively(before: TapGesture().onEnded { session.toggleDayChipPicker() })
     }
 
     /// A swipe left steps to the next Day, and a swipe right to the one before, as a calendar pages.

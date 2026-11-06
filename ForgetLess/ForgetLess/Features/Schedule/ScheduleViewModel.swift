@@ -72,6 +72,7 @@ final class ScheduleViewModel {
             for await tasks in try await repository.scheduleTasks(today: today) {
                 scheduleTasks.observe(tasks)
                 closeFloatingDayPickerWithNothingToMove()
+                closeSheetDayPickerWithNothingToMove()
             }
         } catch {
             writes.errorMessage = error.userMessage

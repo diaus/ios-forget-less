@@ -11,8 +11,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
-- [ ] The UI check on iOS 27 confirms all of these:
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] The UI check on iOS 27 confirms all of these:
   - a long press on the label opens the sheet with nothing chosen and Done disabled, and a short tap still opens the floating picker;
   - Done Moves every Overdue Task to the top of the chosen Day, and Cancel changes nothing;
   - the composer's Day chip still opens the sheet on a long press, steps on a swipe and opens its calendar on a tap;
