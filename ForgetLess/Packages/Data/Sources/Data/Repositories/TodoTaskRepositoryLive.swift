@@ -83,10 +83,22 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         let order = TodoTask.order(afterMoving: model.toDomain(), to: destination, in: tasksOfDay)
         var modelsByID = Dictionary(uniqueKeysWithValues: modelsOfDay.map { ($0.id, $0) })
         modelsByID[model.id] = model
-        for task in order {
-            modelsByID[task.id]?.day = task.day
-            modelsByID[task.id]?.sortIndex = task.sortIndex
-        }
+        place(modelsByID, as: order)
+        try saveAndNotify()
+    }
+
+    func move(ids: [UUID], toStartOf day: Date) throws {
+        // Read and write without suspending, so another write can't take a place in the Day meanwhile.
+        let movedByID = Dictionary(uniqueKeysWithValues: try models(ids: ids).map { ($0.id, $0) })
+        let moved = ids.compactMap { movedByID[$0] }
+        guard !moved.isEmpty else { return }
+        let modelsOfDay = try models(on: day)
+        let order = TodoTask.order(
+            afterMoving: moved.map { $0.toDomain() }, toStartOf: day, in: modelsOfDay.map { $0.toDomain() }
+        )
+        // A moved Task already on `day` is in both; it's the same model.
+        let modelsByID = movedByID.merging(modelsOfDay.map { ($0.id, $0) }) { model, _ in model }
+        place(modelsByID, as: order)
         try saveAndNotify()
     }
 
@@ -121,6 +133,19 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     private func model(id: UUID) throws -> TodoTaskModel? {
         let descriptor = FetchDescriptor<TodoTaskModel>(predicate: #Predicate { $0.id == id })
         return try modelContext.fetch(descriptor).first
+    }
+
+    /// The Tasks with `ids`, in no particular order.
+    private func models(ids: [UUID]) throws -> [TodoTaskModel] {
+        try modelContext.fetch(FetchDescriptor(predicate: #Predicate { ids.contains($0.id) }))
+    }
+
+    /// Gives each model the Day and position its Task has in `order`.
+    private func place(_ modelsByID: [UUID: TodoTaskModel], as order: [TodoTask]) {
+        for task in order {
+            modelsByID[task.id]?.day = task.day
+            modelsByID[task.id]?.sortIndex = task.sortIndex
+        }
     }
 
     /// Saves, or discards every unsaved change when the save fails so the next write starts clean.

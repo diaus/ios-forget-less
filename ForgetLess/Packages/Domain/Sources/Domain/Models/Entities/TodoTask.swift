@@ -22,6 +22,7 @@ public struct TodoTask: Identifiable, Equatable, Sendable {
         self.sortIndex = sortIndex
     }
 
+    // MARK: - Rules
     /// The end-of-Day rule: where a new Task goes in its Day.
     public static func nextSortIndex(in tasksOfDay: [TodoTask]) -> Int {
         (tasksOfDay.map(\.sortIndex).max() ?? -1) + 1
@@ -57,7 +58,29 @@ public struct TodoTask: Identifiable, Equatable, Sendable {
         } else {
             order.insert(task, at: 0)
         }
-        return order.enumerated().map { sortIndex, task in
+        return numbered(order)
+    }
+
+    /// The order rule for a Move to the top of `day`: the Tasks of `day` once `tasks` go first on it, in the order
+    /// given, in order and numbered from 0, `tasks` on that Day.
+    /// - Parameter tasksOfDay: Every Task of `day` in order, hidden ones included, any of `tasks` or not.
+    public static func order(
+        afterMoving tasks: [TodoTask],
+        toStartOf day: Date,
+        in tasksOfDay: [TodoTask]
+    ) -> [TodoTask] {
+        let movedIDs = Set(tasks.map(\.id))
+        let moved = tasks.map { task in
+            var task = task
+            task.day = day
+            return task
+        }
+        return numbered(moved + tasksOfDay.filter { !movedIDs.contains($0.id) })
+    }
+
+    // MARK: - Helpers
+    private static func numbered(_ order: [TodoTask]) -> [TodoTask] {
+        order.enumerated().map { sortIndex, task in
             var task = task
             task.sortIndex = sortIndex
             return task

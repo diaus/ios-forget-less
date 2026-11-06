@@ -11,6 +11,6 @@
 
 **Status:** ready-for-agent
 
-- [ ] Domain tests: the ordering, the Overdue Tasks property, `movingTasks(ids:toStartOf:)` (see the spec's Testing Decisions).
-- [ ] Data tests: the repository call.
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] Domain tests: the ordering, the Overdue Tasks property, `movingTasks(ids:toStartOf:)` (see the spec's Testing Decisions).
+- [x] Data tests: the repository call.
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.

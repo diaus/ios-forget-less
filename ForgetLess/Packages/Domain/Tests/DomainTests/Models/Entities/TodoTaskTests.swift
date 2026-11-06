@@ -107,7 +107,42 @@ struct TodoTaskTests {
         #expect(order.allSatisfy { $0.day == day })
     }
 
+    @Test func tasksMovedToTheTopOfADayGoAboveEveryTaskThereInTheOrderGiven() {
+        let hidden = task("Water the plants", completeDay: day.addingDays(-3))
+        let tasksOfDay = [task("Buy milk"), task("Call mum", completeDay: day), hidden]
+        let moved = [overdueTask("Pay rent", daysAgo: 1), overdueTask("Book a flight", daysAgo: 5)]
+
+        let order = TodoTask.order(afterMoving: moved, toStartOf: day, in: tasksOfDay)
+
+        #expect(order.map(\.name) == ["Pay rent", "Book a flight", "Buy milk", "Call mum", "Water the plants"])
+        #expect(order.map(\.sortIndex) == [0, 1, 2, 3, 4])
+        #expect(order.allSatisfy { $0.day == day })
+    }
+
+    @Test func tasksMovedToTheTopOfAnEmptyDayAreItsOnlyTasks() {
+        let moved = [overdueTask("Pay rent", daysAgo: 1), overdueTask("Book a flight", daysAgo: 1)]
+
+        let order = TodoTask.order(afterMoving: moved, toStartOf: day, in: [])
+
+        #expect(order.map(\.name) == ["Pay rent", "Book a flight"])
+        #expect(order.map(\.sortIndex) == [0, 1])
+    }
+
+    @Test func aTaskMovedToTheTopOfItsOwnDayLeavesItsOldPlace() {
+        let tasksOfDay = [task("Buy milk"), task("Call mum"), task("Walk the dog")]
+
+        let order = TodoTask.order(
+            afterMoving: [overdueTask("Pay rent", daysAgo: 2), tasksOfDay[2]], toStartOf: day, in: tasksOfDay
+        )
+
+        #expect(order.map(\.name) == ["Pay rent", "Walk the dog", "Buy milk", "Call mum"])
+    }
+
     // MARK: - Helpers
+    private func overdueTask(_ name: String, daysAgo: Int) -> TodoTask {
+        TodoTask(id: UUID(), name: name, day: day.addingDays(-daysAgo), completeDay: nil, sortIndex: 4)
+    }
+
     private func task(sortIndex: Int) -> TodoTask {
         TodoTask(id: UUID(), name: "Buy milk", day: day, completeDay: nil, sortIndex: sortIndex)
     }

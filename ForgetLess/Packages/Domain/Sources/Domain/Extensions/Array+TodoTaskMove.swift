@@ -10,6 +10,19 @@ public extension Array where Element == TodoTask {
         return (otherDays + tasksOfDay).sorted { ($0.day, $0.sortIndex) < ($1.day, $1.sortIndex) }
     }
 
+    /// These Tasks once the Tasks with `ids` are moved, in that order, to the top of `day`, as the repository stores
+    /// them after the move. IDs with no Task are skipped.
+    /// - Parameter self: In order of Day, then position within it, which the result keeps.
+    func movingTasks(ids: [UUID], toStartOf day: Date) -> [TodoTask] {
+        let moved = ids.compactMap { id in first { $0.id == id } }
+        // The repository then saves nothing, so `day` keeps its numbering.
+        guard !moved.isEmpty else { return self }
+        let movedIDs = Set(moved.map(\.id))
+        let tasksOfDay = TodoTask.order(afterMoving: moved, toStartOf: day, in: filter { $0.day == day })
+        let otherDays = filter { $0.day != day && !movedIDs.contains($0.id) }
+        return (otherDays + tasksOfDay).sorted { ($0.day, $0.sortIndex) < ($1.day, $1.sortIndex) }
+    }
+
     /// Where the Task with `id` goes to be last on `day`, after every other Task there, Complete or not.
     /// - Parameter self: In order of Day, then position within it.
     func destinationAtEnd(of day: Date, forTaskWithID id: UUID) -> MoveDestination {

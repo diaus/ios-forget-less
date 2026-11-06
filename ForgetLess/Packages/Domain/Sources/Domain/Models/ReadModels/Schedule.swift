@@ -18,6 +18,9 @@ public struct Schedule: Sendable {
     public let overdue: [TodoTask]
     public let days: [Day]
 
+    /// The Overdue Tasks, without those completed from it on Today: what a Move of all of Overdue moves.
+    public var overdueIncomplete: [TodoTask] { overdue.filter { !$0.isComplete } }
+
     /// - Parameters:
     ///   - tasks: In order of Day, then position within it, as the repository sends them.
     ///   - showsComplete: Whether Complete Tasks are listed.

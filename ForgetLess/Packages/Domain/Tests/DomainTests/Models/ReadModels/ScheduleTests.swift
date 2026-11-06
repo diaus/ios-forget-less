@@ -90,6 +90,24 @@ struct ScheduleTests {
         #expect(schedule.overdue.map(\.name) == ["Completed from Overdue", "Still to do"])
     }
 
+    @Test func overdueIncompleteLeavesOutTasksCompletedFromOverdueAndKeepsTheOrder() throws {
+        let today = try day("2026-03-01")
+        let yesterday = try day("2026-02-28")
+        let lastWeek = try day("2026-02-22")
+        let tasks = [
+            task("Last week's second", day: lastWeek, sortIndex: 5),
+            task("Completed from Overdue", day: lastWeek, sortIndex: 6, completeDay: today),
+            task("Yesterday's first", day: yesterday, sortIndex: 0),
+            task("Yesterday's second", day: yesterday, sortIndex: 2),
+            task("Today's", day: today, sortIndex: 0),
+        ]
+
+        let schedule = Schedule(tasks: tasks, today: today)
+
+        let names = schedule.overdueIncomplete.map(\.name)
+        #expect(names == ["Last week's second", "Yesterday's first", "Yesterday's second"])
+    }
+
     @Test func aTaskCompletedOnAnEarlierDayLeavesOverdue() throws {
         let today = try day("2026-03-01")
         let twoDaysAgo = try day("2026-02-27")

@@ -50,6 +50,10 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         }
     }
 
+    func move(ids: [UUID], toStartOf day: Date) {
+        tasks = tasks.movingTasks(ids: ids, toStartOf: day)
+    }
+
     func delete(id: UUID) {
         tasks.removeAll { $0.id == id }
     }

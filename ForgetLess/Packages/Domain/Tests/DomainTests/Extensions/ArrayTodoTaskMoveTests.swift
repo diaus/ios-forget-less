@@ -74,6 +74,41 @@ struct ArrayTodoTaskMoveTests {
         #expect(destination == MoveDestination(day: emptyDay, after: nil))
     }
 
+    @Test func tasksMovedToTheTopOfADayGoThereInTheOrderGivenAndTheListStaysInOrder() throws {
+        let lastWeek = try day("2026-02-22")
+        let yesterday = try day("2026-02-28")
+        let today = try day("2026-03-01")
+        let tomorrow = try day("2026-03-02")
+        let tasks = [
+            task("Book a flight", day: lastWeek, sortIndex: 4),
+            task("Completed from Overdue", day: lastWeek, sortIndex: 5, completeDay: today),
+            task("Pay rent", day: yesterday, sortIndex: 1),
+            task("Buy milk", day: today, sortIndex: 0),
+            task("Walk the dog", day: tomorrow, sortIndex: 2),
+            task("Call mum", day: tomorrow, sortIndex: 6, completeDay: today),
+        ]
+
+        let moved = tasks.movingTasks(ids: [tasks[0].id, tasks[2].id], toStartOf: tomorrow)
+
+        #expect(moved.map(\.name) == [
+            "Completed from Overdue", "Buy milk", "Book a flight", "Pay rent", "Walk the dog", "Call mum",
+        ])
+        #expect(moved.map(\.day) == [lastWeek, today, tomorrow, tomorrow, tomorrow, tomorrow])
+        #expect(moved.map(\.sortIndex) == [5, 0, 0, 1, 2, 3])
+    }
+
+    @Test func movingTasksToTheTopOfADaySkipsIDsWithNoTask() throws {
+        let tomorrow = try day("2026-03-02")
+        let tasks = [
+            task("Buy milk", day: try day("2026-02-28"), sortIndex: 2),
+            task("Call mum", day: tomorrow, sortIndex: 3),
+        ]
+
+        let moved = tasks.movingTasks(ids: [UUID()], toStartOf: tomorrow)
+
+        #expect(moved == tasks)
+    }
+
     // MARK: - Helpers
     private func task(_ name: String, day: Date, sortIndex: Int, completeDay: Date? = nil) -> TodoTask {
         TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: sortIndex)

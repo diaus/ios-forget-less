@@ -18,6 +18,9 @@ public protocol TodoTaskRepository: Sendable {
     /// Moves the Task with `id` to `destination`, or to the end of `destination`'s Day when the Task it names isn't on
     /// it, and leaves the Day it left as it was; does nothing when no Task has `id`.
     func move(id: UUID, to destination: MoveDestination) async throws
+    /// Moves the Tasks with `ids`, in that order, to the top of `day` in one save, and leaves the Days they left as
+    /// they were; skips IDs with no Task, and does nothing when no Task has any of them.
+    func move(ids: [UUID], toStartOf day: Date) async throws
     /// Deletes the Task with `id` for good; does nothing when no Task has `id`.
     func delete(id: UUID) async throws
 }
