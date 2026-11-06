@@ -26,7 +26,7 @@ struct ScheduleListView: UIViewRepresentable {
             animated: context.transaction.animation != nil
         )
         context.coordinator.reveal(vm.composerSession.dayReveal)
-        context.coordinator.highlightRow(of: vm.floatingDayPicker?.taskID)
+        context.coordinator.highlightRow(of: vm.floatingDayPicker?.target.taskID)
         collectionView.targetContentInsets = UIEdgeInsets(
             top: safeAreaInsets.top,
             left: 0,

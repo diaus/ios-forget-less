@@ -6,8 +6,10 @@ enum DayChoiceTarget: Equatable {
     case composer
     /// The Day of the Task with this ID.
     case task(UUID)
+    /// The Day of every Overdue Task, all moved to it at once.
+    case overdueTasks
 
-    /// The Task whose Day is chosen: the composer keeps its own listed.
+    /// The Task whose Day is chosen: the composer keeps its own listed, and the Overdue Tasks leave Overdue.
     var taskID: UUID? {
         guard case let .task(id) = self else { return nil }
         return id

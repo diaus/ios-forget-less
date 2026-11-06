@@ -78,6 +78,18 @@ final class ScheduleCollectionView: UICollectionView {
         setContentOffset(CGPoint(x: contentOffset.x, y: min(max(offsetY, -insets.top), maxOffsetY)), animated: true)
     }
 
+    // MARK: - Headers
+    /// The header of `section` on screen, within its rows' margins, though it spans past them, in the window's
+    /// coordinates; `nil` while it's off screen or the section has no row.
+    func headerFrameWithinRowMargins(ofSection section: Int) -> CGRect? {
+        let indexPath = IndexPath(item: 0, section: section)
+        guard let header = supplementaryView(forElementKind: Self.elementKindSectionHeader, at: indexPath),
+              let firstRow = layoutAttributesForItem(at: indexPath) else { return nil }
+        let headerFrame = header.convert(header.bounds, to: nil)
+        let rowFrame = convert(firstRow.frame, to: nil)
+        return CGRect(x: rowFrame.minX, y: headerFrame.minY, width: rowFrame.width, height: headerFrame.height)
+    }
+
     // MARK: - Helpers
     private func applyContentInsets() {
         // The scroll view keeps adjusting for UIKit's own safe area (`.automatic`), and only the rest is added here.

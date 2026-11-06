@@ -1,6 +1,6 @@
 import CoreGraphics
 
-/// Where the floating Day picker opened from a Task's row sits, beside the row so the row stays in view.
+/// Where the floating Day picker opened from a Task's row or the Overdue header sits, beside it so it stays in view.
 struct FloatingDayPickerPlacement {
     /// What the picker fits in: its width, and all the height its side of the row has.
     let frame: CGRect

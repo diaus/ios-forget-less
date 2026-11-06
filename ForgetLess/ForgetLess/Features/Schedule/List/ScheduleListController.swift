@@ -56,7 +56,8 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         snapshot.reconfigureItems(redraw?.reconfiguredTaskIDs ?? [])
         snapshot.reloadItems(redraw?.reloadedTaskIDs ?? [])
         dataSource.apply(snapshot, animatingDifferences: animated && !isFirst)
-        // Headers aren't reconfigured by the snapshot, and an emptied Day or a new Today changes how one reads.
+        // An emptied Day or a new Today changes how a Day's header reads, and the Overdue header shows Move All only
+        // while Overdue holds an Incomplete Task.
         reconfigureVisibleHeaders()
     }
 
@@ -100,10 +101,10 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             self?.configure(cell, id: id)
         }
         // One registration per header kind, so a reused header never swaps one SwiftUI view type for another.
-        let overdueHeaderRegistration = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
+        let overdueHeaderRegistration = UICollectionView.SupplementaryRegistration<OverdueHeaderCell>(
             elementKind: UICollectionView.elementKindSectionHeader
-        ) { header, _, _ in
-            header.contentConfiguration = UIHostingConfiguration { OverdueHeaderView() }
+        ) { [weak self] header, _, _ in
+            self?.configure(header)
         }
         let dayHeaderRegistration = UICollectionView.SupplementaryRegistration<DayHeaderCell>(
             elementKind: UICollectionView.elementKindSectionHeader
@@ -170,12 +171,26 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         }
     }
 
-    /// Only Day headers: the Overdue header never changes.
+    private func configure(_ header: OverdueHeaderCell) {
+        let showsMoveAll = !content.schedule.overdueIncomplete.isEmpty
+        header.contentConfiguration = UIHostingConfiguration {
+            OverdueHeaderView(showsMoveAll: showsMoveAll) { [weak self] in
+                self?.chooseOverdueDay()
+            }
+        }
+    }
+
+    /// Redraws the headers on screen for the content shown, which the snapshot doesn't reconfigure.
     private func reconfigureVisibleHeaders() {
         let kind = UICollectionView.elementKindSectionHeader
         for indexPath in collectionView.indexPathsForVisibleSupplementaryElements(ofKind: kind) {
-            if let header = collectionView.supplementaryView(forElementKind: kind, at: indexPath) as? DayHeaderCell {
+            switch collectionView.supplementaryView(forElementKind: kind, at: indexPath) {
+            case let header as DayHeaderCell:
                 configure(header, section: indexPath.section)
+            case let header as OverdueHeaderCell:
+                configure(header)
+            default:
+                break
             }
         }
     }
@@ -235,7 +250,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         return rowMove.taskID == id || row?.isHandleTouched == true
     }
 
-    // MARK: - Row Actions
+    // MARK: - Row and Header Actions
     func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
         // Rows take taps in SwiftUI, never as a selection: a row tap edits the Task or opens its floating Day picker.
         false
@@ -246,7 +261,17 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         guard let task = content.tasks[id], let cell = visibleCell(for: id) as? TaskRowCell else { return }
         let row = cell.convert(cell.bounds, to: nil)
         let tap = cell.lastTouchLocation ?? CGPoint(x: row.midX, y: row.midY)
-        vm.showFloatingDayPicker(for: task, from: FloatingDayPickerOrigin(row: row, tap: tap))
+        vm.showFloatingDayPicker(for: task, from: FloatingDayPickerOrigin(frame: row, tap: tap))
+    }
+
+    /// Opens the floating Day picker for the Overdue Tasks from their header, which only the list can place on screen.
+    private func chooseOverdueDay() {
+        let kind = UICollectionView.elementKindSectionHeader
+        guard let section = dataSource?.snapshot().indexOfSection(.overdue),
+              let frame = collectionView.headerFrameWithinRowMargins(ofSection: section) else { return }
+        let header = collectionView.supplementaryView(forElementKind: kind, at: IndexPath(item: 0, section: section))
+        let tap = (header as? OverdueHeaderCell)?.lastTouchLocation ?? CGPoint(x: frame.midX, y: frame.midY)
+        vm.showOverdueFloatingDayPicker(from: FloatingDayPickerOrigin(frame: frame, tap: tap))
     }
 
     private func swipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {

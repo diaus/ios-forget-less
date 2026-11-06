@@ -33,6 +33,33 @@ struct ScheduleTasksTests {
         #expect(names(on: 2, in: scheduleTasks) == ["Call Mum", "Buy milk"])
     }
 
+    @Test func aMoveOfTheOverdueTasksListsThemAtTheTopOfTheDayInOverduesOrderAndLeavesTheCompleteOnes() {
+        let lastWeeks = task("Pay rent", day: -7, sortIndex: 3)
+        let yesterdays = task("Buy milk", day: -1, sortIndex: 0)
+        // Completed from Overdue on Today, so it stays there.
+        let completed = TodoTask(
+            id: UUID(), name: "Call Mum", day: today.addingDays(-1), completeDay: today, sortIndex: 1
+        )
+        let tomorrows = task("Walk the dog", day: 1, sortIndex: 0)
+        let scheduleTasks = observed([lastWeeks, yesterdays, completed, tomorrows])
+
+        let movedIDs = scheduleTasks.moveOverdueTasks(toStartOf: today.addingDays(1))
+
+        #expect(movedIDs == [lastWeeks.id, yesterdays.id])
+        #expect(names(on: 1, in: scheduleTasks) == ["Pay rent", "Buy milk", "Walk the dog"])
+        #expect(scheduleTasks.schedule.overdue.map(\.name) == ["Call Mum"])
+    }
+
+    @Test func aMoveOfTheOverdueTasksToADayBeforeTodayIsRefusedAndMovesNothing() {
+        let overdue = task("Buy milk", day: -3, sortIndex: 0)
+        let scheduleTasks = observed([overdue])
+
+        let movedIDs = scheduleTasks.moveOverdueTasks(toStartOf: today.addingDays(-1))
+
+        #expect(movedIDs == nil)
+        #expect(scheduleTasks.task(withID: overdue.id)?.day == today.addingDays(-3))
+    }
+
     @Test func droppingUnsavedMovesListsTheTasksAsTheStoreLastHeldThem() {
         let moving = task("Buy milk", day: 0, sortIndex: 0)
         let scheduleTasks = observed([moving])

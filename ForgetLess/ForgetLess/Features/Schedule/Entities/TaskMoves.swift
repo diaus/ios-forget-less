@@ -40,6 +40,21 @@ final class TaskMoves {
         return true
     }
 
+    /// Moves the Overdue Tasks to the top of `day` in one save, unless the move rule refuses it, and runs `onSaved`
+    /// once the store has them. Returns whether they moved: `false` when nothing is Overdue or the rule refuses `day`.
+    func moveOverdueTasks(toStartOf day: Date, onSaved: @escaping @MainActor () -> Void) -> Bool {
+        // Moved at once, so Overdue empties while the write is in flight.
+        guard let ids = scheduleTasks.moveOverdueTasks(toStartOf: day) else { return false }
+        writes.run {
+            try await self.repository.move(ids: ids, toStartOf: day)
+            onSaved()
+        } onFailure: {
+            // Nothing was saved, so the store's last Tasks put every Task back in Overdue.
+            self.scheduleTasks.dropUnsavedMoves()
+        }
+        return true
+    }
+
     // MARK: - Helpers
     /// Saves the Move of `task` to `destination`, already listed, and runs `onSaved` once the store has it, or
     /// `onFailure` once the Task is back where the store holds it.

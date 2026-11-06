@@ -74,6 +74,13 @@ public struct Schedule: Sendable {
         return isListed(task)
     }
 
+    /// The move rule for a Move of the Overdue Tasks to the top of `day`: whether there are any, and they can go there.
+    public func canMoveOverdueTasks(toStartOf day: Date) -> Bool {
+        // The window opens on Today, and Overdue is never a destination.
+        guard let today = days.first?.day, day.canBePlanned(today: today) else { return false }
+        return !overdueIncomplete.isEmpty
+    }
+
     /// Where `task` goes one step up among the Tasks listed, or `nil` when there's none.
     public func destinationOneStepUp(for task: TodoTask) -> MoveDestination? {
         guard let (dayIndex, taskIndex) = position(of: task) else { return nil }

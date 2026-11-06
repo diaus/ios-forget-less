@@ -13,8 +13,8 @@
 
 **Status:** ready-for-agent
 
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
-- [ ] The UI check on iOS 27 confirms all of these:
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] The UI check on iOS 27 confirms all of these:
   - the label shows with an Incomplete Overdue Task, with Move Tasks on and off, and not when Overdue holds only Tasks completed on Today;
   - a tap opens the picker by the header, on Today's month with nothing chosen;
   - choosing a Day (a Day cell, and the Tomorrow button) Moves every Overdue Task to the top of it in Overdue's order, leaves the Complete ones in Overdue, and closes the card, with the list staying put;

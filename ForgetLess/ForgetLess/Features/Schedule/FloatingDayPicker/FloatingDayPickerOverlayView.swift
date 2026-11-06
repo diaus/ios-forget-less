@@ -1,7 +1,8 @@
 import FactoryKit
 import SwiftUI
 
-/// The floating Day picker opened from a Task's row, with what closes it on a touch anywhere else.
+/// The floating Day picker opened from a Task's row or the Overdue header, with what closes it on a touch anywhere
+/// else.
 struct FloatingDayPickerOverlayView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     /// What the list shows, between its bars, in the screen's coordinates.
@@ -20,7 +21,7 @@ struct FloatingDayPickerOverlayView: View {
                     backdrop
                 }
                 if let open = vm.floatingDayPicker {
-                    let row = open.origin.row.offsetBy(dx: -screenOrigin.x, dy: -screenOrigin.y)
+                    let row = open.origin.frame.offsetBy(dx: -screenOrigin.x, dy: -screenOrigin.y)
                     let tap = CGPoint(x: open.origin.tap.x - screenOrigin.x, y: open.origin.tap.y - screenOrigin.y)
                     let space = listFrame.offsetBy(dx: -screenOrigin.x, dy: -screenOrigin.y)
                     let placement = FloatingDayPickerPlacement(row: row, tap: tap, space: space, fullHeight: fullHeight)

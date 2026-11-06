@@ -74,6 +74,16 @@ final class ScheduleTasks {
         return destination
     }
 
+    /// Moves the Overdue Tasks, in Overdue's order, to the top of `day` ahead of the store, unless the move rule
+    /// refuses it. Returns the IDs of the Tasks moved, in that order, or `nil` when refused.
+    func moveOverdueTasks(toStartOf day: Date) -> [UUID]? {
+        guard schedule.canMoveOverdueTasks(toStartOf: day) else { return nil }
+        let ids = schedule.overdueIncomplete.map(\.id)
+        listed = listed.movingTasks(ids: ids, toStartOf: day)
+        relist()
+        return ids
+    }
+
     /// Lists the Tasks as the store last held them, once a Move failed to save.
     func dropUnsavedMoves() {
         listed = stored
