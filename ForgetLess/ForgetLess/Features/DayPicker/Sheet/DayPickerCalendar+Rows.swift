@@ -2,7 +2,7 @@ import Domain
 import Foundation
 
 extension DayPickerCalendar {
-    /// A row of the Day picker's scrolling list.
+    /// A row of the sheet Day picker's scrolling list.
     nonisolated enum Row: Hashable, Identifiable, Sendable {
         /// The header of the month that starts on this Day.
         case monthHeader(Date)

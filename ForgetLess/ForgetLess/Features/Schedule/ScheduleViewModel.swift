@@ -8,10 +8,11 @@ import Observation
 @MainActor @Observable
 final class ScheduleViewModel {
     private(set) var today: Date
-    /// The floating Day calendar opened from a Task's row; `nil` while it's closed.
-    var taskDayCalendar: TaskDayCalendar?
-    /// The Day picker's choice; `nil` once it has closed. Kept until then, so the sheet keeps its content as it goes.
-    var dayPicker: DayPickerState?
+    /// The floating Day picker opened from a Task's row; `nil` while it's closed.
+    var floatingDayPicker: FloatingDayPickerPresentation?
+    /// The sheet Day picker's choice; `nil` once it has closed. Kept until then, so the sheet keeps its content as it
+    /// goes.
+    var sheetDayPicker: SheetDayPickerState?
     /// Whether the Schedule lists Complete Tasks. Kept across launches.
     var showsComplete: Bool {
         didSet {
@@ -60,9 +61,9 @@ final class ScheduleViewModel {
     /// Brings Today up to date.
     func refresh() {
         today = .today
-        dayPicker?.update(today: today)
+        sheetDayPicker?.update(today: today)
         composerSession.update(today: today)
-        taskDayCalendar?.calendar.update(today: today)
+        floatingDayPicker?.picker.update(today: today)
     }
 
     /// Keeps the Schedule up to date with the stored Tasks for the current Today, until the calling task is cancelled.
@@ -70,8 +71,8 @@ final class ScheduleViewModel {
         do {
             for await tasks in try await repository.scheduleTasks(today: today) {
                 // Its Task is gone, deleted elsewhere, so there's nothing left to Move.
-                if let id = taskDayCalendar?.taskID, !tasks.contains(where: { $0.id == id }) {
-                    taskDayCalendar = nil
+                if let id = floatingDayPicker?.taskID, !tasks.contains(where: { $0.id == id }) {
+                    floatingDayPicker = nil
                 }
                 scheduleTasks.observe(tasks)
             }
@@ -123,16 +124,16 @@ final class ScheduleViewModel {
         }
     }
 
-    /// Lists the Task with `id` by the usual rules again, once the composer, the Day picker or its row's calendar no
-    /// longer has it.
+    /// Lists the Task with `id` by the usual rules again, once the composer, the sheet Day picker or its row's floating
+    /// Day picker no longer has it.
     func stopListing(_ id: UUID) {
         restartGracePeriod(of: id)
         scheduleTasks.relist()
     }
 
     // MARK: - Helpers
-    /// Gives the Task with `id`, listed while the composer, the Day picker or its row's calendar had it, its grace
-    /// period afresh when it's Complete and Complete Tasks are hidden, so it's seen before it leaves.
+    /// Gives the Task with `id`, listed while the composer, the sheet Day picker or its row's floating Day picker had
+    /// it, its grace period afresh when it's Complete and Complete Tasks are hidden, so it's seen before it leaves.
     private func restartGracePeriod(of id: UUID) {
         if !showsComplete, scheduleTasks.task(withID: id)?.isComplete == true {
             startGracePeriod(of: id)
@@ -145,9 +146,11 @@ final class ScheduleViewModel {
 
     /// What the Schedule lists its Tasks by now.
     private var listing: ScheduleListing {
-        // The edited Task, and the one the Day picker or a row's calendar moves, stay listed until what has them
-        // closes, even past their grace period, so they're seen as they move.
-        let heldTaskIDs = [composerSession.composer.editedTask?.id, dayPicker?.target.taskID, taskDayCalendar?.taskID]
+        // The edited Task, and the one the sheet Day picker or a row's floating Day picker moves, stay listed until
+        // what has them closes, even past their grace period, so they're seen as they move.
+        let heldTaskIDs = [
+            composerSession.composer.editedTask?.id, sheetDayPicker?.target.taskID, floatingDayPicker?.taskID,
+        ]
         let keptTaskIDs = keptTasks.ids.union(heldTaskIDs.compactMap { $0 })
         return ScheduleListing(today: today, showsComplete: showsComplete, keptTaskIDs: keptTaskIDs)
     }

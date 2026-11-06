@@ -2,14 +2,14 @@ import Domain
 import SwiftUI
 
 /// Chooses a Day from a month at a time, from Today's month on, in a card floating over the screen.
-struct FloatingDayCalendarView: View {
-    @Binding var calendar: FloatingDayCalendarState
+struct FloatingDayPickerView: View {
+    @Binding var picker: FloatingDayPickerState
     let availableHeight: CGFloat
-    /// Whether a keyboard is up that the calendar can take down to make room.
+    /// Whether a keyboard is up that the picker can take down to make room.
     let isKeyboardUp: Bool
-    /// Asks the owner to take the keyboard down, once the calendar can't fit beside it.
+    /// Asks the owner to take the keyboard down, once the picker can't fit beside it.
     let onHideKeyboard: () -> Void
-    /// Reports the height the calendar takes when nothing has to make room.
+    /// Reports the height the picker takes when nothing has to make room.
     let onFullHeightChange: (CGFloat) -> Void
     let onChoose: (Date) -> Void
     let onClose: () -> Void
@@ -35,7 +35,7 @@ struct FloatingDayCalendarView: View {
     static let closeButtonSize: CGFloat = 30
 
     init(
-        calendar: Binding<FloatingDayCalendarState>,
+        picker: Binding<FloatingDayPickerState>,
         availableHeight: CGFloat,
         isKeyboardUp: Bool = false,
         onHideKeyboard: @escaping () -> Void = {},
@@ -43,7 +43,7 @@ struct FloatingDayCalendarView: View {
         onChoose: @escaping (Date) -> Void,
         onClose: @escaping () -> Void
     ) {
-        _calendar = calendar
+        _picker = picker
         self.availableHeight = availableHeight
         self.isKeyboardUp = isKeyboardUp
         self.onHideKeyboard = onHideKeyboard
@@ -51,7 +51,7 @@ struct FloatingDayCalendarView: View {
         self.onChoose = onChoose
         self.onClose = onClose
         // Opens on its month at once, with no scroll to it.
-        let monthOffset = calendar.wrappedValue.monthOffset
+        let monthOffset = picker.wrappedValue.monthOffset
         _pageCount = State(initialValue: monthOffset + Self.growthStep)
         _position = State(initialValue: ScrollPosition(id: monthOffset))
     }
@@ -64,9 +64,9 @@ struct FloatingDayCalendarView: View {
             buttons
         }
         // Closes a moment after a Day is chosen, so the choice is seen.
-        .task(id: calendar.isClosing) {
-            guard calendar.isClosing, (try? await Task.sleep(for: .seconds(0.15))) != nil else { return }
-            // Any keyboard it hid comes back with the close, not at the tap, so the calendar doesn't refit as it goes.
+        .task(id: picker.isClosing) {
+            guard picker.isClosing, (try? await Task.sleep(for: .seconds(0.15))) != nil else { return }
+            // Any keyboard it hid comes back with the close, not at the tap, so the picker doesn't refit as it goes.
             onClose()
         }
         .onChange(of: layout.hidesKeyboard, initial: true) { _, hidesKeyboard in
@@ -80,7 +80,7 @@ struct FloatingDayCalendarView: View {
                 onFullHeightChange(fullHeight)
             }
         }
-        .sensoryFeedback(.selection, trigger: calendar.isClosing) { _, isClosing in isClosing }
+        .sensoryFeedback(.selection, trigger: picker.isClosing) { _, isClosing in isClosing }
         // Over the pages rather than on one, so it stays put while they page.
         .overlay(alignment: .topTrailing) {
             closeButton
@@ -91,12 +91,12 @@ struct FloatingDayCalendarView: View {
         .background(.background.secondary)
         .clipShape(.rect(cornerRadius: 20))
         .shadow(color: .black.opacity(0.15), radius: 16, y: 4)
-        // Modal, so VoiceOver stays in the calendar, and its escape closes only the calendar.
+        // Modal, so VoiceOver stays in the picker, and its escape closes only the picker.
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isModal)
         .accessibilityAction(.escape, onClose)
         // The modal hides what VoiceOver was on, so focus moves to the month shown rather than anywhere.
-        .onAppear { focusedMonthOffset = calendar.monthOffset }
+        .onAppear { focusedMonthOffset = picker.monthOffset }
     }
 
     // MARK: - UI Components
@@ -104,10 +104,10 @@ struct FloatingDayCalendarView: View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: 0) {
                 ForEach(0..<pageCount, id: \.self) { offset in
-                    FloatingDayCalendarMonthView(
-                        month: DayPickerCalendar.Month(today: calendar.today, offset: offset),
+                    FloatingDayPickerMonthView(
+                        month: DayPickerCalendar.Month(today: picker.today, offset: offset),
                         offset: offset,
-                        calendar: calendar,
+                        picker: picker,
                         rowHeight: layout.rowHeight,
                         focusedMonthOffset: $focusedMonthOffset,
                         onPage: page(by:),
@@ -122,7 +122,7 @@ struct FloatingDayCalendarView: View {
         .scrollTargetBehavior(.paging)
         .scrollIndicators(.hidden)
         .scrollPosition($position)
-        // A name field keeps focus, so typing can go on as soon as the calendar closes.
+        // A name field keeps focus, so typing can go on as soon as the picker closes.
         .scrollDismissesKeyboard(.never)
         .fixedSize(horizontal: false, vertical: true)
         .onScrollGeometryChange(for: Bool.self) { geometry in
@@ -134,13 +134,13 @@ struct FloatingDayCalendarView: View {
         }
         .onChange(of: position.viewID(type: Int.self)) { _, offset in
             guard let offset else { return }
-            calendar.page(to: offset)
+            picker.page(to: offset)
             if pageCount - offset <= Self.edgeThreshold {
                 pageCount += Self.growthStep
             }
         }
         // A new Today renumbers the months; the month shown keeps its place, or moves on to Today's.
-        .onChange(of: calendar.monthOffset) { _, offset in
+        .onChange(of: picker.monthOffset) { _, offset in
             guard position.viewID(type: Int.self) != offset else { return }
             var instant = Transaction()
             instant.disablesAnimations = true
@@ -150,7 +150,7 @@ struct FloatingDayCalendarView: View {
     }
 
     private var buttons: some View {
-        FloatingDayCalendarButtonsView(calendar: calendar, onChoose: onChoose)
+        FloatingDayPickerButtonsView(picker: picker, onChoose: onChoose)
             .padding([.horizontal, .bottom], Self.pagePadding)
             // Measured even while hidden, so a new text size can bring them back.
             .fixedSize(horizontal: false, vertical: true)
@@ -176,25 +176,25 @@ struct FloatingDayCalendarView: View {
                     .frame(width: Self.closeButtonSize, height: Self.closeButtonSize)
                     .background(.fill.tertiary, in: .circle)
             }
-            .accessibilityLabel(Text(.floatingDayCalendarClose))
+            .accessibilityLabel(Text(.floatingDayPickerClose))
         }
     }
 
     // MARK: - Actions
     private func page(by monthCount: Int) {
-        guard calendar.page(by: monthCount) else {
+        guard picker.page(by: monthCount) else {
             // The same haptic as a swipe before Today's month, so a refusal feels the same either way.
             refusedPageCount += 1
             return
         }
         // Once the month has scrolled in, VoiceOver moves to its header and reads its name.
-        let offset = calendar.monthOffset
+        let offset = picker.monthOffset
         Task { focusedMonthOffset = offset }
     }
 
     // MARK: - Helpers
-    private var layout: FloatingDayCalendarLayout {
-        FloatingDayCalendarLayout(
+    private var layout: FloatingDayPickerLayout {
+        FloatingDayPickerLayout(
             availableHeight: availableHeight,
             headerHeight: headerHeight,
             buttonsHeight: buttonsHeight,
@@ -204,7 +204,7 @@ struct FloatingDayCalendarView: View {
     }
 
     private var fullHeight: CGFloat {
-        FloatingDayCalendarLayout.fullHeight(
+        FloatingDayPickerLayout.fullHeight(
             headerHeight: headerHeight,
             buttonsHeight: buttonsHeight,
             padding: 2 * Self.pagePadding
@@ -212,14 +212,14 @@ struct FloatingDayCalendarView: View {
     }
 }
 
-extension FloatingDayCalendarView {
-    /// The open calendar's state from `openState`, or `lastState` once it has closed, while it animates out. A change
-    /// goes to `update` only while the calendar is open, so a closed one never opens again from it.
+extension FloatingDayPickerView {
+    /// The open picker's state from `openState`, or `lastState` once it has closed, while it animates out. A change
+    /// goes to `update` only while the picker is open, so a closed one never opens again from it.
     static func binding(
-        keeping lastState: FloatingDayCalendarState,
-        openState: @escaping () -> FloatingDayCalendarState?,
-        update: @escaping (FloatingDayCalendarState) -> Void
-    ) -> Binding<FloatingDayCalendarState> {
+        keeping lastState: FloatingDayPickerState,
+        openState: @escaping () -> FloatingDayPickerState?,
+        update: @escaping (FloatingDayPickerState) -> Void
+    ) -> Binding<FloatingDayPickerState> {
         Binding { openState() ?? lastState } set: { newValue in
             if openState() != nil {
                 update(newValue)
@@ -227,12 +227,12 @@ extension FloatingDayCalendarView {
         }
     }
 
-    /// How the calendar comes and goes as it opens and closes.
+    /// How the picker comes and goes as it opens and closes.
     static var appearanceAnimation: Animation {
         .snappy(duration: 0.25)
     }
 
-    /// The calendar growing from `point`, in a frame of `size`, as it opens, and shrinking back into it as it closes.
+    /// The picker growing from `point`, in a frame of `size`, as it opens, and shrinking back into it as it closes.
     static func transition(growingFrom point: CGPoint, in size: CGSize) -> AnyTransition {
         let anchor = UnitPoint(x: point.x / max(size.width, 1), y: point.y / max(size.height, 1))
         return .scale(scale: 0.1, anchor: anchor).combined(with: .opacity)

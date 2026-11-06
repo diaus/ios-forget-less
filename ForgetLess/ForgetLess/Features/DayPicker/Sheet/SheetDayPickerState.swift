@@ -1,8 +1,8 @@
 import Domain
 import Foundation
 
-/// The Day picker's choice of a Day to move to.
-struct DayPickerState {
+/// The sheet Day picker's choice of a Day to move to.
+struct SheetDayPickerState {
     var isVisible = false
     private(set) var today: Date
     /// What the Day it confirms is for.

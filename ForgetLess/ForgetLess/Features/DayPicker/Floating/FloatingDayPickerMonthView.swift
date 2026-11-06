@@ -2,19 +2,19 @@ import Domain
 import FactoryKit
 import SwiftUI
 
-/// A month of the floating Day calendar.
-struct FloatingDayCalendarMonthView: View {
+/// A month of the floating Day picker.
+struct FloatingDayPickerMonthView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     let month: DayPickerCalendar.Month
     /// How many months `month` is after Today's month.
     let offset: Int
-    let calendar: FloatingDayCalendarState
+    let picker: FloatingDayPickerState
     let rowHeight: CGFloat
     var focusedMonthOffset: AccessibilityFocusState<Int?>.Binding
     /// Asks to page by a number of months.
     let onPage: (_ monthCount: Int) -> Void
     let onChoose: (Date) -> Void
-    /// Reports the height above the weeks, which the calendar fits its rows around.
+    /// Reports the height above the weeks, which the picker fits its rows around.
     let onHeaderHeightChange: (CGFloat) -> Void
 
     // MARK: - Body
@@ -25,13 +25,13 @@ struct FloatingDayCalendarMonthView: View {
                 weekdayRow(DayPickerCalendar.weekdays())
             }
             .onGeometryChange(for: CGFloat.self, of: \.size.height, action: onHeaderHeightChange)
-            ForEach(month.weeks(count: FloatingDayCalendarLayout.weekCount), id: \.self, content: week)
+            ForEach(month.weeks(count: FloatingDayPickerLayout.weekCount), id: \.self, content: week)
         }
     }
 
     // MARK: - UI Components
     private var header: some View {
-        Text(month.firstDay.monthName(today: calendar.today))
+        Text(month.firstDay.monthName(today: picker.today))
             .font(.headline)
             // One line at any text size, so the weeks keep the height.
             .lineLimit(1)
@@ -39,7 +39,7 @@ struct FloatingDayCalendarMonthView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 8)
             // Clear of the ✕ over the page's top-trailing corner.
-            .padding(.trailing, FloatingDayCalendarView.closeButtonSize)
+            .padding(.trailing, FloatingDayPickerView.closeButtonSize)
             .padding(.bottom, 8)
             .accessibilityAddTraits(.isHeader)
             // For VoiceOver, which can't swipe sideways to page: swiping up or down pages instead.
@@ -72,8 +72,8 @@ struct FloatingDayCalendarMonthView: View {
             ForEach(days, id: \.self) { day in
                 PickerDayView(
                     day: day,
-                    chosenDay: calendar.chosenDay,
-                    today: calendar.today,
+                    chosenDay: picker.chosenDay,
+                    today: picker.today,
                     isInMonth: day.isInSameMonth(as: month.firstDay),
                     incompleteTaskCount: vm.scheduleTasks.incompleteTaskCount(on: day),
                     rowHeight: rowHeight

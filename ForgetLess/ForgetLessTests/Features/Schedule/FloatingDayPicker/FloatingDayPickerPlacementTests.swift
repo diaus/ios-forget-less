@@ -3,10 +3,10 @@ import Testing
 @testable import ForgetLess
 
 @MainActor
-struct TaskDayCalendarPlacementTests {
+struct FloatingDayPickerPlacementTests {
     /// The space the list shows: 100 pt down to 900 pt, 400 pt wide.
     private let space = CGRect(x: 0, y: 100, width: 400, height: 800)
-    /// The full calendar's height.
+    /// The full picker's height.
     private let fullHeight: CGFloat = 380
 
     // MARK: - Tests
@@ -51,7 +51,7 @@ struct TaskDayCalendarPlacementTests {
     func onAWideRowItsWidthIsCappedAndCentredOnTheTapWithinTheRow(tapX: CGFloat, minX: CGFloat) {
         let row = CGRect(x: 20, y: 250, width: 560, height: 50)
 
-        let placement = TaskDayCalendarPlacement(
+        let placement = FloatingDayPickerPlacement(
             row: row,
             tap: CGPoint(x: tapX, y: 275),
             space: CGRect(x: 0, y: 100, width: 600, height: 800),
@@ -71,8 +71,8 @@ struct TaskDayCalendarPlacementTests {
 
     // MARK: - Helpers
     /// A 50 pt row at `rowY`, with the list's 16 pt margins, tapped in its middle.
-    private func placement(rowY: CGFloat, fullHeight: CGFloat? = nil) -> TaskDayCalendarPlacement {
-        TaskDayCalendarPlacement(
+    private func placement(rowY: CGFloat, fullHeight: CGFloat? = nil) -> FloatingDayPickerPlacement {
+        FloatingDayPickerPlacement(
             row: CGRect(x: 16, y: rowY, width: 368, height: 50),
             tap: CGPoint(x: 200, y: rowY + 25),
             space: space,

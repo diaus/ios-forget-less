@@ -1,7 +1,7 @@
 import UIKit
 
 /// A Task's row in the Schedule's list, which knows when its handle is touched, so only the handle starts a move, and
-/// where it was last touched, for the floating Day calendar to grow from.
+/// where it was last touched, for the floating Day picker to grow from.
 final class TaskRowCell: UICollectionViewListCell {
     /// Where to look for a finger on the handle.
     private weak var touchEvent: UIEvent?

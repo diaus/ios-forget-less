@@ -3,7 +3,7 @@ import FactoryKit
 import SwiftUI
 
 /// The sheet that chooses a Day to move a Task to.
-struct DayPickerView: View {
+struct SheetDayPickerView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @State private var listPosition = ScrollPosition(idType: DayPickerCalendar.Row.self)
 
@@ -14,8 +14,8 @@ struct DayPickerView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if let dayPicker = vm.dayPicker {
-                    content(dayPicker)
+                if let sheetDayPicker = vm.sheetDayPicker {
+                    content(sheetDayPicker)
                 } else {
                     // Never shown: the picker's state outlives the sheet.
                     ProgressView()
@@ -24,37 +24,37 @@ struct DayPickerView: View {
             .toolbar {
                 // Both in the tint: on iOS 26 a toolbar button's text is otherwise primary.
                 ToolbarItem(placement: .cancellationAction) {
-                    Button { vm.dayPicker?.isVisible = false } label: {
-                        Text(.dayPickerCancel).foregroundStyle(.tint)
+                    Button { vm.sheetDayPicker?.isVisible = false } label: {
+                        Text(.sheetDayPickerCancel).foregroundStyle(.tint)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(action: vm.confirmDayPicker) {
-                        Text(.dayPickerConfirm).foregroundStyle(
-                            vm.dayPicker?.chosenDay == nil ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.tint)
+                    Button(action: vm.confirmSheetDayPicker) {
+                        Text(.sheetDayPickerConfirm).foregroundStyle(
+                            vm.sheetDayPicker?.chosenDay == nil ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.tint)
                         )
                     }
-                    .disabled(vm.dayPicker?.chosenDay == nil)
+                    .disabled(vm.sheetDayPicker?.chosenDay == nil)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
         }
-        .sensoryFeedback(.selection, trigger: vm.dayPicker?.chosenDay) { _, chosenDay in chosenDay != nil }
+        .sensoryFeedback(.selection, trigger: vm.sheetDayPicker?.chosenDay) { _, chosenDay in chosenDay != nil }
     }
 
     // MARK: - UI Components
-    private func content(_ dayPicker: DayPickerState) -> some View {
-        let calendar = DayPickerCalendar(today: dayPicker.today, monthCount: Self.monthCount)
+    private func content(_ sheetDayPicker: SheetDayPickerState) -> some View {
+        let calendar = DayPickerCalendar(today: sheetDayPicker.today, monthCount: Self.monthCount)
         return VStack(spacing: 0) {
             weekdayRow(calendar)
-            summaryLine(dayPicker)
+            summaryLine(sheetDayPicker)
             Divider()
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(calendar.rows) { row in
                         switch row {
-                        case let .monthHeader(firstDay): monthHeader(firstDay, today: dayPicker.today)
-                        case let .week(days): week(days, dayPicker: dayPicker)
+                        case let .monthHeader(firstDay): monthHeader(firstDay, today: sheetDayPicker.today)
+                        case let .week(days): week(days, sheetDayPicker: sheetDayPicker)
                         }
                     }
                 }
@@ -63,7 +63,7 @@ struct DayPickerView: View {
             }
             .scrollPosition($listPosition, anchor: .center)
             .onAppear {
-                if let row = calendar.weekRow(containing: dayPicker.chosenDay ?? dayPicker.today) {
+                if let row = calendar.weekRow(containing: sheetDayPicker.chosenDay ?? sheetDayPicker.today) {
                     listPosition.scrollTo(id: row, anchor: .center)
                 }
             }
@@ -81,19 +81,19 @@ struct DayPickerView: View {
             .accessibilityAddTraits(.isHeader)
     }
 
-    private func week(_ days: [Date?], dayPicker: DayPickerState) -> some View {
+    private func week(_ days: [Date?], sheetDayPicker: SheetDayPickerState) -> some View {
         HStack(spacing: 0) {
             ForEach(days.indices, id: \.self) { index in
                 Group {
                     if let day = days[index] {
                         PickerDayView(
                             day: day,
-                            chosenDay: dayPicker.chosenDay,
-                            today: dayPicker.today,
+                            chosenDay: sheetDayPicker.chosenDay,
+                            today: sheetDayPicker.today,
                             isInMonth: true,
                             incompleteTaskCount: vm.scheduleTasks.incompleteTaskCount(on: day),
                             rowHeight: PickerDayView.fullRowHeight
-                        ) { vm.dayPicker?.choose(day) }
+                        ) { vm.sheetDayPicker?.choose(day) }
                     } else {
                         Color.clear.accessibilityHidden(true)
                     }
@@ -115,16 +115,16 @@ struct DayPickerView: View {
         .padding(.horizontal, 8)
     }
 
-    private func summaryLine(_ dayPicker: DayPickerState) -> some View {
+    private func summaryLine(_ sheetDayPicker: SheetDayPickerState) -> some View {
         Group {
-            if let day = dayPicker.chosenDay {
+            if let day = sheetDayPicker.chosenDay {
                 let incompleteTaskCount = vm.scheduleTasks.incompleteTaskCount(on: day)
                 let taskCount = String(localized: .dayPickerTaskCount(count: incompleteTaskCount))
-                Text(.dayPickerSummary(
-                    weekday: day.shortWeekday, day: day.shortDate(today: dayPicker.today), taskCount: taskCount
+                Text(.sheetDayPickerSummary(
+                    weekday: day.shortWeekday, day: day.shortDate(today: sheetDayPicker.today), taskCount: taskCount
                 ))
             } else {
-                Text(.dayPickerPrompt)
+                Text(.sheetDayPickerPrompt)
             }
         }
         .font(.subheadline)
@@ -134,10 +134,10 @@ struct DayPickerView: View {
 }
 
 #Preview(traits: .sampleTasks) {
-    DayPickerView()
+    SheetDayPickerView()
         // The view resolves the same shared view model.
         .onAppear {
             let task = TodoTask.previewTomorrow
-            Container.shared.scheduleViewModel().showDayPicker(on: task.day, for: .task(task.id))
+            Container.shared.scheduleViewModel().showSheetDayPicker(on: task.day, for: .task(task.id))
         }
 }

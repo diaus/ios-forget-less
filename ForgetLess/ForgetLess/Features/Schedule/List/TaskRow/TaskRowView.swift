@@ -8,11 +8,11 @@ struct TaskRowView: View {
     let task: TodoTask
     /// Whether the row names its Day, which its section header doesn't.
     let showsDay: Bool
-    /// Asks the list to show the floating Day calendar on this Task, to Move it: only the list knows where the row is
-    /// on screen, which the calendar grows from.
+    /// Asks the list to show the floating Day picker on this Task, to Move it: only the list knows where the row is
+    /// on screen, which the picker grows from.
     let onChooseDay: () -> Void
 
-    /// Where a tap on the row stops editing the Task and opens its calendar instead.
+    /// Where a tap on the row stops editing the Task and opens its floating Day picker instead.
     @State private var halvesSplitX: CGFloat = .infinity
 
     /// The circle's grey, which keeps a white checkmark legible in both appearances.
@@ -32,7 +32,8 @@ struct TaskRowView: View {
                     .foregroundStyle(task.isComplete ? .white : circleGray, circleGray)
             }
             .padding(.trailing, 10)
-            // Only the circle takes the tap, not the whole row: a row tap edits the Task or opens its calendar.
+            // Only the circle takes the tap, not the whole row: a row tap edits the Task or opens its floating Day
+            // picker.
             .buttonStyle(.borderless)
             .accessibilityLabel(accessibilityName)
             .accessibilityValue(Text(task.isComplete ? .taskComplete : .taskIncomplete))
@@ -88,7 +89,8 @@ struct TaskRowView: View {
     }
 
     // MARK: - Gestures
-    /// Edits the Task from the row's leading half, and opens its calendar from the trailing half, its Day included.
+    /// Edits the Task from the row's leading half, and opens its floating Day picker from the trailing half, its Day
+    /// included.
     private var halvesTap: some Gesture {
         SpatialTapGesture(coordinateSpace: .named(Self.rowSpace)).onEnded { value in
             if value.location.x < halvesSplitX {

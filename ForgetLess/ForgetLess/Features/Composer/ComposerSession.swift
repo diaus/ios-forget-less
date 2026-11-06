@@ -8,8 +8,8 @@ import Utils
 @MainActor @Observable
 final class ComposerSession {
     var composer: ComposerState
-    /// The composer's Day chip calendar; `nil` while it's closed.
-    var dayChipCalendar: FloatingDayCalendarState?
+    /// The composer's Day chip picker; `nil` while it's closed.
+    var dayChipPicker: FloatingDayPickerState?
     let openerFocus = ComposerOpenerFocus()
     /// The Day the list last asked to bring into view.
     private(set) var dayReveal: DayReveal?
@@ -56,7 +56,7 @@ final class ComposerSession {
     /// Hides the composer and drops what's typed, so the next add starts blank. VoiceOver goes back to what showed it,
     /// and the list brings a Day stepped to into view.
     func dismiss() {
-        closeDayChipCalendar()
+        closeDayChipPicker()
         if composer.revealsDayOnDismiss {
             dayReveal = DayReveal(day: composer.day)
         }
@@ -71,7 +71,7 @@ final class ComposerSession {
     // MARK: - Today
     func update(today: Date) {
         self.today = today
-        dayChipCalendar?.update(today: today)
+        dayChipPicker?.update(today: today)
     }
 
     // MARK: - Editing
@@ -94,7 +94,7 @@ final class ComposerSession {
     /// Saves the typed name: adds a Task to the composer's Day and stays up for the next one, or renames the Task
     /// being edited and dismisses. Saves nothing when the typed name can't be saved.
     func submit() {
-        closeDayChipCalendar()
+        closeDayChipPicker()
         let name = composer.taskName
         guard let savedName = TodoTask.savedName(from: name) else { return }
         if let editedTask = composer.editedTask {
@@ -104,41 +104,41 @@ final class ComposerSession {
         }
     }
 
-    // MARK: - Day Chip Calendar
-    /// Opens the Day chip calendar on the composer's Day, or closes it when it's open.
-    func toggleDayChipCalendar() {
-        if dayChipCalendar == nil {
-            dayChipCalendar = FloatingDayCalendarState(today: today, day: composer.day)
+    // MARK: - Day Chip Picker
+    /// Opens the Day chip picker on the composer's Day, or closes it when it's open.
+    func toggleDayChipPicker() {
+        if dayChipPicker == nil {
+            dayChipPicker = FloatingDayPickerState(today: today, day: composer.day)
         } else {
-            closeDayChipCalendar()
+            closeDayChipPicker()
         }
     }
 
-    /// Closes the Day chip calendar, leaving focus to whatever closes it.
-    func closeDayChipCalendar() {
-        dayChipCalendar = nil
+    /// Closes the Day chip picker, leaving focus to whatever closes it.
+    func closeDayChipPicker() {
+        dayChipPicker = nil
     }
 
-    /// Closes the Day chip calendar back to the composer: the keyboard it hid comes back, and VoiceOver goes to the Day
-    /// chip rather than wherever the vanished calendar leaves it.
-    func closeDayChipCalendarRestoringFocus() {
-        let hasHiddenKeyboard = dayChipCalendar?.hasHiddenKeyboard ?? false
-        closeDayChipCalendar()
+    /// Closes the Day chip picker back to the composer: the keyboard it hid comes back, and VoiceOver goes to the Day
+    /// chip rather than wherever the vanished picker leaves it.
+    func closeDayChipPickerRestoringFocus() {
+        let hasHiddenKeyboard = dayChipPicker?.hasHiddenKeyboard ?? false
+        closeDayChipPicker()
         composer.returnFocusToDayChip(bringingBackKeyboard: hasHiddenKeyboard)
     }
 
-    /// Takes the keyboard down to make room for the Day chip calendar, and keeps it down until the calendar closes, so
-    /// the calendar never bounces as it refits.
-    func hideKeyboardForDayChipCalendar() {
-        dayChipCalendar?.recordHiddenKeyboard()
+    /// Takes the keyboard down to make room for the Day chip picker, and keeps it down until the picker closes, so
+    /// the picker never bounces as it refits.
+    func hideKeyboardForDayChipPicker() {
+        dayChipPicker?.recordHiddenKeyboard()
         composer.isNameFocused = false
     }
 
-    /// Sets the composer to `day` as a step does, unless the Day chip calendar is closed or closing, or it or the move
+    /// Sets the composer to `day` as a step does, unless the Day chip picker is closed or closing, or it or the move
     /// rule refuses `day`. VoiceOver says an edited Task's new Day once its Move is saved.
-    func chooseDayChipCalendarDay(_ day: Date) {
-        guard let calendar = dayChipCalendar, calendar.takesChoice(of: day), choose(day) else { return }
-        dayChipCalendar?.choose(day)
+    func chooseDayChipPickerDay(_ day: Date) {
+        guard let picker = dayChipPicker, picker.takesChoice(of: day), choose(day) else { return }
+        dayChipPicker?.choose(day)
     }
 
     // MARK: - Helpers

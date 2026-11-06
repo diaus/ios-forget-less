@@ -1,16 +1,16 @@
 import Domain
 import Foundation
 
-/// The floating Day calendar's month and the Day it shows chosen.
-struct FloatingDayCalendarState {
+/// The floating Day picker's month and the Day it shows chosen.
+struct FloatingDayPickerState {
     private(set) var today: Date
     /// The Day it's for: the composer's, or the Task's it opened from.
     private(set) var day: Date
     /// The month shown, as how many months it's after Today's month.
     private(set) var monthOffset: Int
-    /// Whether a Day has been chosen, so the calendar is about to close.
+    /// Whether a Day has been chosen, so the picker is about to close.
     private(set) var isClosing = false
-    /// Whether the calendar took the keyboard down to make room, so closing it brings the keyboard back.
+    /// Whether the picker took the keyboard down to make room, so closing it brings the keyboard back.
     private(set) var hasHiddenKeyboard = false
 
     init(today: Date, day: Date) {
@@ -36,7 +36,7 @@ struct FloatingDayCalendarState {
 
     /// Whether choosing `day` would make it its Day: `day` can be chosen, and no Day already was.
     func takesChoice(of day: Date) -> Bool {
-        // The calendar closes a moment after a choice, and a second tap in that moment changes nothing.
+        // The picker closes a moment after a choice, and a second tap in that moment changes nothing.
         !isClosing && canChoose(day)
     }
 

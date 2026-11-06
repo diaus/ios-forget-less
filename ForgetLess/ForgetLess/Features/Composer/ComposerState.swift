@@ -89,8 +89,8 @@ struct ComposerState {
         isNameFocused = true
     }
 
-    /// Gives focus back once a Day calendar or the Day picker over the composer closes: VoiceOver goes to the Day chip
-    /// they opened from, and the keyboard comes back when `bringingBackKeyboard`.
+    /// Gives focus back once a floating Day picker or the sheet Day picker over the composer closes: VoiceOver goes to
+    /// the Day chip they opened from, and the keyboard comes back when `bringingBackKeyboard`.
     mutating func returnFocusToDayChip(bringingBackKeyboard: Bool) {
         if bringingBackKeyboard {
             isNameFocused = true

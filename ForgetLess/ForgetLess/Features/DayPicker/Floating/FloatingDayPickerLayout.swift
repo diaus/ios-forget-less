@@ -1,22 +1,22 @@
 import CoreGraphics
 
-/// How the floating Day calendar fits the space it has.
-struct FloatingDayCalendarLayout: Equatable {
+/// How the floating Day picker fits the space it has.
+struct FloatingDayPickerLayout: Equatable {
     let rowHeight: CGFloat
     let showsButtons: Bool
     /// Whether the keyboard must go down to make room.
     let hidesKeyboard: Bool
 }
 
-extension FloatingDayCalendarLayout {
-    /// The widest the calendar grows, so its Days never spread out on a wide screen.
+extension FloatingDayPickerLayout {
+    /// The widest the picker grows, so its Days never spread out on a wide screen.
     static let maxWidth: CGFloat = 400
-    /// Every month as many weeks, so paging never changes the calendar's height.
+    /// Every month as many weeks, so paging never changes the picker's height.
     static let weekCount = 5
     /// The shortest a row shrinks before the keyboard goes down to make room.
     private static let minimumRowHeight: CGFloat = 36
 
-    /// Fits the calendar in `availableHeight`, around its header (the month's name and the weekday row), its buttons
+    /// Fits the picker in `availableHeight`, around its header (the month's name and the weekday row), its buttons
     /// with the space under them, and the rest of its `padding`.
     init(
         availableHeight: CGFloat,
@@ -32,7 +32,7 @@ extension FloatingDayCalendarLayout {
         self.init(rowHeight: rowHeight, showsButtons: showsButtons, hidesKeyboard: hidesKeyboard)
     }
 
-    /// The height the calendar takes when nothing has to make room: full rows and the buttons.
+    /// The height the picker takes when nothing has to make room: full rows and the buttons.
     static func fullHeight(headerHeight: CGFloat, buttonsHeight: CGFloat, padding: CGFloat) -> CGFloat {
         padding + headerHeight + fullRowsHeight + buttonsHeight
     }

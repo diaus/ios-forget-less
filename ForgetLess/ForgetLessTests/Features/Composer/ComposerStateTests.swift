@@ -62,7 +62,7 @@ struct ComposerStateTests {
         #expect(composer.revealsDayOnDismiss)
     }
 
-    @Test func aStepToADayFarAwayAsTheCalendarMakesIsRevealedAsAOneDayStepIs() {
+    @Test func aStepToADayFarAwayAsTheFloatingDayPickerMakesIsRevealedAsAOneDayStepIs() {
         let farDay = day.addingDays(40)
         var composer = ComposerState(day: day)
 

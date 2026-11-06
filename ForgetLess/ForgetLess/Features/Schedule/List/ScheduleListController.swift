@@ -21,7 +21,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     private let rowMove = TaskRowMove()
     /// The reveal last carried out, so each is carried out once.
     private var lastReveal: DayReveal?
-    /// The Task whose row is drawn highlighted, while its floating Day calendar is open.
+    /// The Task whose row is drawn highlighted, while its floating Day picker is open.
     private var highlightedTaskID: TodoTask.ID?
 
     override init() {
@@ -237,16 +237,16 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
     // MARK: - Row Actions
     func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
-        // Rows take taps in SwiftUI, never as a selection: a row tap edits the Task or opens its calendar.
+        // Rows take taps in SwiftUI, never as a selection: a row tap edits the Task or opens its floating Day picker.
         false
     }
 
-    /// Opens the Task's floating Day calendar from its row, which only the list can place on screen.
+    /// Opens the Task's floating Day picker from its row, which only the list can place on screen.
     private func chooseDay(_ id: TodoTask.ID) {
         guard let task = content.tasks[id], let cell = visibleCell(for: id) as? TaskRowCell else { return }
         let row = cell.convert(cell.bounds, to: nil)
         let tap = cell.lastTouchLocation ?? CGPoint(x: row.midX, y: row.midY)
-        vm.showTaskDayCalendar(for: task, from: TaskDayCalendarOrigin(row: row, tap: tap))
+        vm.showFloatingDayPicker(for: task, from: FloatingDayPickerOrigin(row: row, tap: tap))
     }
 
     private func swipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -255,7 +255,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             self?.confirmDeletion(of: id)
         } onChooseDay: { [weak self] in
             if let task = self?.content.tasks[id] {
-                self?.vm.showDayPicker(on: task.day, for: .task(task.id))
+                self?.vm.showSheetDayPicker(on: task.day, for: .task(task.id))
             }
         }
     }

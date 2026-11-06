@@ -16,23 +16,23 @@ struct ComposerView: View {
     @State private var dayStepCount = 0
     /// Counts the steps refused before Today, for a bounce and a haptic on each.
     @State private var refusedDayStepCount = 0
-    /// Counts the long presses that opened the Day picker, for a haptic on each.
-    @State private var dayPickerPressCount = 0
+    /// Counts the long presses that opened the sheet Day picker, for a haptic on each.
+    @State private var sheetDayPickerPressCount = 0
 
     /// How far a swipe on the Day chip must go to step its Day.
     private let dayStepDistance: CGFloat = 24
-    /// How long a press on the Day chip takes to open the Day picker.
-    private let dayPickerPressDuration = 0.35
+    /// How long a press on the Day chip takes to open the sheet Day picker.
+    private let sheetDayPickerPressDuration = 0.35
     /// How far a press on the Day chip can move before it's a swipe instead.
-    private let dayPickerPressDistance: CGFloat = 10
+    private let sheetDayPickerPressDistance: CGFloat = 10
 
     private var session: ComposerSession {
         vm.composerSession
     }
 
-    /// Whether the Day picker is up or closing; a drag ending meanwhile is the rest of the press that opened it.
-    private var isDayPickerOpen: Bool {
-        vm.dayPicker != nil
+    /// Whether the sheet Day picker is up or closing; a drag ending meanwhile is the rest of the press that opened it.
+    private var isSheetDayPickerOpen: Bool {
+        vm.sheetDayPicker != nil
     }
 
     // MARK: - Body
@@ -64,7 +64,7 @@ struct ComposerView: View {
         }
         .padding(16)
         .background(.background.secondary, in: .rect(cornerRadius: 20))
-        .transformAnchorPreference(key: DayChipCalendarAnchorsKey.self, value: .bounds) { $0.composer = $1 }
+        .transformAnchorPreference(key: DayChipPickerAnchorsKey.self, value: .bounds) { $0.composer = $1 }
         .padding(.horizontal, 8)
         .padding(.bottom, 8)
         .offset(y: max(dragOffset, 0))
@@ -73,7 +73,7 @@ struct ComposerView: View {
         .accessibilityElement(children: .contain)
         .accessibilityAction(.escape, session.requestDismissal)
         // Typing goes straight back to the name field.
-        .onChange(of: session.composer.taskName) { session.closeDayChipCalendar() }
+        .onChange(of: session.composer.taskName) { session.closeDayChipPicker() }
         .onChange(of: session.composer.dayChipAccessibilityFocusCount) { isDayChipAccessibilityFocused = true }
     }
 
@@ -101,21 +101,21 @@ struct ComposerView: View {
                 SpringKeyframe(0, duration: 0.3)
             }
             .contentShape(.capsule)
-            .transformAnchorPreference(key: DayChipCalendarAnchorsKey.self, value: .bounds) { $0.chip = $1 }
+            .transformAnchorPreference(key: DayChipPickerAnchorsKey.self, value: .bounds) { $0.chip = $1 }
             .gesture(dayChipPress)
             .simultaneousGesture(dayStepSwipe)
             .sensoryFeedback(.selection, trigger: dayStepCount)
-            .sensoryFeedback(.impact(weight: .medium), trigger: dayPickerPressCount)
+            .sensoryFeedback(.impact(weight: .medium), trigger: sheetDayPickerPressCount)
             .sensoryFeedback(.refusal, trigger: refusedDayStepCount)
             .accessibilityElement()
             .accessibilityLabel(Text(.composerDay))
             .accessibilityValue(label)
             .accessibilityHint(Text(.composerDayHint))
             .accessibilityAddTraits(.isButton)
-            // A double-tap opens the calendar, as a tap does, while swiping up or down still steps.
-            .accessibilityAction(.default, session.toggleDayChipCalendar)
+            // A double-tap opens the picker, as a tap does, while swiping up or down still steps.
+            .accessibilityAction(.default, session.toggleDayChipPicker)
             // VoiceOver's way to the long press, which it can't make.
-            .accessibilityAction(named: Text(.taskChooseDay), vm.showComposerDayPicker)
+            .accessibilityAction(named: Text(.taskChooseDay), vm.showComposerSheetDayPicker)
             .accessibilityFocused($isDayChipAccessibilityFocused)
             .accessibilityAdjustableAction { direction in
                 switch direction {
@@ -154,25 +154,25 @@ struct ComposerView: View {
     private var dismissDrag: some Gesture {
         DragGesture()
             .updating($dragOffset) { value, offset, _ in
-                // The rest of the press that opened the Day picker leaves the panel where it was.
-                offset = isDayPickerOpen ? 0 : value.translation.height
+                // The rest of the press that opened the sheet Day picker leaves the panel where it was.
+                offset = isSheetDayPickerOpen ? 0 : value.translation.height
             }
             .onEnded { value in
-                if !isDayPickerOpen, value.dismissesComposer {
+                if !isSheetDayPickerOpen, value.dismissesComposer {
                     session.requestDismissal()
                 }
             }
     }
 
-    /// A long press opens the Day picker, and a shorter tap the Day chip calendar.
+    /// A long press opens the sheet Day picker, and a shorter tap the Day chip picker.
     private var dayChipPress: some Gesture {
         // The tap waits only for the press to fail, which a lift does at once.
-        LongPressGesture(minimumDuration: dayPickerPressDuration, maximumDistance: dayPickerPressDistance)
+        LongPressGesture(minimumDuration: sheetDayPickerPressDuration, maximumDistance: sheetDayPickerPressDistance)
             .onEnded { _ in
-                dayPickerPressCount += 1
-                vm.showComposerDayPicker()
+                sheetDayPickerPressCount += 1
+                vm.showComposerSheetDayPicker()
             }
-            .exclusively(before: TapGesture().onEnded { session.toggleDayChipCalendar() })
+            .exclusively(before: TapGesture().onEnded { session.toggleDayChipPicker() })
     }
 
     /// A swipe left steps to the next Day, and a swipe right to the one before, as a calendar pages.
@@ -181,8 +181,8 @@ struct ComposerView: View {
             .onEnded { value in
                 let width = value.translation.width
                 // Mostly sideways, so a drag down from the chip only dismisses. The rest of the press that opened the
-                // Day picker steps nothing.
-                guard !isDayPickerOpen, abs(width) > abs(value.translation.height) else { return }
+                // sheet Day picker steps nothing.
+                guard !isSheetDayPickerOpen, abs(width) > abs(value.translation.height) else { return }
                 let isFlung = abs(value.predictedEndTranslation.width) > dayStepDistance * 2
                 if abs(width) > dayStepDistance || isFlung {
                     stepDay(forward: width < 0)

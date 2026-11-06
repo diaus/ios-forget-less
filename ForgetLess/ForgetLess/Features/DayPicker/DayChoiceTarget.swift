@@ -1,6 +1,6 @@
 import Foundation
 
-/// What a Day chosen in a Day calendar or the Day picker is for.
+/// What a Day chosen in a floating Day picker or the sheet Day picker is for.
 enum DayChoiceTarget: Equatable {
     /// The composer's Day.
     case composer

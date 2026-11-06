@@ -6,7 +6,7 @@ import SwiftUI
 struct ScheduleView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @Environment(\.scenePhase) private var scenePhase
-    /// What the list shows, between its bars, which the floating Day calendar opened from a row keeps within.
+    /// What the list shows, between its bars, which the floating Day picker opened from a row keeps within.
     @State private var listFrame: CGRect = .zero
 
     private var session: ComposerSession {
@@ -22,13 +22,13 @@ struct ScheduleView: View {
             composerScrim
             composerPanel
         }
-        // Over the composer rather than in it, so the calendar can use the space above it.
-        .overlayPreferenceValue(DayChipCalendarAnchorsKey.self) { anchors in
-            DayChipCalendarOverlayView(anchors: anchors)
+        // Over the composer rather than in it, so the picker can use the space above it.
+        .overlayPreferenceValue(DayChipPickerAnchorsKey.self) { anchors in
+            DayChipPickerOverlayView(anchors: anchors)
         }
         // Over everything, the add button included, so a touch anywhere else only closes it.
         .overlay {
-            TaskDayCalendarOverlayView(listFrame: listFrame)
+            FloatingDayPickerOverlayView(listFrame: listFrame)
         }
         // Restarts on a new Today and on coming back, when a fresh fetch also picks up changes made outside the app.
         .task(id: ScheduleObservation(today: vm.today, isActive: scenePhase == .active)) {
@@ -46,8 +46,8 @@ struct ScheduleView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
             vm.refresh()
         }
-        .sheet(isPresented: isDayPickerPresented, onDismiss: vm.dayPickerDidClose) {
-            DayPickerView()
+        .sheet(isPresented: isSheetDayPickerPresented, onDismiss: vm.sheetDayPickerDidClose) {
+            SheetDayPickerView()
                 .presentationDetents([.medium, .large])
         }
         .errorAlert(message: Bindable(vm.writes).errorMessage)
@@ -122,9 +122,9 @@ struct ScheduleView: View {
     }
 
     // MARK: - Helpers
-    private var isDayPickerPresented: Binding<Bool> {
+    private var isSheetDayPickerPresented: Binding<Bool> {
         // Bound by hand: the picker's state is `nil` while it's closed.
-        Binding { vm.dayPicker?.isVisible ?? false } set: { vm.dayPicker?.isVisible = $0 }
+        Binding { vm.sheetDayPicker?.isVisible ?? false } set: { vm.sheetDayPicker?.isVisible = $0 }
     }
 
     /// What the Schedule is observed for; a change restarts the observation.
