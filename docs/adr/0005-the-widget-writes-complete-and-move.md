@@ -4,7 +4,7 @@ status: accepted
 
 # The widget makes Tasks Complete and Moves them itself, through App Intents
 
-The Home Screen widget's large size lets the user make a listed Task Complete and Move it one step up or down. A widget button runs an App Intent, and by default WidgetKit runs it in the widget extension's process, not the app's. So the widget opens the App Group store read-write for those writes, through the same repository and its `setComplete` and `move`. This supersedes ADR 0003's consequence that the widget never writes. Timelines still read through the read-only repository.
+The Home Screen widget's large and medium sizes let the user make a listed Task Complete and Move it one step up or down. A widget button runs an App Intent, and by default WidgetKit runs it in the widget extension's process, not the app's. So the widget opens the App Group store read-write for those writes, through the same repository and its `setComplete` and `move`. This supersedes ADR 0003's consequence that the widget never writes. Timelines still read through the read-only repository.
 
 The intent works out Today itself when it runs. The destination of each step is computed with the timeline and travels in the intent. A Task the intent names that's gone by then is left alone, as the repository already does for an unknown ID.
 
