@@ -10,25 +10,34 @@ struct HomeScreenRowsView: View {
 
     @Environment(\.widgetFamily) private var family
 
-    // Tuned with RenderPreview on iPhone 18 Pro: 5 rows at the full font and gap fill the height, and 6 still fit at
-    // the full font with the smallest gap. The smallest font size is the Lock Screen's on iPhone 18 Pro.
-    private static let sizing = TextRowsSizing(
+    // Tuned with RenderPreview on iPhone 18 Pro: 5 rows at the full font and gap fill the small size's height, and 6
+    // still fit at the full font with the smallest gap. The smallest font size is the Lock Screen's on iPhone 18 Pro.
+    private static let smallSizeSizing = TextRowsSizing(
         fullFontSize: 17,
         fullGap: 5,
         smallestGap: 1,
         smallestFontSize: 12,
         lineMetrics: UIFont.systemLineMetrics
     )
+    // Rows with controls never shrink, so they stay readable and their controls easy to hit.
+    private static let controlsSizing = TextRowsSizing(
+        fullFontSize: smallSizeSizing.fullFontSize,
+        fullGap: smallSizeSizing.fullGap,
+        smallestGap: smallSizeSizing.fullGap,
+        smallestFontSize: smallSizeSizing.fullFontSize,
+        lineMetrics: smallSizeSizing.lineMetrics
+    )
 
     // MARK: - Body
     var body: some View {
         GeometryReader { proxy in
-            let layout = Self.sizing.layout(rowCount: rows.count, height: proxy.size.height)
+            let sizing = family.hasControls ? Self.controlsSizing : Self.smallSizeSizing
+            let layout = sizing.layout(rowCount: rows.count, height: proxy.size.height)
             let font = UIFont.systemFont(ofSize: layout.fontSize)
             let leavesRowsOut = layout.rowCount < rows.count
             VStack(alignment: .leading, spacing: layout.gap) {
                 ForEach(Array(rows.prefix(layout.rowCount).enumerated()), id: \.element.id) { index, row in
-                    if family == .systemLarge {
+                    if family.hasControls {
                         rowWithControls(
                             row,
                             font: font,
@@ -45,8 +54,8 @@ struct HomeScreenRowsView: View {
     }
 
     // MARK: - UI Components
-    /// The large size's row, with its circle and arrows. `isLastShownBeforeRowsLeftOut` is whether rows listed after it
-    /// don't fit, so a step down mustn't put the Task among them.
+    /// A row of the sizes with controls, with its circle and arrows. `isLastShownBeforeRowsLeftOut` is whether rows
+    /// listed after it don't fit, so a step down mustn't put the Task among them.
     private func rowWithControls(_ row: UpcomingRow, font: UIFont, isLastShownBeforeRowsLeftOut: Bool) -> some View {
         HStack(spacing: 0) {
             CompleteCircleView(taskID: row.id, font: font)

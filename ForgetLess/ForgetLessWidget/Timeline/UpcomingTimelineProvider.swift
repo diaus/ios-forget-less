@@ -41,8 +41,8 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
     // MARK: - Helpers
     /// How many rows the content holds: nil for every Task.
     private static func rowLimit(for family: WidgetFamily, showsTwoColumns: Bool) -> Int? {
-        // The large size lists as many as fit, which only its view can tell.
-        guard family != .systemLarge else { return nil }
+        // The sizes with controls list as many as fit, which only their view can tell.
+        guard !family.hasControls else { return nil }
         // The Home Screen never shows two columns, so the setting is hidden there and doesn't apply.
         return family.isOnLockScreen && !showsTwoColumns
             ? UpcomingWidgetContent.columnRowCount

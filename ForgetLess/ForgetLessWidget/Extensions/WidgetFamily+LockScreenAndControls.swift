@@ -8,4 +8,12 @@ nonisolated extension WidgetFamily {
         default: false
         }
     }
+
+    /// Whether the size's rows make a Task Complete and Move it.
+    var hasControls: Bool {
+        switch self {
+        case .systemMedium, .systemLarge: true
+        default: false
+        }
+    }
 }

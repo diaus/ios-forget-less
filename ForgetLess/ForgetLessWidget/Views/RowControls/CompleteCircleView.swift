@@ -3,7 +3,7 @@ import SwiftUI
 import UIKit
 import WidgetKit
 
-/// The large size's circle, which makes its row's Task Complete.
+/// The circle of the sizes with controls, which makes its row's Task Complete.
 struct CompleteCircleView: View {
     let taskID: UUID
     let font: UIFont

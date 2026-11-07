@@ -3,7 +3,7 @@ import SwiftUI
 import WidgetKit
 
 /// The Lock Screen and Home Screen widget: Overdue and Today's Incomplete Tasks, and Tomorrow's when its setting is on.
-/// The large size also makes them Complete and Moves them.
+/// The sizes with controls also make them Complete and Move them.
 struct UpcomingWidget: Widget {
     nonisolated static let kind = "UpcomingWidget"
 
@@ -17,7 +17,7 @@ struct UpcomingWidget: Widget {
         }
         .configurationDisplayName(Text(.widgetTitle))
         .description(Text(.widgetDescription))
-        .supportedFamilies([.accessoryRectangular, .systemSmall, .systemLarge])
+        .supportedFamilies([.accessoryRectangular, .systemSmall, .systemMedium, .systemLarge])
     }
 }
 
@@ -61,6 +61,37 @@ struct UpcomingWidget: Widget {
     UpcomingWidget()
 } timeline: {
     UpcomingWidgetEntry.preview(showsOverdueTasks: true, showsTomorrowTasks: true)
+}
+
+#Preview("Medium, gallery sample", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry(date: .now, content: .sample)
+}
+
+#Preview("Medium, Overdue on, Tomorrow on", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(showsOverdueTasks: true, showsTomorrowTasks: true, rowLimit: nil)
+}
+
+#Preview("Medium, 8 Tasks, as many as fit", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(taskCount: 8, rowLimit: nil)
+}
+
+#Preview("Medium, 20 Tasks, as many as fit", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(taskCount: 20, rowLimit: nil)
+}
+
+#Preview("Medium, each content", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry(date: .now, content: .empty)
+    UpcomingWidgetEntry(date: .now, content: .unreadable)
 }
 
 #Preview("Large, gallery sample", as: .systemLarge) {

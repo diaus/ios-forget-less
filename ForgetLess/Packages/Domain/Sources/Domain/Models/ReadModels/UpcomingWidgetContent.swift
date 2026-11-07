@@ -11,7 +11,8 @@ public enum UpcomingWidgetContent: Hashable, Sendable {
 
     /// The most rows a Lock Screen column holds.
     public static let columnRowCount = 4
-    /// The most rows the Lock Screen and the small size list. The large size lists every Task, as many as fit.
+    /// The most rows the Lock Screen and the small size list. The sizes with controls list every Task, as many
+    /// as fit.
     public static let maxRowCount = 2 * columnRowCount
 
     /// The rows for `tasks`, given in the Schedule's order: the first `rowLimit` of them, or all of them when it's nil.

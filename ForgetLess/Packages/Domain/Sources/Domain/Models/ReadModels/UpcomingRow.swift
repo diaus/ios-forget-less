@@ -11,7 +11,7 @@ public struct UpcomingRow: Hashable, Identifiable, Sendable {
     public let id: UUID
     public let name: String
     public let marker: Marker?
-    /// Where the Task goes one step up or down, which only the large size offers.
+    /// Where the Task goes one step up or down, which only the sizes with controls offer.
     public let oneStepDestinations: OneStepDestinations
 
     init(task: TodoTask, today: Date, oneStepDestinations: OneStepDestinations) {

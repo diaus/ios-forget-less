@@ -4,8 +4,8 @@ import SwiftUI
 import UIKit
 import WidgetKit
 
-/// The large size's arrows, which Move their row's Task one step: the left half, under the up arrow, up, and the right
-/// half, under the down arrow, down. A half with nowhere to go is dimmed and does nothing.
+/// The arrows of the sizes with controls, which Move their row's Task one step: the left half, under the up arrow, up,
+/// and the right half, under the down arrow, down. A half with nowhere to go is dimmed and does nothing.
 struct MoveStepsView: View {
     let taskID: UUID
     let stepUp: MoveDestination?
