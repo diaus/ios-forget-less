@@ -71,6 +71,23 @@ public struct Schedule: Sendable {
         }
     }
 
+    // MARK: - Paging History
+    /// How many Days further back History lists each time the list nears its top.
+    public static let historyPageDayCount = 60
+
+    /// The History first Day that lists `day`: `historyFirstDay` when it lists `day` already, else a page before
+    /// `day`, so there's room above it to scroll on back.
+    public static func historyFirstDay(listing day: Date, from historyFirstDay: Date) -> Date {
+        day < historyFirstDay ? day.addingDays(-historyPageDayCount) : historyFirstDay
+    }
+
+    // MARK: - Going to a Day
+    /// The last Day listed on or before `day`: `day` itself when listed. `nil` when no Day before it is listed, as
+    /// while History doesn't list back to it yet.
+    public func listedDay(onOrBefore day: Date) -> Date? {
+        days.last { $0.day <= day }?.day
+    }
+
     // MARK: - Moving
     /// The move rule: whether `task` can be moved to `destination`.
     public func canMove(_ task: TodoTask, to destination: MoveDestination) -> Bool {

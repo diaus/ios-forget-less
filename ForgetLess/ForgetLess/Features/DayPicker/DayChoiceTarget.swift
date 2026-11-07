@@ -8,6 +8,8 @@ enum DayChoiceTarget: Equatable {
     case task(UUID)
     /// The Day of every Overdue Task, all moved to it at once.
     case overdueTasks
+    /// The Day the Schedule's list goes to, in History.
+    case goToDay
 
     /// The Task whose Day is chosen: the composer keeps its own listed, and the Overdue Tasks leave Overdue.
     var taskID: UUID? {

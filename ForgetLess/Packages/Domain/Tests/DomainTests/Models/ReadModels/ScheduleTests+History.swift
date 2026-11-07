@@ -53,6 +53,58 @@ extension ScheduleTests {
         #expect(throughToday.filter(\.startsMonth).map(\.day) == [try day("2026-11-01")])
     }
 
+    // MARK: - Paging History
+    @Test(arguments: ["2026-02-20", "2026-02-21", "2026-12-25"])
+    func aDayHistoryListsAlreadyKeepsItsFirstDay(listedDay: String) throws {
+        let historyFirstDay = try day("2026-02-20")
+
+        #expect(Schedule.historyFirstDay(listing: try day(listedDay), from: historyFirstDay) == historyFirstDay)
+    }
+
+    @Test(arguments: ["2026-02-19", "2025-08-10"])
+    func aDayBeforeTheHistoryFirstDayMovesItAPageBeforeThatDay(earlierDay: String) throws {
+        let earlierDay = try day(earlierDay)
+
+        let historyFirstDay = Schedule.historyFirstDay(listing: earlierDay, from: try day("2026-02-20"))
+
+        #expect(historyFirstDay == earlierDay.addingDays(-Schedule.historyPageDayCount))
+    }
+
+    // MARK: - Going to a Day
+    @Test(arguments: ["2026-02-27", "2026-03-01", "2026-03-02", "2026-06-08", "2026-09-01"])
+    func aListedDayIsTheListedDayOnOrBeforeItself(listedDay: String) throws {
+        let today = try day("2026-03-01")
+        let laterDay = try day("2026-09-01")
+        let tasks = [task("Renew passport", day: laterDay, sortIndex: 0)]
+        let schedule = Schedule(tasks: tasks, today: today, historyFirstDay: try day("2026-02-20"))
+
+        #expect(schedule.listedDay(onOrBefore: try day(listedDay)) == (try day(listedDay)))
+    }
+
+    @Test func anEmptyDayAfterTheWindowGivesTheClosestLaterDayWithTasksBeforeIt() throws {
+        let today = try day("2026-03-01")
+        let laterDay = try day("2026-09-01")
+        let tasks = [task("Renew passport", day: laterDay, sortIndex: 0)]
+        let schedule = Schedule(tasks: tasks, today: today, historyFirstDay: try day("2026-02-20"))
+
+        #expect(schedule.listedDay(onOrBefore: try day("2026-12-25")) == laterDay)
+    }
+
+    @Test func anEmptyDayAfterTheWindowWithNoLaterDayBeforeItGivesTheWindowsLastDay() throws {
+        let today = try day("2026-03-01")
+        let laterDay = try day("2026-09-01")
+        let tasks = [task("Renew passport", day: laterDay, sortIndex: 0)]
+        let schedule = Schedule(tasks: tasks, today: today, historyFirstDay: try day("2026-02-20"))
+
+        #expect(schedule.listedDay(onOrBefore: try day("2026-07-04")) == (try day("2026-06-08")))
+    }
+
+    @Test func aDayBeforeTheFirstListedDayGivesNone() throws {
+        let schedule = Schedule(tasks: [], today: try day("2026-03-01"), historyFirstDay: try day("2026-02-20"))
+
+        #expect(schedule.listedDay(onOrBefore: try day("2026-02-19")) == nil)
+    }
+
     // MARK: - Moving in History
     @Test func inHistoryATaskCanMoveDropOrMoveToTheEndOntoAPastDay() throws {
         let today = try day("2026-03-01")

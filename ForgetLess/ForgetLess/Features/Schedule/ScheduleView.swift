@@ -8,6 +8,8 @@ struct ScheduleView: View {
     @Environment(\.scenePhase) private var scenePhase
     /// What the list shows, between its bars, which the floating Day picker opened from a row keeps within.
     @State private var listFrame: CGRect = .zero
+    /// The sheet Day picker's height, which each opening starts at large.
+    @State private var sheetDayPickerDetent = PresentationDetent.large
 
     private var session: ComposerSession {
         vm.composerSession
@@ -49,9 +51,9 @@ struct ScheduleView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
             vm.refresh()
         }
-        .sheet(isPresented: isSheetDayPickerPresented, onDismiss: vm.sheetDayPickerDidClose) {
+        .sheet(isPresented: isSheetDayPickerPresented, onDismiss: sheetDayPickerDidClose) {
             SheetDayPickerView()
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.medium, .large], selection: $sheetDayPickerDetent)
         }
         .errorAlert(message: Bindable(vm.writes).errorMessage)
         // The quick settings bar stands in for a navigation bar; only screens pushed from it show one.
@@ -122,6 +124,13 @@ struct ScheduleView: View {
         }
         // Already between the bars, though its safe area still names them for the list that runs under them.
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { listFrame = $0 }
+    }
+
+    // MARK: - Actions
+    private func sheetDayPickerDidClose() {
+        // Back to large, so a sheet dragged down to medium doesn't open there next time.
+        sheetDayPickerDetent = .large
+        vm.sheetDayPickerDidClose()
     }
 
     // MARK: - Helpers

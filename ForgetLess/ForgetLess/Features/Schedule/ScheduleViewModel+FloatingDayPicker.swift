@@ -40,7 +40,8 @@ extension ScheduleViewModel {
     func closeFloatingDayPickerWithNothingToMove() {
         guard let open = floatingDayPicker else { return }
         let hasNothingToMove = switch open.target {
-        case .composer: false
+        // Going to a Day never opens it: only the sheet Day picker does.
+        case .composer, .goToDay: false
         case let .task(id): scheduleTasks.task(withID: id) == nil
         // Not once a Day is chosen, which itself empties Overdue: the picker closes a moment later, so it's seen.
         case .overdueTasks: !open.picker.isClosing && scheduleTasks.schedule.overdueIncomplete.isEmpty

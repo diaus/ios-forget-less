@@ -1,7 +1,7 @@
 import Domain
 import Foundation
 
-/// The sheet Day picker's choice of a Day to move to.
+/// The sheet Day picker's choice of a Day to move to, or for the list to go to.
 struct SheetDayPickerState {
     var isVisible = false
     private(set) var today: Date
@@ -25,8 +25,8 @@ struct SheetDayPickerState {
         self.chosenDay = day.canBeChosen(today: today, showsHistory: showsHistory) ? day : nil
     }
 
-    /// The Day to move to: `nil` while nothing is chosen, or when the chosen Day is the Day it opened on.
-    var dayToMove: Date? {
+    /// The Day it gives its target: `nil` while nothing is chosen, or when the chosen Day is the Day it opened on.
+    var newDay: Date? {
         chosenDay == openedDay ? nil : chosenDay
     }
 

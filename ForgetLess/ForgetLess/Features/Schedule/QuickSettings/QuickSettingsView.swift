@@ -5,6 +5,7 @@ import SwiftUI
 struct QuickSettingsView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
 
+    // MARK: - Body
     var body: some View {
         HStack(spacing: 8) {
             Button { withAnimation { vm.showsHistory.toggle() } } label: {
@@ -15,17 +16,12 @@ struct QuickSettingsView: View {
             .accessibilityRepresentation {
                 Toggle(isOn: $vm.showsHistory.animation()) { Text(.scheduleHistory) }
             }
-            Button { withAnimation { vm.showsComplete.toggle() } } label: {
-                Image(systemName: vm.showsComplete ? "checklist.checked" : "checklist.unchecked")
-                    .quickSettingSquare()
+            // History always lists Complete Tasks, so the choice has nothing to change there.
+            if vm.showsHistory {
+                goToDayButton
+            } else {
+                showCompleteTasksButton
             }
-            .buttonStyle(.plain)
-            // A toggle for VoiceOver, with its on/off value; the glyph alone shows the state on screen.
-            .accessibilityRepresentation {
-                Toggle(isOn: $vm.showsComplete.animation()) { Text(.scheduleShowCompleteTasks) }
-            }
-            // History always lists Complete Tasks, so the choice can't change them there.
-            .disabled(vm.showsHistory)
             NavigationLink { SettingsView() } label: {
                 Image(systemName: "gearshape")
                     .quickSettingSquare()
@@ -35,6 +31,28 @@ struct QuickSettingsView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+    }
+
+    // MARK: - UI Components
+    private var showCompleteTasksButton: some View {
+        Button { withAnimation { vm.showsComplete.toggle() } } label: {
+            Image(systemName: vm.showsComplete ? "checklist.checked" : "checklist.unchecked")
+                .quickSettingSquare()
+        }
+        .buttonStyle(.plain)
+        // A toggle for VoiceOver, with its on/off value; the glyph alone shows the state on screen.
+        .accessibilityRepresentation {
+            Toggle(isOn: $vm.showsComplete.animation()) { Text(.scheduleShowCompleteTasks) }
+        }
+    }
+
+    private var goToDayButton: some View {
+        Button(action: vm.showGoToDaySheetDayPicker) {
+            Image(systemName: "calendar.badge.clock")
+                .quickSettingSquare()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(.scheduleGoToDay))
     }
 }
 

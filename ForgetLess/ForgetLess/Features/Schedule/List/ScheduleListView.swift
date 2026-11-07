@@ -26,6 +26,8 @@ struct ScheduleListView: UIViewRepresentable {
         )
         // After the Schedule it jumps within.
         context.coordinator.jump(vm.historyJump)
+        // After the jump it follows, so the header is on screen.
+        context.coordinator.moveVoiceOverFocus(toLandingDayOf: vm.focusedHistoryJump)
         context.coordinator.reveal(vm.composerSession.dayReveal)
         context.coordinator.highlightRow(of: vm.floatingDayPicker?.target.taskID)
         collectionView.targetContentInsets = UIEdgeInsets(

@@ -17,7 +17,7 @@ Every listed Task gets a second swipe action: a blue `calendar` button inside De
 1. As a user, I want a `calendar` swipe action on every listed Task, Incomplete, Complete or Overdue, so that I can replan any Task.
 2. As a user, I want it inside Delete, with Delete still on the outer edge and the calendar action on a blue background, so that it's easy to tell apart from Delete.
 3. As a user, I want the calendar action whether Move Tasks is on or off, so that it works like the composer's Day chip, which is a deliberate choice and never changes the list by accident.
-4. As a user, I want the sheet to open at medium height and to be draggable to large, so that I can still see the row I swiped and can open more months when I need them.
+4. As a user, I want the sheet to open at full height and to be draggable down to medium, so that I see more months at once and can still bring the list back into view when I need it.
 5. As a user, I want the sheet to open centred on the Task's own Day, already chosen, so that I start from where the Task is.
 6. As a user moving an Overdue Task, I want nothing chosen at first, and Done disabled until I tap a Day, so that I make a real choice instead of confirming a Day I can't use.
 
@@ -93,7 +93,7 @@ Every listed Task gets a second swipe action: a blue `calendar` button inside De
   - `ScheduleListController.swipeActions(at:)` returns the calendar action after Delete, so Delete stays the outermost.
   - The action uses the `calendar` symbol on `.systemBlue`. It has no title, and its image's accessibility label comes from a new catalog key, "Choose Day".
   - It calls the view model, which the controller already injects.
-- **The sheet's state** lives on `ScheduleViewModel`: the Task being moved, the chosen Day (or `nil`) and whether the sheet shows. `ScheduleView` presents the sheet from it with `.sheet` and `.presentationDetents([.medium, .large])`, starting at medium.
+- **The sheet's state** lives on `ScheduleViewModel`: the Task being moved, the chosen Day (or `nil`) and whether the sheet shows. `ScheduleView` presents the sheet from it with `.sheet` and `.presentationDetents([.medium, .large], selection:)`, each opening starting at large.
 - **The choice rules are a small value type** next to the sheet, like `ComposerState`, tested in the app's tests:
   - it opens on the Task's Day, or with nothing chosen for an Overdue Task;
   - choosing a Day before Today is refused;

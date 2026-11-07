@@ -28,7 +28,7 @@ A new quick setting, **History** (see `GLOSSARY.md`), switches how the Schedule 
 
 ### Show Complete Tasks while History is on
 
-8. As a user, I want the Show Complete Tasks button dimmed and disabled while History is on, since History always lists Complete Tasks.
+8. As a user, I want the Show Complete Tasks button replaced by the Go to a Day button while History is on, since History always lists Complete Tasks (amended 2026-11-08; it was dimmed and disabled at first).
 9. As a user, I want my Show Complete Tasks choice kept as it was, and working again once History is off.
 10. As a user with Complete Tasks hidden, I want a Task I completed in History gone from the list as soon as History is off, with no grace period, since I've already seen it ticked off.
 
@@ -70,11 +70,26 @@ A new quick setting, **History** (see `GLOSSARY.md`), switches how the Schedule 
 ### VoiceOver
 
 37. As a VoiceOver user, I want the History button read as a switch, "History", with its on/off value, as the other quick settings are.
-38. As a VoiceOver user, I want the Show Complete Tasks switch read as dimmed while History is on.
+38. As a VoiceOver user, I want the Go to a Day button in place of the Show Complete Tasks switch while History is on (amended 2026-11-08; the switch was read as dimmed at first).
 
 ### Widgets
 
 39. As a user, I want the widgets unchanged: they never show the past, and they show Tasks I Moved in History in their new places, as after any Move.
+
+### Go to a Day
+
+40. As a user in History, I want a calendar button, `calendar.badge.clock`, in Show Complete Tasks's place in the quick settings bar, so that I can reach any Day without scrolling to it.
+41. As a user, I want the button never filled, since it's a button, not a switch, and the swap between it and Show Complete Tasks animated with History turning on or off.
+42. As a VoiceOver user, I want it read as a button, "Go to a Day".
+43. As a user, I want it to open the Choose a Day sheet with the Day at the top of the screen chosen, so that the calendar shows where I am.
+44. As a user, I want to choose any Day there, before Today or not, across the months the sheet offers in History.
+45. As a user, I want the line under the calendar to show only the chosen Day's weekday and date, with no Task count, since I'm going there, not moving a Task.
+46. As a user, I want Done to scroll the list, without animation, so the chosen Day's header is at the top, or as near as the end of the list allows.
+47. As a user, I want Done with the Day it opened on still chosen, or Cancel, to leave the list where it is.
+48. As a user, I want a Day further back than History has loaded to load and then be landed on, with room above it to keep scrolling back.
+49. As a user, I want an empty Day after the 100 listed from Today, which the list doesn't show, to land on the closest listed Day before it.
+50. As a VoiceOver user, I want focus on the header of the Day the list lands on, so that I hear where it went.
+51. As a user, I want nothing to scroll at midnight while the sheet is open, and the chosen Day kept.
 
 ## Implementation Decisions
 
@@ -104,7 +119,7 @@ A new quick setting, **History** (see `GLOSSARY.md`), switches how the Schedule 
 - **The observation.** `observeSchedule` subscribes with the first Day while History is on. The first Day starts about 60 Days before Today and moves back 60 when the list nears its top, which resubscribes. A new Today moves nothing back by itself.
 - **Loading near the top.** The list controller tells the view model when its first rows come near the top of the screen, for example within a screen's height. A page loaded above must not move the rows on screen, so the list keeps its content offset anchored to the first visible row across the snapshot that adds the page.
 - **The jumps.** Turning History on, the list scrolls, without animation, so Yesterday's header is at the top. Turning it off, it scrolls, without animation, to the top. Both are one-off requests like `DayReveal`, carried out once the matching Schedule is shown. Midnight sends no request.
-- **The button.** `QuickSettingsView` gains the History button first, with `clock.arrow.circlepath`. When on, the square's background is the primary colour and the glyph inverts. On iOS 26 and later it's a primary-tinted interactive glass. Its `accessibilityRepresentation` is a `Toggle` labelled `schedule.history`, as for the other two. Show Complete Tasks is `.disabled(showsHistory)`.
+- **The button.** `QuickSettingsView` gains the History button first, with `clock.arrow.circlepath`. When on, the square's background is the primary colour and the glyph inverts. On iOS 26 and later it's a primary-tinted interactive glass. Its `accessibilityRepresentation` is a `Toggle` labelled `schedule.history`, as for the other two. While History is on, the Go to a Day button takes Show Complete Tasks's place (see "Go to a Day" below).
 - **The pickers.** `FloatingDayPickerState` and `SheetDayPickerState` take whether History is on. With it on, every Day can be chosen and is undimmed, a past Day opens chosen on its own month, and the floating picker pages back without limit. `PickerDayView` reads the same rule.
 - **The composer.** In History `ComposerSession` steps and chooses past Days. Its Day chip picker accepts them. A past Day held when History turns off stays, and saving adds there.
 - **The "+"** on a Day header shows for past Days in History. It already shows on every listed Day.
@@ -112,6 +127,20 @@ A new quick setting, **History** (see `GLOSSARY.md`), switches how the Schedule 
   - `schedule.history`: "History" / "Історія".
   - `day.yesterday`: "Yesterday" / "Вчора". Check that it reads naturally after "на" in the move announcement ("перенесено на вчора"); lowercase it there if the existing Today and Tomorrow strings do.
 - **Folders** follow `CODING_STANDARDS.md`. New view-model code goes in a `ScheduleViewModel+History` file if it doesn't fit the existing ones.
+
+### Go to a Day
+
+Added on 2026-11-08 (stories 8, 38, 40–51).
+
+- **Language.** "Go to a Day" is navigation, not something done to a Task, so it isn't a glossary term. Name the code for it, for example `DayChoiceTarget.goToDay` or `HistoryJump.Destination.day(_:)`, and never "Move", "reschedule" or a broad one-word name.
+- **The button.** In `QuickSettingsView`, while History is on, the second square is a plain `Button` with `calendar.badge.clock`, never filled, in Show Complete Tasks's place. The swap animates with `showsHistory`'s change, which is already toggled in `withAnimation`. Its `accessibilityLabel` is `schedule.goToDay`, read as a button. Outside History Show Complete Tasks is as before, and the `.disabled(showsHistory)` goes.
+- **The sheet.** The button opens the sheet Day picker with a new `DayChoiceTarget` for going to a Day. It opens on the Day at the top of the screen, with `showsHistory` on, so any Day can be chosen across the months it already offers in History. The list controller keeps the view model told which Day that is, as the list scrolls and as it shows a new Schedule: the first Day in `sectionsOnScreen` with at least half its last row, or its header when it has no rows, below the bar's edge, so a Day whose header alone peeks out from under the bar doesn't count. For this target the summary line shows only `shortWeekday` and `shortDate`, with no Task count, since the count covers only the Tasks loaded. The prompt, Cancel and Done are unchanged.
+- **Done.** `confirmSheetDayPicker` acts only on `newDay`, so Done on the Day it opened on does nothing, as does Cancel. For this target, `choose(_:for:)` asks the list to go to the Day and moves no Task.
+- **Loading back to the Day.** If the chosen Day is before the History first Day, the first Day moves to 60 Days before the chosen Day (`Schedule.historyFirstDay(listing:from:)` in Domain), which resubscribes as a page further back does. That leaves room above the landing Day to scroll on back with the existing paging.
+- **Landing.** The request is a one-off, like `HistoryJump` (for example a new `HistoryJump.Destination` holding the Day). It's carried out without animation, by `ScheduleListScroller.jump`, with the retries it already makes. Publish it, or carry it out, only once the shown Schedule lists back to the Day, which `listedDay(onOrBefore:)` tells by giving `nil` until then. The scroller marks a request done even when the snapshot lacks its section, so a request carried out too early would be lost. It puts the landing Day's header at the top; `offsetYPuttingHeaderAtTop` already clamps to the list's end. The landing Day is the chosen Day if the Schedule lists it, else the closest listed Day before it. That happens only to an empty Day after the 100 listed from Today, and Today always comes before it.
+- **VoiceOver.** Once landed, and once the sheet has closed, focus moves to the landing Day's header by posting `.layoutChanged` with the header view. Not before the sheet has closed: as it closes, VoiceOver's focus goes back to the button that opened it. The view model sets a one-off request of its own, the jump whose landing Day takes focus, and the list controller answers it after the jump.
+- **Midnight.** A new Today sends no request. The sheet keeps its chosen Day, since in History every Day can be chosen.
+- **Strings:** `schedule.goToDay`: "Go to a Day" / "Перейти до дня", via `scripts/xcstrings.py set`.
 
 ## Testing Decisions
 
@@ -132,11 +161,16 @@ Swift Testing; `today` passed explicitly; Days are GMT midnights. Test what a ca
   - `ComposerStateTests` or the composer's tests: stepping back past Today in History.
   - `DateDayFormattingTests`: "Yesterday" in the header and the announcement.
 - **Not unit-tested:** the button, loading near the top with the rows held still, and the jumps. The UI check (`docs/agents/ui-check.md`) on iOS 27 covers them.
+- **Go to a Day:**
+  - **Domain, `Schedule` (prior art `ScheduleTests+History`):** the landing Day rule, `listedDay(onOrBefore:)`. A listed past Day, Today and a later Day give themselves. An empty Day after the window gives the closest listed Day before it, whether that's a later Day with Tasks or the window's last Day. A Day before the first listed Day gives none. The loading-back rule, `historyFirstDay(listing:from:)`: a Day History lists already keeps the first Day, and a Day before it moves the first Day a page before that Day.
+  - **App, `SheetDayPickerStateTests`:** opened for going to a Day in History, a past or later Day can be chosen, and Done on the Day it opened on gives no Day.
+  - **Not unit-tested:** the button and its swap, the Day at the top, the jump and VoiceOver focus. The UI check on iOS 27 covers them, apart from VoiceOver focus, which needs a device.
 
 ## Out of Scope
 
 - The widgets: no History, no past Days.
-- A jump-to-date control, search, or any limit or setting for how far back History goes.
+- Search, or any limit or setting for how far back History goes.
+- Go to a Day outside History.
 - Keeping History across launches.
 - A marker on Overdue Tasks in History, and a Yesterday button on the floating Day picker.
 
@@ -147,3 +181,5 @@ Swift Testing; `today` passed explicitly; Days are GMT midnights. Test what a ca
   - `issues/01`: History in Domain and Data.
   - `02`: the button and the History list.
   - `03`: choosing past Days in the pickers, the composer and "+".
+  - `04`: Go to a Day.
+- Go to a Day was grilled on 2026-11-08. The user picked `calendar.badge.clock` over `calendar`. The composer covers the quick settings bar, so the button can't be reached while it's open.

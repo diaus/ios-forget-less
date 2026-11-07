@@ -27,17 +27,23 @@ extension ScheduleViewModel {
         showSheetDayPicker(on: today.addingDays(-1), for: .overdueTasks)
     }
 
+    /// Shows the sheet Day picker on the Day at the top of the screen, to have the list go to another in History.
+    func showGoToDaySheetDayPicker() {
+        showSheetDayPicker(on: dayAtTopOfScreen ?? today, for: .goToDay)
+    }
+
     /// Closes the sheet Day picker and acts on the chosen Day, unless it's the Day the picker opened on: a row's Task
-    /// moves to the end of it, the Overdue Tasks to the top of it, and the composer's Day steps to it. VoiceOver says
-    /// the new Day once a Move is saved.
+    /// moves to the end of it, the Overdue Tasks to the top of it, the composer's Day steps to it, and the list goes to
+    /// it. VoiceOver says the new Day once a Move is saved.
     func confirmSheetDayPicker() {
         sheetDayPicker?.isVisible = false
-        guard let sheetDayPicker, let day = sheetDayPicker.dayToMove else { return }
+        guard let sheetDayPicker, let day = sheetDayPicker.newDay else { return }
         choose(day, for: sheetDayPicker.target)
     }
 
     /// Ends the sheet Day picker once its sheet has closed, however it closed. One opened from the composer gives the
-    /// name field its focus back, and VoiceOver goes back to the Day chip, as when the Day chip picker closes.
+    /// name field its focus back, and VoiceOver goes back to the Day chip, as when the Day chip picker closes. One
+    /// that sent the list to a Day moves VoiceOver to that Day's header, once the list has landed.
     func sheetDayPickerDidClose() {
         let target = sheetDayPicker?.target
         if target == .composer {
@@ -45,6 +51,7 @@ extension ScheduleViewModel {
         }
         sheetDayPicker = nil
         if let id = target?.taskID { stopListing(id) }
+        moveVoiceOverFocusToLandingDay()
     }
 
     /// Closes the sheet Day picker for the Overdue Tasks once every one has moved elsewhere.

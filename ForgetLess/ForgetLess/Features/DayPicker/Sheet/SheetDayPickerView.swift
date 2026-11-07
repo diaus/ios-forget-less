@@ -2,7 +2,7 @@ import Domain
 import FactoryKit
 import SwiftUI
 
-/// The sheet that chooses a Day to move a Task to.
+/// The sheet that chooses a Day to move a Task to, or for the list to go to.
 struct SheetDayPickerView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @State private var listPosition = ScrollPosition(idType: DayPickerCalendar.Row.self)
@@ -118,7 +118,12 @@ struct SheetDayPickerView: View {
 
     private func summaryLine(_ sheetDayPicker: SheetDayPickerState) -> some View {
         Group {
-            if let day = sheetDayPicker.chosenDay {
+            if let day = sheetDayPicker.chosenDay, sheetDayPicker.target == .goToDay {
+                // Going to a Day moves no Task, and the count would cover only the Tasks loaded.
+                Text(.sheetDayPickerSummaryWithoutTaskCount(
+                    weekday: day.shortWeekday, day: day.shortDate(today: sheetDayPicker.today)
+                ))
+            } else if let day = sheetDayPicker.chosenDay {
                 let incompleteTaskCount = vm.scheduleTasks.incompleteTaskCount(on: day)
                 let taskCount = String(localized: .dayPickerTaskCount(count: incompleteTaskCount))
                 Text(.sheetDayPickerSummary(

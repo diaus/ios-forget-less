@@ -20,6 +20,8 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     private lazy var scroller = ScheduleListScroller(collectionView: collectionView)
     /// The Task whose row is drawn highlighted, while its floating Day picker is open.
     private var highlightedTaskID: TodoTask.ID?
+    /// The jump whose landing Day's header VoiceOver's focus last moved to, so it moves there once.
+    private var lastFocusedJump: HistoryJump?
 
     override init() {
         super.init()
@@ -62,6 +64,8 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         // An emptied Day or a new Today changes how a Day's header reads, and the Overdue header shows Move All only
         // while Overdue holds an Incomplete Task.
         reconfigureVisibleHeaders()
+        // A new Schedule can change the Day at the top without a scroll.
+        keepDayAtTopOfScreen()
     }
 
     /// Brings the last Task of `reveal`'s Day into view, unless `reveal` was carried out before.
@@ -155,8 +159,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     }
 
     private func configure(_ header: DayHeaderCell, section: Int) {
-        guard case let .day(day) = dataSource?.sectionIdentifier(for: section),
-              let scheduleDay = content.scheduleDays[day] else { return }
+        guard let day = self.day(ofSection: section), let scheduleDay = content.scheduleDays[day] else { return }
         header.contentConfiguration = UIHostingConfiguration {
             DayHeaderView(scheduleDay: scheduleDay)
         }
@@ -238,8 +241,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     /// The move rule's answer for the row with `id` dropped at `indexPath`.
     private func canMove(_ id: TodoTask.ID, to indexPath: IndexPath) -> Bool {
         // Overdue has no Day to give a Task.
-        guard let task = content.tasks[id],
-              case let .day(day)? = dataSource?.sectionIdentifier(for: indexPath.section) else { return false }
+        guard let task = content.tasks[id], let day = self.day(ofSection: indexPath.section) else { return false }
         return content.schedule.canMove(task, droppedOn: day, at: indexPath.item)
     }
 
@@ -297,6 +299,12 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     }
 
     // MARK: - Helpers
+    /// The Day of the section at `index`, or `nil` for Overdue.
+    private func day(ofSection index: Int) -> Date? {
+        guard case let .day(day)? = dataSource?.sectionIdentifier(for: index) else { return nil }
+        return day
+    }
+
     /// The row of the Task with `id`, or `nil` while it's off screen.
     private func visibleCell(for id: TodoTask.ID) -> UICollectionViewCell? {
         dataSource?.indexPath(for: id).flatMap(collectionView.cellForItem)
@@ -314,10 +322,26 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     }
 }
 
-// MARK: - Scrolling
+// MARK: - Scrolling and Focus
 // An extension, so the type's body stays within SwiftLint's length.
 extension ScheduleListController {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if collectionView.isNearTop { vm.loadEarlierHistory() }
+        keepDayAtTopOfScreen()
+    }
+
+    /// Moves VoiceOver's focus to the header of the Day `jump` landed on, so VoiceOver says where the list went, unless
+    /// it moved there for `jump` before.
+    func moveVoiceOverFocus(toLandingDayOf jump: HistoryJump?) {
+        guard let jump, jump != lastFocusedJump, case let .day(day) = jump.destination else { return }
+        lastFocusedJump = jump
+        if let section = dataSource?.snapshot().indexOfSection(.day(day)) {
+            collectionView.moveVoiceOverFocusToHeader(ofSection: section)
+        }
+    }
+
+    /// Tells the view model the Day at the top of the screen, so Go to a Day opens on the Day the user sees.
+    private func keepDayAtTopOfScreen() {
+        vm.dayAtTopOfScreen = collectionView.sectionAtTop.flatMap(day(ofSection:))
     }
 }

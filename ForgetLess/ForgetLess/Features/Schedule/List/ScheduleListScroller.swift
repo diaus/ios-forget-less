@@ -38,6 +38,7 @@ final class ScheduleListScroller {
         let target: JumpTarget = switch jump.destination {
         case .yesterday: .header(.day(today.addingDays(-1)))
         case .top: .top
+        case let .day(day): .header(.day(day))
         }
         // The Days the jump lands among are laid out at an estimated height until they show, so the first scroll can
         // land off its target, and the next starts from Days laid out at their real heights.

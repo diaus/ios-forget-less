@@ -33,15 +33,22 @@ final class ScheduleViewModel {
             // A Day before Today the composer holds stays when History turns off: it was chosen on purpose.
             composerSession.showsHistory = showsHistory
             // Set here, and listed once the Tasks from it are observed, which restarts the observation.
-            historyFirstDay = showsHistory ? today.addingDays(-Self.historyPageDayCount) : nil
+            historyFirstDay = showsHistory ? today.addingDays(-Schedule.historyPageDayCount) : nil
             // Released without relisting: the next Tasks observed relist in the same update as the new listing.
             keptTasks.releaseAll()
+            dayToGoTo = nil
         }
     }
     /// The first Day the Schedule is observed from in History, or `nil` outside History.
     private(set) var historyFirstDay: Date?
-    /// The list's last jump on History turning on or off; `nil` before the first.
+    /// The list's last jump on History turning on or off, or to a Day in History; `nil` before the first.
     private(set) var historyJump: HistoryJump?
+    /// The last jump to a Day whose landing Day's header VoiceOver's focus moves to; `nil` before the first.
+    private(set) var focusedHistoryJump: HistoryJump?
+    /// The Day at the top of the list on screen, kept by the list; `nil` while Overdue is there or nothing is listed.
+    @ObservationIgnored var dayAtTopOfScreen: Date?
+    /// The Day the list goes to once the Schedule lists back to it; `nil` when it isn't going to one.
+    @ObservationIgnored private var dayToGoTo: Date?
     /// The Tasks the Schedule lists, with any Move not yet saved already made.
     let scheduleTasks: ScheduleTasks
     let keptTasks = KeptTasks()
@@ -72,9 +79,6 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Loading
-    /// How many Days further back History lists each time the list nears its top.
-    private static let historyPageDayCount = 60
-
     /// Brings Today up to date.
     func refresh() {
         today = .today
@@ -96,6 +100,7 @@ final class ScheduleViewModel {
                 if (historyFirstDay != nil) != listedHistory {
                     historyJump = HistoryJump(to: historyFirstDay != nil ? .yesterday : .top)
                 }
+                goToDayOnceListed()
                 closeFloatingDayPickerWithNothingToMove()
                 closeSheetDayPickerWithNothingToMove()
             }
@@ -108,7 +113,7 @@ final class ScheduleViewModel {
     /// still loading.
     func loadEarlierHistory() {
         guard let historyFirstDay, historyFirstDay == scheduleTasks.historyFirstDay else { return }
-        self.historyFirstDay = historyFirstDay.addingDays(-Self.historyPageDayCount)
+        self.historyFirstDay = historyFirstDay.addingDays(-Schedule.historyPageDayCount)
     }
 
     // MARK: - Completion
@@ -141,8 +146,9 @@ final class ScheduleViewModel {
 
     // MARK: - Choosing a Day
     /// Gives `target` `day` unless the move rule refuses it: the composer's Day steps to it, a Task moves to the end of
-    /// it, or the Tasks Overdue now move to the top of it. Nothing changes when `target` has `day` already. VoiceOver
-    /// says the new Day once a Move is saved. Returns whether `target` has `day` now: `false` when nothing is Overdue.
+    /// it, the Tasks Overdue now move to the top of it, or the list goes to it. Nothing changes when `target` has `day`
+    /// already. VoiceOver says the new Day once a Move is saved. Returns whether `target` has `day` now: `false` when
+    /// nothing is Overdue.
     @discardableResult
     func choose(_ day: Date, for target: DayChoiceTarget) -> Bool {
         switch target {
@@ -156,6 +162,9 @@ final class ScheduleViewModel {
             return taskMoves.moveOverdueTasks(
                 toStartOf: day, onSaved: day.moveAnnouncement(taskCount: taskCount, today: today)
             )
+        case .goToDay:
+            goToDay(day)
+            return true
         }
     }
 
@@ -164,6 +173,36 @@ final class ScheduleViewModel {
     func stopListing(_ id: UUID) {
         restartGracePeriod(of: id)
         scheduleTasks.relist()
+    }
+
+    // MARK: - Going to a Day
+    /// Has the list go to `day` in History, once the Schedule lists back to it, listing further back first when it
+    /// doesn't yet.
+    private func goToDay(_ day: Date) {
+        guard let historyFirstDay else { return }
+        self.historyFirstDay = Schedule.historyFirstDay(listing: day, from: historyFirstDay)
+        dayToGoTo = day
+        goToDayOnceListed()
+    }
+
+    /// Has the list go to the Day it's going to, once the Schedule shown lists back to it: to that Day, or else the
+    /// closest Day listed before it.
+    private func goToDayOnceListed() {
+        // The list drops a jump to a Day it doesn't show, so one asked for too early would be lost.
+        guard let dayToGoTo, let landingDay = scheduleTasks.schedule.listedDay(onOrBefore: dayToGoTo) else { return }
+        self.dayToGoTo = nil
+        historyJump = HistoryJump(to: .day(landingDay))
+        moveVoiceOverFocusToLandingDay()
+    }
+
+    /// Has VoiceOver's focus follow the last jump to a Day to the header it landed on, once, and only once the sheet
+    /// Day picker has closed.
+    func moveVoiceOverFocusToLandingDay() {
+        // As the sheet closes, VoiceOver's focus goes back to the button that opened it, which would undo the move.
+        guard sheetDayPicker == nil, let historyJump, case .day = historyJump.destination,
+              historyJump != focusedHistoryJump
+        else { return }
+        focusedHistoryJump = historyJump
     }
 
     // MARK: - Helpers

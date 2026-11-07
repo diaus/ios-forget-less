@@ -287,6 +287,23 @@
         }
       }
     },
+    "schedule.goToDay" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to a Day"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перейти до дня"
+          }
+        }
+      }
+    },
     "schedule.history" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -625,6 +642,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%(weekday)@ %(day)@ · %(taskCount)@"
+          }
+        }
+      }
+    },
+    "sheetDayPicker.summaryWithoutTaskCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%(weekday)@ %(day)@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%(weekday)@ %(day)@"
           }
         }
       }

@@ -63,28 +63,28 @@ struct SheetDayPickerStateTests {
         #expect(picker.chosenDay == today.addingDays(dayCount))
     }
 
-    @Test func theChosenDayIsTheDayToMoveTo() {
+    @Test func theChosenDayIsTheNewDay() {
         var picker = sheetDayPicker(on: today.addingDays(5))
 
         picker.choose(today.addingDays(2))
 
-        #expect(picker.dayToMove == today.addingDays(2))
+        #expect(picker.newDay == today.addingDays(2))
     }
 
-    @Test func thereIsNoDayToMoveToWhileNothingIsChosen() {
+    @Test func thereIsNoNewDayWhileNothingIsChosen() {
         let picker = sheetDayPicker(on: today.addingDays(-3))
 
-        #expect(picker.dayToMove == nil)
+        #expect(picker.newDay == nil)
     }
 
-    @Test func thereIsNoDayToMoveToOnTheDayItOpenedOn() {
+    @Test func thereIsNoNewDayOnTheDayItOpenedOn() {
         var picker = sheetDayPicker(on: today.addingDays(5))
-        #expect(picker.dayToMove == nil)
+        #expect(picker.newDay == nil)
 
         picker.choose(today)
         picker.choose(today.addingDays(5))
 
-        #expect(picker.dayToMove == nil)
+        #expect(picker.newDay == nil)
     }
 
     @Test func outsideHistoryItOffersNoMonthBeforeTodays() {
@@ -103,13 +103,13 @@ struct SheetDayPickerStateTests {
     }
 
     @Test(arguments: [-1, -400])
-    func inHistoryAPastDayIsChosenAsTheDayToMoveTo(dayCount: Int) {
+    func inHistoryAPastDayIsChosenAsTheNewDay(dayCount: Int) {
         var picker = sheetDayPicker(on: today.addingDays(5), showsHistory: true)
 
         picker.choose(today.addingDays(dayCount))
 
         #expect(picker.canChoose(today.addingDays(dayCount)))
-        #expect(picker.dayToMove == today.addingDays(dayCount))
+        #expect(picker.newDay == today.addingDays(dayCount))
     }
 
     @Test func inHistoryANewTodayKeepsAChosenDayItLeavesBeforeIt() {
@@ -119,6 +119,27 @@ struct SheetDayPickerStateTests {
         picker.update(today: today.addingDays(1))
 
         #expect(picker.chosenDay == today)
+    }
+
+    @Test(arguments: [-400, -1, 0, 1, 400])
+    func goingToADayInHistoryOpensOnTheDayAtTheTopAndGoesToAPastOrLaterDay(dayCount: Int) {
+        let dayAtTop = today.addingDays(-20)
+        var picker = SheetDayPickerState(day: dayAtTop, today: today, target: .goToDay, showsHistory: true)
+        #expect(picker.chosenDay == dayAtTop)
+
+        picker.choose(today.addingDays(dayCount))
+
+        #expect(picker.newDay == today.addingDays(dayCount))
+    }
+
+    @Test func goingToADayInHistoryGivesNoDayOnTheDayItOpenedOn() {
+        let dayAtTop = today.addingDays(-20)
+        var picker = SheetDayPickerState(day: dayAtTop, today: today, target: .goToDay, showsHistory: true)
+
+        picker.choose(today)
+        picker.choose(dayAtTop)
+
+        #expect(picker.newDay == nil)
     }
 
     // MARK: - Helpers

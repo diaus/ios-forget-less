@@ -99,6 +99,20 @@ final class ScheduleCollectionView: UICollectionView {
         setContentOffset(CGPoint(x: contentOffset.x, y: clampedOffsetY(offsetY)), animated: false)
     }
 
+    /// The first section the list shows below the bar's edge, or `nil` while nothing is listed.
+    var sectionAtTop: Int? {
+        let top = contentOffset.y + adjustedContentInset.top
+        // Shown once its last row, or its header when it has none, is at least half below the edge, so a Day whose
+        // header alone peeks out from under the bar doesn't count.
+        return sectionsOnScreen.first { section in
+            let rowCount = numberOfItems(inSection: section)
+            let lastFrame = rowCount > 0
+                ? layoutAttributesForItem(at: IndexPath(item: rowCount - 1, section: section))?.frame
+                : headerFrame(ofSection: section)
+            return lastFrame.map { $0.midY >= top } ?? false
+        }
+    }
+
     /// Whether the list shows within a screen of its top.
     var isNearTop: Bool {
         contentOffset.y + adjustedContentInset.top < bounds.height
@@ -135,6 +149,16 @@ final class ScheduleCollectionView: UICollectionView {
         let headerFrame = header.convert(header.bounds, to: nil)
         let rowFrame = convert(firstRow.frame, to: nil)
         return CGRect(x: rowFrame.minX, y: headerFrame.minY, width: rowFrame.width, height: headerFrame.height)
+    }
+
+    /// Moves VoiceOver's focus to the header of `section`, when it's on screen.
+    func moveVoiceOverFocusToHeader(ofSection section: Int) {
+        // Laid out first, so a header the last scroll brought on screen is there.
+        layoutIfNeeded()
+        let indexPath = IndexPath(item: 0, section: section)
+        if let header = supplementaryView(forElementKind: Self.elementKindSectionHeader, at: indexPath) {
+            UIAccessibility.post(notification: .layoutChanged, argument: header)
+        }
     }
 
     // MARK: - Helpers
