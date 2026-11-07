@@ -3,7 +3,7 @@ import Foundation
 /// Where the on-disk store lives: the App Group container the app and the widget share (ADR 0003).
 enum ForgetLessStoreLocation {
     /// The App Group the app and the widget share. Each target's `.entitlements` file lists this same identifier.
-    static let appGroupIdentifier = "group.com.andrew.ForgetLess"
+    static let appGroupIdentifier = "group.io.github.diaus.ForgetLess"
 
     /// The process isn't entitled to the App Group, so it has no container to open the store in.
     struct AppGroupUnavailable: Error {
