@@ -44,14 +44,16 @@ public extension Date {
         showsHistory || canBePlanned(today: today)
     }
 
-    /// The Day after this one that a Task can be planned for, which is Today for a Day before Today.
-    func nextDayToPlan(today: Date) -> Date {
-        max(addingDays(1), today)
+    /// The Day after this one that can be chosen for a Task: outside History, Today for a Day before Today.
+    func nextDayToChoose(today: Date, showsHistory: Bool) -> Date {
+        showsHistory ? addingDays(1) : max(addingDays(1), today)
     }
 
-    /// The Day before this one that a Task can be planned for, or `nil` when there's none before Today.
-    func previousDayToPlan(today: Date) -> Date? {
-        self > today ? addingDays(-1) : nil
+    /// The Day before this one that can be chosen for a Task, or `nil` when there's none: outside History, none
+    /// before Today.
+    func previousDayToChoose(today: Date, showsHistory: Bool) -> Date? {
+        let previousDay = addingDays(-1)
+        return previousDay.canBeChosen(today: today, showsHistory: showsHistory) ? previousDay : nil
     }
 
     func relativeDay(today: Date) -> RelativeDay {

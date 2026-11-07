@@ -11,7 +11,7 @@ struct FloatingDayPickerStateTests {
     // MARK: - Tests
     @Test(arguments: [(0, 0), (5, 0), (40, 1), (400, 13)])
     func itOpensOnItsDaysMonthWithThatDayChosen(dayCount: Int, monthOffset: Int) {
-        let picker = FloatingDayPickerState(today: today, day: today.addingDays(dayCount))
+        let picker = FloatingDayPickerState(today: today, day: today.addingDays(dayCount), showsHistory: false)
 
         #expect(picker.monthOffset == monthOffset)
         #expect(picker.chosenDay == today.addingDays(dayCount))
@@ -19,7 +19,7 @@ struct FloatingDayPickerStateTests {
 
     @Test(arguments: [-1, -40])
     func withItsDayBeforeTodayItOpensOnTodaysMonthWithNothingChosen(dayCount: Int) {
-        let picker = FloatingDayPickerState(today: today, day: today.addingDays(dayCount))
+        let picker = FloatingDayPickerState(today: today, day: today.addingDays(dayCount), showsHistory: false)
 
         #expect(picker.monthOffset == 0)
         #expect(picker.chosenDay == nil)
@@ -27,14 +27,14 @@ struct FloatingDayPickerStateTests {
 
     @Test(arguments: [(-1, false), (-30, false), (0, true), (1, true), (400, true)])
     func onlyADayFromTodayOnCanBeChosen(dayCount: Int, canChoose: Bool) {
-        let picker = FloatingDayPickerState(today: today, day: today.addingDays(5))
+        let picker = FloatingDayPickerState(today: today, day: today.addingDays(5), showsHistory: false)
 
         #expect(picker.canChoose(today.addingDays(dayCount)) == canChoose)
     }
 
     @Test(arguments: [(3, 3), (0, 0), (-1, 0), (-12, 0)])
     func itPagesToAnyMonthButNeverBeforeTodays(monthOffset: Int, monthOffsetShown: Int) {
-        var picker = FloatingDayPickerState(today: today, day: today.addingDays(40))
+        var picker = FloatingDayPickerState(today: today, day: today.addingDays(40), showsHistory: false)
 
         picker.page(to: monthOffset)
 
@@ -43,7 +43,7 @@ struct FloatingDayPickerStateTests {
 
     @Test(arguments: [(1, 2), (-1, 0)])
     func itPagesByAMonthEitherWay(monthCount: Int, monthOffsetShown: Int) {
-        var picker = FloatingDayPickerState(today: today, day: today.addingDays(40))
+        var picker = FloatingDayPickerState(today: today, day: today.addingDays(40), showsHistory: false)
 
         let isPaged = picker.page(by: monthCount)
 
@@ -52,7 +52,7 @@ struct FloatingDayPickerStateTests {
     }
 
     @Test func pagingBackFromTodaysMonthIsRefused() {
-        var picker = FloatingDayPickerState(today: today, day: today)
+        var picker = FloatingDayPickerState(today: today, day: today, showsHistory: false)
 
         let isPaged = picker.page(by: -1)
 
@@ -62,7 +62,7 @@ struct FloatingDayPickerStateTests {
 
     @Test(arguments: [0, 1, 40])
     func aChosenDayBecomesItsDay(dayCount: Int) {
-        var picker = FloatingDayPickerState(today: today, day: today.addingDays(5))
+        var picker = FloatingDayPickerState(today: today, day: today.addingDays(5), showsHistory: false)
 
         let isChosen = picker.choose(today.addingDays(dayCount))
 
@@ -72,7 +72,7 @@ struct FloatingDayPickerStateTests {
     }
 
     @Test func aDayBeforeTodayIsRefused() {
-        var picker = FloatingDayPickerState(today: today, day: today.addingDays(5))
+        var picker = FloatingDayPickerState(today: today, day: today.addingDays(5), showsHistory: false)
 
         let isChosen = picker.choose(today.addingDays(-1))
 
@@ -82,7 +82,7 @@ struct FloatingDayPickerStateTests {
     }
 
     @Test func onceADayIsChosenAnotherIsRefusedWhileItCloses() {
-        var picker = FloatingDayPickerState(today: today, day: today.addingDays(5))
+        var picker = FloatingDayPickerState(today: today, day: today.addingDays(5), showsHistory: false)
         picker.choose(today.addingDays(1))
 
         let isChosen = picker.choose(today.addingDays(2))
@@ -96,7 +96,7 @@ struct FloatingDayPickerStateTests {
     func aNewTodayInTheNextMonthKeepsTheMonthShownButNeverOneBeforeIt(monthOffset: Int, monthOffsetShown: Int) {
         // Today's month's last Day, so the next Day is in the next month.
         let lastDay = today.addingDays(16)
-        var picker = FloatingDayPickerState(today: lastDay, day: lastDay)
+        var picker = FloatingDayPickerState(today: lastDay, day: lastDay, showsHistory: false)
         picker.page(to: monthOffset)
 
         picker.update(today: lastDay.addingDays(1))
@@ -105,7 +105,7 @@ struct FloatingDayPickerStateTests {
     }
 
     @Test func aNewTodayInTheSameMonthKeepsTheMonthShown() {
-        var picker = FloatingDayPickerState(today: today, day: today.addingDays(40))
+        var picker = FloatingDayPickerState(today: today, day: today.addingDays(40), showsHistory: false)
 
         picker.update(today: today.addingDays(1))
 
@@ -113,7 +113,7 @@ struct FloatingDayPickerStateTests {
     }
 
     @Test func aNewTodayStopsChoosingADayItLeavesBeforeIt() {
-        var picker = FloatingDayPickerState(today: today, day: today)
+        var picker = FloatingDayPickerState(today: today, day: today, showsHistory: false)
 
         picker.update(today: today.addingDays(1))
 
@@ -131,13 +131,14 @@ struct FloatingDayPickerStateTests {
         todayYearMonthDay: String,
         buttonYearMonthDays: [String]
     ) throws {
-        let picker = FloatingDayPickerState(today: try day(todayYearMonthDay), day: try day(todayYearMonthDay))
+        let today = try day(todayYearMonthDay)
+        let picker = FloatingDayPickerState(today: today, day: today, showsHistory: false)
 
         #expect(picker.buttonDays == (try buttonYearMonthDays.map(day)))
     }
 
     @Test func aPickerThatHidTheKeyboardKeepsSayingSoThroughPagingANewTodayAndAChoice() {
-        var picker = FloatingDayPickerState(today: today, day: today)
+        var picker = FloatingDayPickerState(today: today, day: today, showsHistory: false)
         #expect(!picker.hasHiddenKeyboard)
 
         picker.recordHiddenKeyboard()
@@ -146,6 +147,44 @@ struct FloatingDayPickerStateTests {
         picker.choose(today.addingDays(3))
 
         #expect(picker.hasHiddenKeyboard)
+    }
+
+    @Test(arguments: [(-1, 0), (-40, -1), (-400, -13)])
+    func inHistoryItOpensOnAPastDaysMonthWithThatDayChosen(dayCount: Int, monthOffset: Int) {
+        let picker = FloatingDayPickerState(today: today, day: today.addingDays(dayCount), showsHistory: true)
+
+        #expect(picker.monthOffset == monthOffset)
+        #expect(picker.chosenDay == today.addingDays(dayCount))
+    }
+
+    @Test(arguments: [-1, -400, 0, 400])
+    func inHistoryAnyDayCanBeChosen(dayCount: Int) {
+        var picker = FloatingDayPickerState(today: today, day: today.addingDays(5), showsHistory: true)
+
+        let isChosen = picker.choose(today.addingDays(dayCount))
+
+        #expect(isChosen)
+        #expect(picker.chosenDay == today.addingDays(dayCount))
+    }
+
+    @Test func inHistoryItPagesBackPastTodaysMonthWithoutLimit() {
+        var picker = FloatingDayPickerState(today: today, day: today, showsHistory: true)
+
+        let isPaged = picker.page(by: -1)
+        #expect(isPaged)
+        #expect(picker.monthOffset == -1)
+
+        picker.page(to: -1200)
+        #expect(picker.monthOffset == -1200)
+    }
+
+    @Test func inHistoryANewTodayKeepsAPastMonthShownAndItsDayChosen() {
+        var picker = FloatingDayPickerState(today: today, day: today.addingDays(-40), showsHistory: true)
+
+        picker.update(today: today.addingDays(1))
+
+        #expect(picker.monthOffset == -1)
+        #expect(picker.chosenDay == today.addingDays(-40))
     }
 
     // MARK: - Helpers

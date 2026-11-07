@@ -1,6 +1,6 @@
 import Foundation
 
-/// The months a Day picker offers, from Today's month on.
+/// The months a Day picker offers.
 public struct DayPickerCalendar: Sendable {
     /// A month of the Day picker.
     public struct Month: Identifiable, Sendable {
@@ -9,7 +9,7 @@ public struct DayPickerCalendar: Sendable {
         public let leadingBlankCount: Int
         public let days: [Date]
 
-        /// The month `offset` months after Today's month, which is offset 0.
+        /// The month `offset` months after Today's month, which is offset 0, or before it when negative.
         /// - Parameter firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
         public init(today: Date, offset: Int, firstWeekday: Int = Date.firstWeekday) {
             firstDay = today.firstDayOfMonth.addingMonths(offset)
@@ -43,10 +43,13 @@ public struct DayPickerCalendar: Sendable {
     public let weekdays: [Date]
     public let months: [Month]
 
+    /// `monthCount` months from the month `firstMonthOffset` months after Today's, or before it when negative.
     /// - Parameter firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
-    public init(today: Date, monthCount: Int, firstWeekday: Int = Date.firstWeekday) {
+    public init(today: Date, firstMonthOffset: Int = 0, monthCount: Int, firstWeekday: Int = Date.firstWeekday) {
         weekdays = Self.weekdays(firstWeekday: firstWeekday)
-        months = (0..<monthCount).map { Month(today: today, offset: $0, firstWeekday: firstWeekday) }
+        months = (firstMonthOffset..<firstMonthOffset + monthCount).map {
+            Month(today: today, offset: $0, firstWeekday: firstWeekday)
+        }
     }
 
     /// A Day of each weekday, in the order the header shows them, to be formatted as its weekday.

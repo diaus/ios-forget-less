@@ -30,6 +30,8 @@ final class ScheduleViewModel {
     var showsHistory = false {
         didSet {
             guard showsHistory != oldValue else { return }
+            // A Day before Today the composer holds stays when History turns off: it was chosen on purpose.
+            composerSession.showsHistory = showsHistory
             // Set here, and listed once the Tasks from it are observed, which restarts the observation.
             historyFirstDay = showsHistory ? today.addingDays(-Self.historyPageDayCount) : nil
             // Released without relisting: the next Tasks observed relist in the same update as the new listing.

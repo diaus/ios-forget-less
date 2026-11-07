@@ -1,7 +1,7 @@
 import Domain
 import SwiftUI
 
-/// Chooses a Day from a month at a time, from Today's month on, in a card floating over the screen.
+/// Chooses a Day from a month at a time, from Today's month on outside History, in a card floating over the screen.
 struct FloatingDayPickerView: View {
     @Binding var picker: FloatingDayPickerState
     let availableHeight: CGFloat
@@ -14,8 +14,8 @@ struct FloatingDayPickerView: View {
     let onChoose: (Date) -> Void
     let onClose: () -> Void
 
-    /// How many months have a page, from Today's on; grows as the user nears the last.
-    @State private var pageCount: Int
+    /// The offsets of the months that have a page; grows as the user nears the last, or in History the first.
+    @State private var pageOffsets: Range<Int>
     @State private var position: ScrollPosition
     /// Counts the swipes refused before Today's month, for a haptic on each.
     @State private var refusedPageCount = 0
@@ -25,7 +25,7 @@ struct FloatingDayPickerView: View {
     /// The month whose header has VoiceOver focus, by its offset.
     @AccessibilityFocusState private var focusedMonthOffset: Int?
 
-    /// How many months the pages grow by at a time, and how close to their end they grow.
+    /// How many months the pages grow by at a time, and how close to either end they grow.
     private static let growthStep = 12
     private static let edgeThreshold = 3
     /// How far past Today's month a swipe must pull before it counts as refused.
@@ -52,7 +52,8 @@ struct FloatingDayPickerView: View {
         self.onClose = onClose
         // Opens on its month at once, with no scroll to it.
         let monthOffset = picker.wrappedValue.monthOffset
-        _pageCount = State(initialValue: monthOffset + Self.growthStep)
+        let firstPageOffset = picker.wrappedValue.showsHistory ? monthOffset - Self.growthStep : 0
+        _pageOffsets = State(initialValue: firstPageOffset..<monthOffset + Self.growthStep)
         _position = State(initialValue: ScrollPosition(id: monthOffset))
     }
 
@@ -103,7 +104,7 @@ struct FloatingDayPickerView: View {
     private var months: some View {
         ScrollView(.horizontal) {
             LazyHStack(spacing: 0) {
-                ForEach(0..<pageCount, id: \.self) { offset in
+                ForEach(pageOffsets, id: \.self) { offset in
                     FloatingDayPickerMonthView(
                         month: DayPickerCalendar.Month(today: picker.today, offset: offset),
                         offset: offset,
@@ -128,16 +129,15 @@ struct FloatingDayPickerView: View {
         .onScrollGeometryChange(for: Bool.self) { geometry in
             geometry.contentOffset.x + geometry.contentInsets.leading < -Self.refusedPullDistance
         } action: { _, isPulledPastStart in
-            if isPulledPastStart {
+            // In History the pages grow back before the first is reached, so a pull there is never refused.
+            if isPulledPastStart, !picker.showsHistory {
                 refusedPageCount += 1
             }
         }
         .onChange(of: position.viewID(type: Int.self)) { _, offset in
             guard let offset else { return }
             picker.page(to: offset)
-            if pageCount - offset <= Self.edgeThreshold {
-                pageCount += Self.growthStep
-            }
+            growPages(near: offset)
         }
         // A new Today renumbers the months; the month shown keeps its place, or moves on to Today's.
         .onChange(of: picker.monthOffset) { _, offset in
@@ -193,6 +193,19 @@ struct FloatingDayPickerView: View {
     }
 
     // MARK: - Helpers
+    private func growPages(near offset: Int) {
+        if pageOffsets.upperBound - offset <= Self.edgeThreshold {
+            pageOffsets = pageOffsets.lowerBound..<pageOffsets.upperBound + Self.growthStep
+        }
+        if picker.showsHistory, offset - pageOffsets.lowerBound < Self.edgeThreshold {
+            pageOffsets = pageOffsets.lowerBound - Self.growthStep..<pageOffsets.upperBound
+            // Pages added before the one shown would push it along, so it's scrolled back to at once.
+            var instant = Transaction()
+            instant.disablesAnimations = true
+            withTransaction(instant) { position.scrollTo(id: offset) }
+        }
+    }
+
     private var layout: FloatingDayPickerLayout {
         FloatingDayPickerLayout(
             availableHeight: availableHeight,

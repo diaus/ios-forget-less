@@ -130,12 +130,24 @@ struct DateDayTests {
         ("2026-10-24", "2026-10-25", "2026-10-25"),
         ("2026-09-01", "2026-10-25", "2026-10-25"),
     ])
-    func theNextDayToPlanIsTheDayAfterOrTodayFromBeforeToday(
+    func outsideHistoryTheNextDayToChooseIsTheDayAfterOrTodayFromBeforeToday(
         yearMonthDay: String,
         today: String,
         nextDay: String
     ) throws {
-        #expect(try day(yearMonthDay).nextDayToPlan(today: try day(today)) == (try day(nextDay)))
+        let nextDayToChoose = try day(yearMonthDay).nextDayToChoose(today: try day(today), showsHistory: false)
+        #expect(nextDayToChoose == (try day(nextDay)))
+    }
+
+    @Test(arguments: [
+        ("2026-10-25", "2026-10-26"),
+        ("2026-10-24", "2026-10-25"),
+        ("2026-09-01", "2026-09-02"),
+        ("2025-12-31", "2026-01-01"),
+    ])
+    func inHistoryTheNextDayToChooseIsAlwaysTheDayAfter(yearMonthDay: String, nextDay: String) throws {
+        let nextDayToChoose = try day(yearMonthDay).nextDayToChoose(today: try day("2026-10-25"), showsHistory: true)
+        #expect(nextDayToChoose == (try day(nextDay)))
     }
 
     @Test(arguments: [
@@ -144,13 +156,24 @@ struct DateDayTests {
         ("2026-10-25", "2026-10-25", nil),
         ("2026-10-24", "2026-10-25", nil),
     ])
-    func thePreviousDayToPlanIsTheDayBeforeButNeverBeforeToday(
+    func outsideHistoryThePreviousDayToChooseIsTheDayBeforeButNeverBeforeToday(
         yearMonthDay: String,
         today: String,
         previousDay: String?
     ) throws {
         let expected = try previousDay.map(day)
-        #expect(try day(yearMonthDay).previousDayToPlan(today: try day(today)) == expected)
+        #expect(try day(yearMonthDay).previousDayToChoose(today: try day(today), showsHistory: false) == expected)
+    }
+
+    @Test(arguments: [
+        ("2026-10-26", "2026-10-25"),
+        ("2026-10-25", "2026-10-24"),
+        ("2026-10-24", "2026-10-23"),
+        ("2026-01-01", "2025-12-31"),
+    ])
+    func inHistoryThePreviousDayToChooseIsAlwaysTheDayBefore(yearMonthDay: String, previousDay: String) throws {
+        let today = try day("2026-10-25")
+        #expect(try day(yearMonthDay).previousDayToChoose(today: today, showsHistory: true) == (try day(previousDay)))
     }
 
     // MARK: - Helpers

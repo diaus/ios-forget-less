@@ -11,6 +11,15 @@ struct DayPickerCalendarTests {
         #expect(calendar.months.map(\.firstDay) == firstDays)
     }
 
+    @Test func theMonthsCanStartBeforeTodaysMonthAndRunBackIntoThePreviousYear() throws {
+        let today = try day("2026-02-17")
+        let calendar = DayPickerCalendar(today: today, firstMonthOffset: -2, monthCount: 4, firstWeekday: 2)
+
+        let firstDays = try ["2025-12-01", "2026-01-01", "2026-02-01", "2026-03-01"].map(day)
+        #expect(calendar.months.map(\.firstDay) == firstDays)
+        #expect(try calendar.week(containing: day("2025-12-31"))?.contains(day("2025-12-31")) == true)
+    }
+
     @Test func theMonthsRunOnIntoTheNextYear() throws {
         let calendar = DayPickerCalendar(today: try day("2026-12-31"), monthCount: 3, firstWeekday: 2)
 

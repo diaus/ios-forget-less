@@ -7,6 +7,8 @@ struct PickerDayView: View {
     /// The Day chosen so far, if any.
     let chosenDay: Date?
     let today: Date
+    /// Whether `day` can be chosen, by the rule of the picker it's in.
+    let canChoose: Bool
     /// Whether `day` is in the month shown, rather than a Day of the months either side.
     let isInMonth: Bool
     let incompleteTaskCount: Int
@@ -56,10 +58,6 @@ struct PickerDayView: View {
         day == chosenDay
     }
 
-    private var canChoose: Bool {
-        day.canBePlanned(today: today)
-    }
-
     private var isToday: Bool {
         day == today
     }
@@ -84,8 +82,9 @@ struct PickerDayView: View {
     HStack {
         ForEach(-1..<3, id: \.self) { dayCount in
             PickerDayView(
-                day: today.addingDays(dayCount), chosenDay: today.addingDays(1), today: today, isInMonth: dayCount < 2,
-                incompleteTaskCount: 1, rowHeight: PickerDayView.fullRowHeight
+                day: today.addingDays(dayCount), chosenDay: today.addingDays(1), today: today,
+                canChoose: dayCount >= 0, isInMonth: dayCount < 2, incompleteTaskCount: 1,
+                rowHeight: PickerDayView.fullRowHeight
             ) {}
         }
     }

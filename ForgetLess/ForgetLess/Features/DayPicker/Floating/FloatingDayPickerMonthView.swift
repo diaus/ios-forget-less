@@ -74,6 +74,7 @@ struct FloatingDayPickerMonthView: View {
                     day: day,
                     chosenDay: picker.chosenDay,
                     today: picker.today,
+                    canChoose: picker.canChoose(day),
                     isInMonth: day.isInSameMonth(as: month.firstDay),
                     incompleteTaskCount: vm.scheduleTasks.incompleteTaskCount(on: day),
                     rowHeight: rowHeight

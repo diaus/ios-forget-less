@@ -6,7 +6,7 @@ extension ScheduleViewModel {
     // MARK: - Sheet Day Picker
     /// Shows the sheet Day picker on `day`, the Day of `target`, to choose another for it.
     func showSheetDayPicker(on day: Date, for target: DayChoiceTarget) {
-        sheetDayPicker = SheetDayPickerState(day: day, today: today, target: target)
+        sheetDayPicker = SheetDayPickerState(day: day, today: today, target: target, showsHistory: showsHistory)
         sheetDayPicker?.isVisible = true
     }
 
@@ -22,7 +22,8 @@ extension ScheduleViewModel {
     func showOverdueSheetDayPicker() {
         // VoiceOver reaches the label's action past the floating Day picker, which would stay open behind the sheet.
         closeFloatingDayPicker()
-        // A Day before Today, which can't be chosen, so the picker opens with nothing chosen.
+        // A Day before Today, which can't be chosen outside History, where alone Overdue is listed, so the picker opens
+        // with nothing chosen.
         showSheetDayPicker(on: today.addingDays(-1), for: .overdueTasks)
     }
 

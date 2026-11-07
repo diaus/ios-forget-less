@@ -15,6 +15,8 @@ final class ComposerSession {
     private(set) var dayReveal: DayReveal?
     /// Runs once the composer no longer has the Task it edited.
     @ObservationIgnored var onStopEditing: @MainActor (UUID) -> Void = { _ in }
+    /// Whether the Schedule lists History, so the composer can step to and choose a Day before Today.
+    @ObservationIgnored var showsHistory = false
     @ObservationIgnored private var today: Date
     private let scheduleTasks: ScheduleTasks
     private let taskMoves: TaskMoves
@@ -75,13 +77,15 @@ final class ComposerSession {
     }
 
     // MARK: - Editing
-    /// Steps the composer's Day one Day forward, or back, never before Today; an edited Task moves to the end of that
-    /// Day at once. Returns whether the Day changed.
+    /// Steps the composer's Day one Day forward, or back, never before Today outside History; an edited Task moves to
+    /// the end of that Day at once. Returns whether the Day changed.
     @discardableResult
     func stepDay(forward: Bool) -> Bool {
         let shownDay = composer.day
-        guard let day = forward ? shownDay.nextDayToPlan(today: today) : shownDay.previousDayToPlan(today: today)
-        else { return false }
+        let day = forward
+            ? shownDay.nextDayToChoose(today: today, showsHistory: showsHistory)
+            : shownDay.previousDayToChoose(today: today, showsHistory: showsHistory)
+        guard let day else { return false }
         return changeDay(to: day)
     }
 
@@ -108,7 +112,7 @@ final class ComposerSession {
     /// Opens the Day chip picker on the composer's Day, or closes it when it's open.
     func toggleDayChipPicker() {
         if dayChipPicker == nil {
-            dayChipPicker = FloatingDayPickerState(today: today, day: composer.day)
+            dayChipPicker = FloatingDayPickerState(today: today, day: composer.day, showsHistory: showsHistory)
         } else {
             closeDayChipPicker()
         }
@@ -169,7 +173,7 @@ final class ComposerSession {
         }
     }
 
-    /// Sets the composer's Day to `day`, which can be planned for; an edited Task moves to the end of it at once, and
+    /// Sets the composer's Day to `day`, which can be chosen; an edited Task moves to the end of it at once, and
     /// `onSaved` runs once that's saved. Returns whether the Day changed: never on the composer's own Day.
     @discardableResult
     private func changeDay(to day: Date, onSaved: @escaping @MainActor () -> Void = {}) -> Bool {

@@ -7,9 +7,6 @@ struct SheetDayPickerView: View {
     @InjectedObservable(\.scheduleViewModel) private var vm
     @State private var listPosition = ScrollPosition(idType: DayPickerCalendar.Row.self)
 
-    /// How many months the picker offers, from Today's on.
-    private static let monthCount = 60
-
     // MARK: - Body
     var body: some View {
         NavigationStack {
@@ -44,7 +41,10 @@ struct SheetDayPickerView: View {
 
     // MARK: - UI Components
     private func content(_ sheetDayPicker: SheetDayPickerState) -> some View {
-        let calendar = DayPickerCalendar(today: sheetDayPicker.today, monthCount: Self.monthCount)
+        let monthOffsets = sheetDayPicker.monthOffsets
+        let calendar = DayPickerCalendar(
+            today: sheetDayPicker.today, firstMonthOffset: monthOffsets.lowerBound, monthCount: monthOffsets.count
+        )
         return VStack(spacing: 0) {
             weekdayRow(calendar)
             summaryLine(sheetDayPicker)
@@ -90,6 +90,7 @@ struct SheetDayPickerView: View {
                             day: day,
                             chosenDay: sheetDayPicker.chosenDay,
                             today: sheetDayPicker.today,
+                            canChoose: sheetDayPicker.canChoose(day),
                             isInMonth: true,
                             incompleteTaskCount: vm.scheduleTasks.incompleteTaskCount(on: day),
                             rowHeight: PickerDayView.fullRowHeight

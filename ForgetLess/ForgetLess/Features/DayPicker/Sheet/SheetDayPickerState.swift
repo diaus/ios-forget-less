@@ -7,16 +7,22 @@ struct SheetDayPickerState {
     private(set) var today: Date
     /// What the Day it confirms is for.
     let target: DayChoiceTarget
+    /// Whether it opened while the Schedule listed History, so any Day can be chosen.
+    let showsHistory: Bool
     private let openedDay: Date
     /// `nil` while nothing is chosen.
     private(set) var chosenDay: Date?
 
-    /// Opens on `day`, the Day of `target`, or with nothing chosen when `day` is before Today.
-    init(day: Date, today: Date, target: DayChoiceTarget) {
+    /// How many months it offers from Today's on, and in History at least as many before it.
+    private static let monthCount = 60
+
+    /// Opens on `day`, the Day of `target`, or with nothing chosen when `day` can't be chosen.
+    init(day: Date, today: Date, target: DayChoiceTarget, showsHistory: Bool) {
         self.openedDay = day
         self.today = today
         self.target = target
-        self.chosenDay = day.canBePlanned(today: today) ? day : nil
+        self.showsHistory = showsHistory
+        self.chosenDay = day.canBeChosen(today: today, showsHistory: showsHistory) ? day : nil
     }
 
     /// The Day to move to: `nil` while nothing is chosen, or when the chosen Day is the Day it opened on.
@@ -24,8 +30,15 @@ struct SheetDayPickerState {
         chosenDay == openedDay ? nil : chosenDay
     }
 
+    /// The months it offers, as how many months each is after Today's month: in History, from one that holds the Day
+    /// it opened on.
+    var monthOffsets: Range<Int> {
+        let firstMonthOffset = showsHistory ? min(-Self.monthCount, openedDay.monthCount(from: today)) : 0
+        return firstMonthOffset..<Self.monthCount
+    }
+
     func canChoose(_ day: Date) -> Bool {
-        day.canBePlanned(today: today)
+        day.canBeChosen(today: today, showsHistory: showsHistory)
     }
 
     /// Chooses `day`, unless it can't be chosen.
@@ -34,7 +47,7 @@ struct SheetDayPickerState {
         chosenDay = day
     }
 
-    /// Moves Today on, clearing a chosen Day it leaves in the past.
+    /// Moves Today on, clearing a chosen Day it leaves where it can't be chosen.
     mutating func update(today: Date) {
         self.today = today
         if let chosenDay, !canChoose(chosenDay) {

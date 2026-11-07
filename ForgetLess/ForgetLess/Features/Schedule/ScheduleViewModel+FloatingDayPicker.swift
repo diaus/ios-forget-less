@@ -6,7 +6,7 @@ extension ScheduleViewModel {
     // MARK: - Floating Day Picker
     /// Opens the floating Day picker on `task`'s Day, by its row tapped as `origin` says, to Move it to another.
     func showFloatingDayPicker(for task: TodoTask, from origin: FloatingDayPickerOrigin) {
-        let picker = FloatingDayPickerState(today: today, day: task.day)
+        let picker = FloatingDayPickerState(today: today, day: task.day, showsHistory: showsHistory)
         floatingDayPicker = FloatingDayPickerPresentation(target: .task(task.id), origin: origin, picker: picker)
     }
 
@@ -15,8 +15,9 @@ extension ScheduleViewModel {
     func showOverdueFloatingDayPicker(from origin: FloatingDayPickerOrigin) {
         // The lift that ends the long press opening the sheet also reaches the header's button, as a tap.
         guard sheetDayPicker == nil else { return }
-        // A Day before Today, which can't be chosen, so the picker opens on Today's month with nothing chosen.
-        let picker = FloatingDayPickerState(today: today, day: today.addingDays(-1))
+        // A Day before Today, which can't be chosen outside History, where alone Overdue is listed, so the picker opens
+        // on Today's month with nothing chosen.
+        let picker = FloatingDayPickerState(today: today, day: today.addingDays(-1), showsHistory: showsHistory)
         floatingDayPicker = FloatingDayPickerPresentation(target: .overdueTasks, origin: origin, picker: picker)
     }
 
