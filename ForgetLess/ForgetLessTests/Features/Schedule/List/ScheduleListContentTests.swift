@@ -37,14 +37,6 @@ struct ScheduleListContentTests {
         #expect(redraw == ScheduleListRedraw(reconfiguredTaskIDs: [], reloadedTaskIDs: [turningOverdue.id]))
     }
 
-    @Test func turningMovingTasksOnRedrawsEveryRow() {
-        let tasks = [task("Buy milk", day: 0, sortIndex: 0), task("Call Mum", day: 1, sortIndex: 0)]
-
-        let redraw = content(tasks, movesTasks: true).redraw(from: content(tasks))
-
-        #expect(redraw == ScheduleListRedraw(reconfiguredTaskIDs: tasks.map(\.id), reloadedTaskIDs: []))
-    }
-
     @Test func aNewTodayAloneIsARedrawOfNoRow() {
         let later = task("Buy milk", day: 5, sortIndex: 0)
 
@@ -64,9 +56,9 @@ struct ScheduleListContentTests {
 
     // MARK: - Helpers
     /// What the list shows of `tasks` on `today`, or on this suite's Today.
-    private func content(_ tasks: [TodoTask], today: Date? = nil, movesTasks: Bool = false) -> ScheduleListContent {
+    private func content(_ tasks: [TodoTask], today: Date? = nil) -> ScheduleListContent {
         let today = today ?? self.today
-        return ScheduleListContent(schedule: Schedule(tasks: tasks, today: today), today: today, movesTasks: movesTasks)
+        return ScheduleListContent(schedule: Schedule(tasks: tasks, today: today), today: today)
     }
 
     private func task(_ name: String, day dayCount: Int, sortIndex: Int) -> TodoTask {

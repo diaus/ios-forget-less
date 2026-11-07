@@ -15,9 +15,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     @Injected(\.scheduleViewModel) private var vm
     private var dataSource: UICollectionViewDiffableDataSource<Section, TodoTask.ID>?
     /// What the list last showed.
-    private var content = ScheduleListContent(
-        schedule: Schedule(tasks: [], today: .today), today: .today, movesTasks: false
-    )
+    private var content = ScheduleListContent(schedule: Schedule(tasks: [], today: .today), today: .today)
     private let rowMove = TaskRowMove()
     private lazy var scroller = ScheduleListScroller(collectionView: collectionView)
     /// The Task whose row is drawn highlighted, while its floating Day picker is open.
@@ -33,9 +31,9 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
     // MARK: - Showing
     /// Shows `schedule`, animating the change when `animated` and it isn't the first.
-    func show(_ schedule: Schedule, today: Date, movesTasks: Bool, animated: Bool) {
+    func show(_ schedule: Schedule, today: Date, animated: Bool) {
         guard let dataSource else { return }
-        let content = ScheduleListContent(schedule: schedule, today: today, movesTasks: movesTasks)
+        let content = ScheduleListContent(schedule: schedule, today: today)
         var snapshot = content.snapshot
         let shownSnapshot = dataSource.snapshot()
         let isFirst = shownSnapshot.numberOfSections == 0
@@ -145,7 +143,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         }
         // The row draws its margins above and below as padding, so they take its taps.
         .margins(.vertical, 0)
-        cell.accessories = content.movesTasks ? [.reorder(displayed: .always)] : []
+        cell.accessories = [.reorder(displayed: .always)]
         cell.configurationUpdateHandler = { [weak self] cell, state in
             self?.rowStateChanged(state, id: id)
             var background = cell.defaultBackgroundConfiguration().updated(for: state)
@@ -246,7 +244,6 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     }
 
     private func canStartOrContinueMove(_ id: TodoTask.ID) -> Bool {
-        guard content.movesTasks else { return false }
         let row = visibleCell(for: id) as? TaskRowCell
         return rowMove.taskID == id || row?.isHandleTouched == true
     }

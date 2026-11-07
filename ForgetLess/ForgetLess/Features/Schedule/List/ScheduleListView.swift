@@ -22,7 +22,6 @@ struct ScheduleListView: UIViewRepresentable {
         context.coordinator.show(
             vm.scheduleTasks.schedule,
             today: vm.today,
-            movesTasks: vm.movesTasks,
             animated: context.transaction.animation != nil
         )
         // After the Schedule it jumps within.

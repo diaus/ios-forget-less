@@ -14,7 +14,6 @@ struct ScheduleListContent {
     /// The Schedule the list shows, which the move rule answers for.
     let schedule: Schedule
     let today: Date
-    let movesTasks: Bool
     /// The Tasks the list shows.
     let tasks: [TodoTask.ID: TodoTask]
     let overdueTaskIDs: Set<TodoTask.ID>
@@ -23,11 +22,10 @@ struct ScheduleListContent {
     /// The Tasks the list shows, in the order of its rows.
     private let taskIDs: [TodoTask.ID]
 
-    init(schedule: Schedule, today: Date, movesTasks: Bool) {
+    init(schedule: Schedule, today: Date) {
         let shownTasks = schedule.overdue + schedule.days.flatMap(\.tasks)
         self.schedule = schedule
         self.today = today
-        self.movesTasks = movesTasks
         tasks = Dictionary(shownTasks.map { ($0.id, $0) }) { first, _ in first }
         overdueTaskIDs = Set(schedule.overdue.map(\.id))
         scheduleDays = Dictionary(schedule.days.map { ($0.day, $0) }) { first, _ in first }
@@ -48,21 +46,17 @@ struct ScheduleListContent {
         return snapshot
     }
 
-    /// The rows to redraw when the list goes from showing `shown` to showing this, or `nil` when no Task, Today or
-    /// whether Tasks move has changed. Rows added, removed or moved aren't redraws: the snapshot carries them.
+    /// The rows to redraw when the list goes from showing `shown` to showing this, or `nil` when no Task or Today has
+    /// changed. Rows added, removed or moved aren't redraws: the snapshot carries them.
     func redraw(from shown: ScheduleListContent) -> ScheduleListRedraw? {
         let changedTaskIDs = taskIDs.filter { id in shown.tasks[id].map { $0 != tasks[id] } ?? false }
         // A row names its Day only in Overdue, which a Task joins unchanged when Today rolls over.
         let overdueChangedTaskIDs = taskIDs.filter { id in
             shown.tasks[id] != nil && shown.overdueTaskIDs.contains(id) != overdueTaskIDs.contains(id)
         }
-        let movesTasksChanged = movesTasks != shown.movesTasks
-        guard !changedTaskIDs.isEmpty || !overdueChangedTaskIDs.isEmpty || today != shown.today || movesTasksChanged
-        else { return nil }
-        // Every row shows or hides its handle.
-        let reconfiguredTaskIDs = movesTasksChanged ? taskIDs : changedTaskIDs
+        guard !changedTaskIDs.isEmpty || !overdueChangedTaskIDs.isEmpty || today != shown.today else { return nil }
         return ScheduleListRedraw(
-            reconfiguredTaskIDs: reconfiguredTaskIDs.filter { !overdueChangedTaskIDs.contains($0) },
+            reconfiguredTaskIDs: changedTaskIDs.filter { !overdueChangedTaskIDs.contains($0) },
             reloadedTaskIDs: overdueChangedTaskIDs
         )
     }

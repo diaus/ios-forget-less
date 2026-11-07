@@ -26,14 +26,6 @@ struct QuickSettingsView: View {
             }
             // History always lists Complete Tasks, so the choice can't change them there.
             .disabled(vm.showsHistory)
-            Button { withAnimation { vm.movesTasks.toggle() } } label: {
-                Image(systemName: vm.movesTasks ? "lock.open" : "lock")
-                    .quickSettingSquare()
-            }
-            .buttonStyle(.plain)
-            .accessibilityRepresentation {
-                Toggle(isOn: $vm.movesTasks.animation()) { Text(.scheduleMoveTasks) }
-            }
             NavigationLink { SettingsView() } label: {
                 Image(systemName: "gearshape")
                     .quickSettingSquare()

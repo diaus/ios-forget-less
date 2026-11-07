@@ -40,12 +40,6 @@ final class ScheduleViewModel {
     private(set) var historyFirstDay: Date?
     /// The list's last jump on History turning on or off; `nil` before the first.
     private(set) var historyJump: HistoryJump?
-    /// Whether Tasks can be moved. Kept across launches.
-    var movesTasks: Bool {
-        didSet {
-            UserDefaults.standard.movesTasks = movesTasks
-        }
-    }
     /// The Tasks the Schedule lists, with any Move not yet saved already made.
     let scheduleTasks: ScheduleTasks
     let keptTasks = KeptTasks()
@@ -62,7 +56,6 @@ final class ScheduleViewModel {
         let taskMoves = TaskMoves(scheduleTasks: scheduleTasks, writes: writes)
         self.today = today
         self.showsCompleteChoice = UserDefaults.standard.showsComplete
-        self.movesTasks = UserDefaults.standard.movesTasks
         self.scheduleTasks = scheduleTasks
         self.writes = writes
         self.taskMoves = taskMoves

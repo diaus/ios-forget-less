@@ -3,19 +3,12 @@ import Foundation
 /// The user's settings, kept across launches.
 extension UserDefaults {
     private static let showsCompleteKey = "showsCompleteTasks"
-    private static let movesTasksKey = "movesTasks"
     private static let keptDurationKey = "keptDuration"
 
     /// Whether the Schedule lists Complete Tasks.
     var showsComplete: Bool {
         get { object(forKey: Self.showsCompleteKey) as? Bool ?? true }
         set { set(newValue, forKey: Self.showsCompleteKey) }
-    }
-
-    /// Whether Tasks can be moved.
-    var movesTasks: Bool {
-        get { object(forKey: Self.movesTasksKey) as? Bool ?? true }
-        set { set(newValue, forKey: Self.movesTasksKey) }
     }
 
     /// How long, in seconds, a Task completed while Complete Tasks are hidden stays listed, so a mis-tap can be undone.
