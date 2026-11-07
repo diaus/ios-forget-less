@@ -12,11 +12,28 @@ struct UpcomingRowView: View {
     let cutWidth: CGFloat?
     /// What ends a name the widget cuts itself.
     let cutEnding: CutEnding
+    /// The count of Tasks left out that the row shows, or 0 for none.
+    let leftOutTaskCount: Int
 
     @Environment(\.widgetFamily) private var family
 
     // MARK: - Body
     var body: some View {
+        HStack(spacing: leftOutCountSpacing) {
+            markerAndName
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if leftOutTaskCount > 0 {
+                Text(verbatim: leftOutCountText)
+                    .font(Font(leftOutCountFont))
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+                    .accessibilityLabel(leftOutCountLabel)
+            }
+        }
+    }
+
+    // MARK: - UI Components
+    private var markerAndName: some View {
         HStack(spacing: markerSpacing) {
             if let marker {
                 let markerText = Text(verbatim: marker).font(Font(markerFont))
@@ -29,7 +46,7 @@ struct UpcomingRowView: View {
                 }
             }
             if let cutWidth {
-                let nameWidth = cutWidth - markerWidth - markerSpacing
+                let nameWidth = cutWidth - markerWidth - markerSpacing - leftOutCountWidth
                 let name = row.name.cut(toFit: nameWidth, ending: cutEnding.text) { Self.width(of: $0, font: font) }
                 Text(verbatim: name)
                     .font(Font(font))
@@ -70,6 +87,27 @@ struct UpcomingRowView: View {
 
     private var markerWidth: CGFloat {
         marker.map { Self.width(of: $0, font: markerFont) } ?? 0
+    }
+
+    private var leftOutCountText: String {
+        "+\(leftOutTaskCount)"
+    }
+
+    private var leftOutCountLabel: Text {
+        Text(.widgetLeftOutCount(count: leftOutTaskCount))
+    }
+
+    private var leftOutCountFont: UIFont {
+        UIFont.monospacedDigitSystemFont(ofSize: font.pointSize, weight: .regular)
+    }
+
+    private var leftOutCountSpacing: CGFloat {
+        Self.width(of: " ", font: font)
+    }
+
+    // The space before the count is taken from the name too.
+    private var leftOutCountWidth: CGFloat {
+        leftOutTaskCount > 0 ? Self.width(of: leftOutCountText, font: leftOutCountFont) + leftOutCountSpacing : 0
     }
 
     private static func width(of text: String, font: UIFont) -> CGFloat {
@@ -117,4 +155,88 @@ struct UpcomingRowView: View {
     UpcomingWidget()
 } timeline: {
     UpcomingWidgetEntry.previewLongNames(count: 6)
+}
+
+#Preview("Left out count, one column", as: .accessoryRectangular) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(
+        overdueCount: 2, todayCount: 4, tomorrowCount: 1, rowLimit: UpcomingWidgetContent.columnRowCount
+    )
+}
+
+#Preview("Left out count, two columns", as: .accessoryRectangular) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 2, todayCount: 8, tomorrowCount: 1)
+}
+
+#Preview("Left out count, two columns, setting off", as: .accessoryRectangular) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 2, todayCount: 8, tomorrowCount: 1, showsLeftOutCount: false)
+}
+
+#Preview("Left out count, only Tomorrow's left out", as: .accessoryRectangular) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 1, todayCount: 3, tomorrowCount: 6)
+}
+
+#Preview("Home Screen, left out count", as: .systemSmall) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 3, todayCount: 8, tomorrowCount: 1)
+}
+
+#Preview("Home Screen, left out count, setting off", as: .systemSmall) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 3, todayCount: 8, tomorrowCount: 1, showsLeftOutCount: false)
+}
+
+#Preview("Home Screen, only Tomorrow's left out", as: .systemSmall) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 1, todayCount: 3, tomorrowCount: 6)
+}
+
+#Preview("Medium, left out count", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 2, todayCount: 6, tomorrowCount: 2, rowLimit: nil)
+}
+
+#Preview("Medium, left out count, setting off", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(
+        overdueCount: 2, todayCount: 6, tomorrowCount: 2, rowLimit: nil, showsLeftOutCount: false
+    )
+}
+
+#Preview("Medium, only Tomorrow's left out", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 1, todayCount: 1, tomorrowCount: 8, rowLimit: nil)
+}
+
+#Preview("Large, left out count", as: .systemLarge) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 3, todayCount: 15, tomorrowCount: 2, rowLimit: nil)
+}
+
+#Preview("Large, only Tomorrow's left out", as: .systemLarge) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 1, todayCount: 2, tomorrowCount: 15, rowLimit: nil)
+}
+
+#Preview("Large, left out count, setting off", as: .systemLarge) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(
+        overdueCount: 3, todayCount: 15, tomorrowCount: 2, rowLimit: nil, showsLeftOutCount: false
+    )
 }

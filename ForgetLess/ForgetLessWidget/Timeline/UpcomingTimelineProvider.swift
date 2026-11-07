@@ -76,6 +76,11 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
         } catch {
             content = .unreadable
         }
-        return UpcomingWidgetEntry(date: moment, content: content, cutEnding: configuration.cutEnding)
+        return UpcomingWidgetEntry(
+            date: moment,
+            content: content,
+            cutEnding: configuration.cutEnding,
+            showsLeftOutCount: configuration.showsLeftOutCount
+        )
     }
 }

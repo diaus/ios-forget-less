@@ -5,8 +5,8 @@ import WidgetKit
 // the system looks up in the widget's copy of the String Catalog.
 // swiftlint:disable catalog_key_literal
 
-/// The widget's settings: whether it lists Overdue Tasks and Tomorrow's Tasks besides Today's, and how it lays them
-/// out.
+/// The widget's settings: whether it lists Overdue Tasks and Tomorrow's Tasks besides Today's, whether it counts the
+/// Tasks it leaves out, and how it lays them out.
 struct UpcomingWidgetIntent: WidgetConfigurationIntent {
     static let title: LocalizedStringResource = "widget.title"
 
@@ -15,6 +15,9 @@ struct UpcomingWidgetIntent: WidgetConfigurationIntent {
 
     @Parameter(title: "widget.showTomorrowTasks", default: true)
     var showsTomorrowTasks: Bool
+
+    @Parameter(title: "widget.showLeftOutCount", default: true)
+    var showsLeftOutCount: Bool
 
     @Parameter(title: "widget.showTwoColumns", default: false)
     var showsTwoColumns: Bool
@@ -30,6 +33,7 @@ struct UpcomingWidgetIntent: WidgetConfigurationIntent {
                 Summary {
                     \.$showsOverdueTasks
                     \.$showsTomorrowTasks
+                    \.$showsLeftOutCount
                     \.$showsTwoColumns
                     \.$cutEnding
                 }
@@ -37,6 +41,7 @@ struct UpcomingWidgetIntent: WidgetConfigurationIntent {
                 Summary {
                     \.$showsOverdueTasks
                     \.$showsTomorrowTasks
+                    \.$showsLeftOutCount
                     \.$showsTwoColumns
                 }
             }
@@ -44,6 +49,7 @@ struct UpcomingWidgetIntent: WidgetConfigurationIntent {
             Summary {
                 \.$showsOverdueTasks
                 \.$showsTomorrowTasks
+                \.$showsLeftOutCount
             }
         }
     }

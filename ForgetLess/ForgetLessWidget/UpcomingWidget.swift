@@ -13,7 +13,11 @@ struct UpcomingWidget: Widget {
             intent: UpcomingWidgetIntent.self,
             provider: UpcomingTimelineProvider()
         ) { entry in
-            UpcomingWidgetView(content: entry.content, cutEnding: entry.cutEnding)
+            UpcomingWidgetView(
+                content: entry.content,
+                cutEnding: entry.cutEnding,
+                showsLeftOutCount: entry.showsLeftOutCount
+            )
         }
         .configurationDisplayName(Text(.widgetTitle))
         .description(Text(.widgetDescription))

@@ -7,6 +7,8 @@ import WidgetKit
 /// The Tasks the Lock Screen widget lists, in the Schedule's order.
 struct LockScreenRowsView: View {
     let rows: [UpcomingRow]
+    /// How many Tasks the content left out past `rows`; nil while the setting hides the count.
+    let leftOutTaskCount: Int?
     let cutEnding: CutEnding
 
     private static let columnRowCount = UpcomingWidgetContent.columnRowCount
@@ -49,15 +51,22 @@ struct LockScreenRowsView: View {
 
     /// `cutWidth` is the width the widget cuts each name to itself; nil leaves the cut to the system.
     private func column(
-        _ rows: some RandomAccessCollection<UpcomingRow>,
+        _ columnRows: some RandomAccessCollection<UpcomingRow>,
         rowHeight: CGFloat,
         font: UIFont,
         cutWidth: CGFloat?
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(rows) { row in
-                UpcomingRowView(row: row, font: font, cutWidth: cutWidth, cutEnding: cutEnding)
-                    .frame(height: rowHeight)
+            ForEach(columnRows) { row in
+                UpcomingRowView(
+                    row: row,
+                    font: font,
+                    cutWidth: cutWidth,
+                    cutEnding: cutEnding,
+                    // In two columns too, the last row is the right column's last.
+                    leftOutTaskCount: row.id == rows.last?.id ? leftOutTaskCount ?? 0 : 0
+                )
+                .frame(height: rowHeight)
             }
         }
     }

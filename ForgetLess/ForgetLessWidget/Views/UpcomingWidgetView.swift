@@ -6,6 +6,7 @@ import WidgetKit
 struct UpcomingWidgetView: View {
     let content: UpcomingWidgetContent
     let cutEnding: CutEnding
+    let showsLeftOutCount: Bool
 
     @Environment(\.widgetFamily) private var family
 
@@ -16,11 +17,12 @@ struct UpcomingWidgetView: View {
                 StateSymbolView(badgeSystemName: "checkmark")
             case .unreadable:
                 StateSymbolView(badgeSystemName: "exclamationmark.triangle")
-            case .rows(let rows):
+            case .rows(let rows, let leftOutTaskCount):
+                let leftOutTaskCountIfShown = showsLeftOutCount ? leftOutTaskCount : nil
                 if family.isOnLockScreen {
-                    LockScreenRowsView(rows: rows, cutEnding: cutEnding)
+                    LockScreenRowsView(rows: rows, leftOutTaskCount: leftOutTaskCountIfShown, cutEnding: cutEnding)
                 } else {
-                    HomeScreenRowsView(rows: rows)
+                    HomeScreenRowsView(rows: rows, leftOutTaskCount: leftOutTaskCountIfShown)
                 }
             }
         }

@@ -7,11 +7,14 @@ nonisolated struct UpcomingWidgetEntry: TimelineEntry {
     let date: Date
     let content: UpcomingWidgetContent
     let cutEnding: CutEnding
+    let showsLeftOutCount: Bool
 
-    /// `cutEnding` defaults to the setting's own default, for the entries no configuration reaches.
-    init(date: Date, content: UpcomingWidgetContent, cutEnding: CutEnding = .empty) {
+    /// `cutEnding` and `showsLeftOutCount` default to their settings' own defaults, for the entries no configuration
+    /// reaches.
+    init(date: Date, content: UpcomingWidgetContent, cutEnding: CutEnding = .empty, showsLeftOutCount: Bool = true) {
         self.date = date
         self.content = content
         self.cutEnding = cutEnding
+        self.showsLeftOutCount = showsLeftOutCount
     }
 }

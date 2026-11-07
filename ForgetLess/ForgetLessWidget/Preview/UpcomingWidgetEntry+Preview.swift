@@ -28,6 +28,32 @@ extension UpcomingWidgetEntry {
         return UpcomingWidgetEntry(date: .now, content: content)
     }
 
+    /// `overdueCount` Overdue Tasks, then `todayCount` of Today's and `tomorrowCount` of Tomorrow's, listing at most
+    /// `rowLimit` of them, or all when it's nil.
+    static func preview(
+        overdueCount: Int,
+        todayCount: Int,
+        tomorrowCount: Int,
+        rowLimit: Int? = UpcomingWidgetContent.maxRowCount,
+        showsLeftOutCount: Bool = true
+    ) -> UpcomingWidgetEntry {
+        let today = Date.today
+        let days = Array(repeating: today.addingDays(-1), count: overdueCount)
+            + Array(repeating: today, count: todayCount)
+            + Array(repeating: today.addingDays(1), count: tomorrowCount)
+        let tasks = days.enumerated().map { index, day in
+            TodoTask(
+                id: UUID(),
+                name: previewNames[index % previewNames.count],
+                day: day,
+                completeDay: nil,
+                sortIndex: index
+            )
+        }
+        let content = UpcomingWidgetContent(tasks: tasks, today: today, listsTomorrow: true, rowLimit: rowLimit)
+        return UpcomingWidgetEntry(date: .now, content: content, showsLeftOutCount: showsLeftOutCount)
+    }
+
     /// Long names on every kind of Day, so each marker meets a cut name.
     static func previewLongNames(count: Int, cutEnding: CutEnding = .verticalEllipsis) -> UpcomingWidgetEntry {
         let today = Date.today

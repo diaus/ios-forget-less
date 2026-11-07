@@ -969,6 +969,59 @@
         }
       }
     },
+    "widget.leftOutCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%(count)lld more task"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%(count)lld more tasks"
+                }
+              }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ще %(count)lld завдання"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ще %(count)lld завдань"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ще %(count)lld завдання"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ще %(count)lld завдання"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "widget.moveTask" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1033,6 +1086,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Сплатити оренду"
+          }
+        }
+      }
+    },
+    "widget.showLeftOutCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Left Out Count"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати кількість решти"
           }
         }
       }

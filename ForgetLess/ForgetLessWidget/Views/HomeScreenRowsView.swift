@@ -7,6 +7,8 @@ import WidgetKit
 /// The Tasks the Home Screen widget lists, in the Schedule's order, leaving out from the end those that don't fit.
 struct HomeScreenRowsView: View {
     let rows: [UpcomingRow]
+    /// How many Tasks the content left out past `rows`; nil while the setting hides the count.
+    let leftOutTaskCount: Int?
 
     @Environment(\.widgetFamily) private var family
 
@@ -35,17 +37,30 @@ struct HomeScreenRowsView: View {
             let layout = sizing.layout(rowCount: rows.count, height: proxy.size.height)
             let font = UIFont.systemFont(ofSize: layout.fontSize)
             let leavesRowsOut = layout.rowCount < rows.count
+            // The rows that don't fit are left out too.
+            let totalLeftOutTaskCount = leftOutTaskCount.map {
+                $0 + UpcomingWidgetContent.leftOutTaskCount(of: rows.dropFirst(layout.rowCount))
+            } ?? 0
             VStack(alignment: .leading, spacing: layout.gap) {
                 ForEach(Array(rows.prefix(layout.rowCount).enumerated()), id: \.element.id) { index, row in
+                    let isLastShown = index == layout.rowCount - 1
+                    let rowLeftOutTaskCount = isLastShown ? totalLeftOutTaskCount : 0
                     if family.hasControls {
                         rowWithControls(
                             row,
                             font: font,
-                            isLastShownBeforeRowsLeftOut: leavesRowsOut && index == layout.rowCount - 1
+                            leftOutTaskCount: rowLeftOutTaskCount,
+                            isLastShownBeforeRowsLeftOut: leavesRowsOut && isLastShown
                         )
                     } else {
-                        UpcomingRowView(row: row, font: font, cutWidth: nil, cutEnding: .empty)
-                            .frame(height: font.lineHeight)
+                        UpcomingRowView(
+                            row: row,
+                            font: font,
+                            cutWidth: nil,
+                            cutEnding: .empty,
+                            leftOutTaskCount: rowLeftOutTaskCount
+                        )
+                        .frame(height: font.lineHeight)
                     }
                 }
             }
@@ -56,10 +71,15 @@ struct HomeScreenRowsView: View {
     // MARK: - UI Components
     /// A row of the sizes with controls, with its circle and arrows. `isLastShownBeforeRowsLeftOut` is whether rows
     /// listed after it don't fit, so a step down mustn't put the Task among them.
-    private func rowWithControls(_ row: UpcomingRow, font: UIFont, isLastShownBeforeRowsLeftOut: Bool) -> some View {
+    private func rowWithControls(
+        _ row: UpcomingRow,
+        font: UIFont,
+        leftOutTaskCount: Int,
+        isLastShownBeforeRowsLeftOut: Bool
+    ) -> some View {
         HStack(spacing: 0) {
             CompleteCircleView(taskID: row.id, font: font)
-            UpcomingRowView(row: row, font: font, cutWidth: nil, cutEnding: .empty)
+            UpcomingRowView(row: row, font: font, cutWidth: nil, cutEnding: .empty, leftOutTaskCount: leftOutTaskCount)
                 .frame(maxWidth: .infinity, alignment: .leading)
             let destinations = row.oneStepDestinations
             MoveStepsView(

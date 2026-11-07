@@ -6,8 +6,8 @@ public enum UpcomingWidgetContent: Hashable, Sendable {
     case empty
     /// The store couldn't be read.
     case unreadable
-    /// One row per Task, never empty.
-    case rows([UpcomingRow])
+    /// One row per Task listed, never empty. `leftOutTaskCount` counts the Overdue and Today Tasks past the rows.
+    case rows([UpcomingRow], leftOutTaskCount: Int)
 
     /// The most rows a Lock Screen column holds.
     public static let columnRowCount = 4
@@ -26,8 +26,17 @@ public enum UpcomingWidgetContent: Hashable, Sendable {
         }
         // Worked out over every Task, so a row's step can name a Task past the last one listed.
         let destinations = tasks.oneStepDestinations(today: today, listsTomorrow: listsTomorrow)
-        self = .rows(zip(tasks, destinations).prefix(rowLimit).map { task, destinations in
+        let rows = zip(tasks, destinations).map { task, destinations in
             UpcomingRow(task: task, today: today, oneStepDestinations: destinations)
-        })
+        }
+        self = .rows(
+            Array(rows.prefix(rowLimit)),
+            leftOutTaskCount: Self.leftOutTaskCount(of: rows.dropFirst(rowLimit))
+        )
+    }
+
+    /// How many of `rowsLeftOut` the widget counts as left out: Tomorrow's Tasks never count.
+    public static func leftOutTaskCount(of rowsLeftOut: some Sequence<UpcomingRow>) -> Int {
+        rowsLeftOut.count { $0.marker != .tomorrow }
     }
 }
