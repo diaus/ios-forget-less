@@ -14,12 +14,13 @@ extension Date {
     }
 
     // MARK: - Relative Name
-    /// This Day in a word when it has one: Today, Tomorrow, or `nil` for any other Day.
+    /// This Day in a word when it has one: Yesterday, Today, Tomorrow, or `nil` for any other Day.
     func relativeName(today: Date) -> String? {
         switch relativeDay(today: today) {
+        case .yesterday: String(localized: .dayYesterday)
         case .today: String(localized: .dayToday)
         case .tomorrow: String(localized: .dayTomorrow)
-        case .beforeToday, .yesterday, .later: nil
+        case .beforeToday, .later: nil
         }
     }
 

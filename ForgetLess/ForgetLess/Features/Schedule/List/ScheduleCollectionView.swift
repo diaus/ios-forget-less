@@ -74,8 +74,55 @@ final class ScheduleCollectionView: UICollectionView {
         } else {
             return
         }
-        let maxOffsetY = max(-insets.top, contentSize.height + insets.bottom - bounds.height)
-        setContentOffset(CGPoint(x: contentOffset.x, y: min(max(offsetY, -insets.top), maxOffsetY)), animated: true)
+        scrollAnimated(toOffsetY: offsetY)
+    }
+
+    /// The content offset that puts the header of `section` at the top, or as near as the content allows; `nil` when
+    /// it has none.
+    func offsetYPuttingHeaderAtTop(ofSection section: Int) -> CGFloat? {
+        // Laid out first, so a section the last snapshot just placed has its frame.
+        layoutIfNeeded()
+        return headerFrame(ofSection: section).map { clampedOffsetY($0.minY - adjustedContentInset.top) }
+    }
+
+    var topOffsetY: CGFloat {
+        -adjustedContentInset.top
+    }
+
+    /// Scrolls, animated, to `offsetY`, or as near as the content allows.
+    func scrollAnimated(toOffsetY offsetY: CGFloat) {
+        setContentOffset(CGPoint(x: contentOffset.x, y: clampedOffsetY(offsetY)), animated: true)
+    }
+
+    /// Scrolls, without animation, to `offsetY`, or as near as the content allows.
+    func scroll(toOffsetY offsetY: CGFloat) {
+        setContentOffset(CGPoint(x: contentOffset.x, y: clampedOffsetY(offsetY)), animated: false)
+    }
+
+    /// Whether the list shows within a screen of its top.
+    var isNearTop: Bool {
+        contentOffset.y + adjustedContentInset.top < bounds.height
+    }
+
+    // MARK: - Holding Still
+    /// The sections with a header or row on screen, top first.
+    var sectionsOnScreen: [Int] {
+        let headers = indexPathsForVisibleSupplementaryElements(ofKind: Self.elementKindSectionHeader)
+        return Set((headers + indexPathsForVisibleItems).map(\.section)).sorted()
+    }
+
+    /// How far the header of `section` is below the list's top edge, negative above it; `nil` when it has none.
+    func headerOffset(ofSection section: Int) -> CGFloat? {
+        headerFrame(ofSection: section).map { $0.minY - contentOffset.y }
+    }
+
+    /// Scrolls, without animation, so the header of `section` is `offset` below the list's top edge.
+    func placeHeader(ofSection section: Int, atOffset offset: CGFloat) {
+        // Laid out first, so a section the last snapshot just placed has its frame.
+        layoutIfNeeded()
+        if let header = headerFrame(ofSection: section) {
+            contentOffset.y = header.minY - offset
+        }
     }
 
     // MARK: - Headers
@@ -91,6 +138,19 @@ final class ScheduleCollectionView: UICollectionView {
     }
 
     // MARK: - Helpers
+    /// Where the header of `section` is laid out, in content coordinates; `nil` when it has none.
+    private func headerFrame(ofSection section: Int) -> CGRect? {
+        let indexPath = IndexPath(item: 0, section: section)
+        return layoutAttributesForSupplementaryElement(ofKind: Self.elementKindSectionHeader, at: indexPath)?.frame
+    }
+
+    /// `offsetY`, or the nearest offset the content allows.
+    private func clampedOffsetY(_ offsetY: CGFloat) -> CGFloat {
+        let insets = adjustedContentInset
+        let maxOffsetY = max(-insets.top, contentSize.height + insets.bottom - bounds.height)
+        return min(max(offsetY, -insets.top), maxOffsetY)
+    }
+
     private func applyContentInsets() {
         // The scroll view keeps adjusting for UIKit's own safe area (`.automatic`), and only the rest is added here.
         // With `.never` and the full insets instead, UIKit hands the window's safe area to each cell under the status

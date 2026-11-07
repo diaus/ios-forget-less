@@ -8,6 +8,9 @@ final class ScheduleTasks {
     private(set) var schedule: Schedule
     /// How many Incomplete Tasks each Day holds; a Day with none has no entry.
     private(set) var incompleteTaskCountsByDay: [Date: Int] = [:]
+    /// The first Day the Tasks were last observed from, in History, or `nil` when they were observed outside it: the
+    /// first Day the Schedule lists in History, so it never lists a Day before Today whose Tasks haven't arrived.
+    private(set) var historyFirstDay: Date?
     /// What the Tasks are listed by, read afresh each time they're listed. The owner sets it right after creating
     /// these Tasks, before it lists any.
     @ObservationIgnored var listing: @MainActor () -> ScheduleListing = {
@@ -29,8 +32,10 @@ final class ScheduleTasks {
         listed.first { $0.id == id }
     }
 
-    /// Lists `tasks`, just observed in the store, in place of any Move not yet saved.
-    func observe(_ tasks: [TodoTask]) {
+    /// Lists `tasks`, just observed in the store from `historyFirstDay` on in History, or outside History when
+    /// `nil`, in place of any Move not yet saved.
+    func observe(_ tasks: [TodoTask], historyFirstDay: Date?) {
+        self.historyFirstDay = historyFirstDay
         stored = tasks
         listed = tasks
         relist()
@@ -46,7 +51,8 @@ final class ScheduleTasks {
             tasks: listed,
             today: listing.today,
             showsComplete: listing.showsComplete,
-            keptTaskIDs: listing.keptTaskIDs
+            keptTaskIDs: listing.keptTaskIDs,
+            historyFirstDay: historyFirstDay
         )
         incompleteTaskCountsByDay = listed.incompleteTaskCountsByDay
     }

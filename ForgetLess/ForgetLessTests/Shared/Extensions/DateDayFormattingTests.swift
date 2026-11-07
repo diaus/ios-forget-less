@@ -5,24 +5,33 @@ import Testing
 @MainActor
 struct DateDayFormattingTests {
     // MARK: - Tests
-    @Test(arguments: ["2026-10-31", "2026-11-01", "2027-03-02", "2026-10-24", "2026-10-20"])
-    func aDayOtherThanTodayOrTomorrowIsNamedByItsShortDate(yearMonthDay: String) throws {
+    @Test(arguments: ["2026-10-31", "2026-11-01", "2027-03-02", "2026-10-23", "2026-10-20"])
+    func aDayOtherThanYesterdayTodayOrTomorrowIsNamedByItsShortDate(yearMonthDay: String) throws {
         let today = try day("2026-10-25")
         let otherDay = try day(yearMonthDay)
 
         #expect(otherDay.relativeNameOrShortDate(today: today) == otherDay.shortDate(today: today))
     }
 
-    @Test func todayAndTomorrowAreEachNamedInAWordOfTheirOwnRatherThanByTheirShortDate() throws {
+    @Test func yesterdayTodayAndTomorrowAreEachNamedInAWordOfTheirOwnRatherThanByTheirShortDate() throws {
         let today = try day("2026-10-25")
-        let tomorrow = try day("2026-10-26")
+        let days = [try day("2026-10-24"), today, try day("2026-10-26")]
 
-        let todayName = today.relativeNameOrShortDate(today: today)
-        let tomorrowName = tomorrow.relativeNameOrShortDate(today: today)
+        let names = days.map { $0.relativeNameOrShortDate(today: today) }
 
-        #expect(todayName != today.shortDate(today: today))
-        #expect(tomorrowName != tomorrow.shortDate(today: today))
-        #expect(todayName != tomorrowName)
+        for (day, name) in zip(days, names) {
+            #expect(name != day.shortDate(today: today))
+        }
+        #expect(Set(names).count == days.count)
+    }
+
+    @Test func yesterdaysHeaderNamesItInItsWord() throws {
+        let today = try day("2026-10-25")
+        let yesterday = try day("2026-10-24")
+
+        let name = try #require(yesterday.relativeName(today: today))
+
+        #expect(yesterday.dayHeader(today: today).contains(name))
     }
 
     @Test func aDaysFullDateNamesItsYearEvenInTodaysYear() throws {

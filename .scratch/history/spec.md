@@ -47,7 +47,7 @@ A new quick setting, **History** (see `GLOSSARY.md`), switches how the Schedule 
 
 19. As a user, I want turning History on to always scroll so that Yesterday's header is at the top of the list, with Today below it, so that I start at the most recent past.
 20. As a user, I want turning History off to always scroll to the top of the list, Overdue or else Today, so that I'm back where normal mode starts.
-21. As a user, I want both jumps animated. This is to be judged on the device and may change to an instant jump.
+21. As a user, I want both jumps instant, with no scrolling animation.
 22. As a user, I want nothing to jump at midnight, in History or not. The old Today becomes Yesterday and the Day on screen stays where it is.
 
 ### Moving and adding in History
@@ -87,7 +87,7 @@ A new quick setting, **History** (see `GLOSSARY.md`), switches how the Schedule 
 
 - **`Schedule` takes the History listing.** A new input, for example an optional first Day: `nil` lists as today, and a Day lists in History from that Day on. In History the Schedule:
   - lists one Day for every Day from the first Day through the window, empty ones included, followed by the later Days with Tasks;
-  - lists all its Tasks, Complete ones included, ignoring `showsComplete` and `keptTaskIDs`;
+  - lists Complete Tasks by `showsComplete` and `keptTaskIDs` as outside History; the Schedule's view model passes `showsComplete` on while History is on;
   - leaves `overdue` empty.
 - **`Schedule` holds Today explicitly.** The move rules read Today today from `days.first`, which in History is the first Day, not Today.
 - **The move rules accept past Days in History.** `canMove(_:to:)`, the drop rule, `canMoveToEnd(_:of:)` and Move Up/Down accept any listed Day. `canMoveOverdueTasks(toStartOf:)` is never reached in History, since there's no Overdue.
@@ -103,7 +103,7 @@ A new quick setting, **History** (see `GLOSSARY.md`), switches how the Schedule 
 - **The state.** `ScheduleViewModel` holds `showsHistory` (in memory, default `false`) and the History first Day. `ScheduleListing` carries both, so `ScheduleTasks.relist()` builds the History Schedule. Turning History on or off releases the Kept Tasks and resubscribes the observation.
 - **The observation.** `observeSchedule` subscribes with the first Day while History is on. The first Day starts about 60 Days before Today and moves back 60 when the list nears its top, which resubscribes. A new Today moves nothing back by itself.
 - **Loading near the top.** The list controller tells the view model when its first rows come near the top of the screen, for example within a screen's height. A page loaded above must not move the rows on screen, so the list keeps its content offset anchored to the first visible row across the snapshot that adds the page.
-- **The jumps.** Turning History on, the list scrolls, animated, so Yesterday's header is at the top. Turning it off, it scrolls, animated, to the top. Both are one-off requests like `DayReveal`, carried out once the matching Schedule is shown. Midnight sends no request.
+- **The jumps.** Turning History on, the list scrolls, without animation, so Yesterday's header is at the top. Turning it off, it scrolls, without animation, to the top. Both are one-off requests like `DayReveal`, carried out once the matching Schedule is shown. Midnight sends no request.
 - **The button.** `QuickSettingsView` gains the History button first, with `clock.arrow.circlepath`. When on, the square's background is the primary colour and the glyph inverts. On iOS 26 and later it's a primary-tinted interactive glass. Its `accessibilityRepresentation` is a `Toggle` labelled `schedule.history`, as for the other two. Show Complete Tasks is `.disabled(showsHistory)`.
 - **The pickers.** `FloatingDayPickerState` and `SheetDayPickerState` take whether History is on. With it on, every Day can be chosen and is undimmed, a past Day opens chosen on its own month, and the floating picker pages back without limit. `PickerDayView` reads the same rule.
 - **The composer.** In History `ComposerSession` steps and chooses past Days. Its Day chip picker accepts them. A past Day held when History turns off stays, and saving adds there.
@@ -119,7 +119,7 @@ Swift Testing; `today` passed explicitly; Days are GMT midnights. Test what a ca
 
 - **Domain, `Schedule` (prior art `ScheduleTests`), the main seam:**
   - History lists every Day from the first Day through the window, empty ones included, followed by the later Days with Tasks;
-  - it lists Complete Tasks with `showsComplete` off and no kept IDs, and its `overdue` is empty;
+  - it lists Tasks completed from Overdue on their own Days, and its `overdue` is empty;
   - week and month starts carry on across the past and into Today;
   - in History, a Move, a drop and a Move to the end land on a past Day, and Move Up from Today's first Task lands at the end of Yesterday;
   - outside History all four still refuse past Days;
@@ -142,7 +142,7 @@ Swift Testing; `today` passed explicitly; Days are GMT midnights. Test what a ca
 
 ## Further Notes
 
-- Grilled on 2026-11-07. The user picked `clock.arrow.circlepath` with a filled square over swap-glyph icons such as `clock` / `clock.fill`. Both jumps are animated for now, pending the user's feel on the device.
+- Grilled on 2026-11-07. The user picked `clock.arrow.circlepath` with a filled square over swap-glyph icons such as `clock` / `clock.fill`. Both jumps were animated at first, pending the user's feel on the device; on 2026-11-07 the user made them instant, as the animation wasn't smooth.
 - Issues, in order:
   - `issues/01`: History in Domain and Data.
   - `02`: the button and the History list.

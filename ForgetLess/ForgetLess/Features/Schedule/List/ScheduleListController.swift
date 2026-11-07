@@ -19,8 +19,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         schedule: Schedule(tasks: [], today: .today), today: .today, movesTasks: false
     )
     private let rowMove = TaskRowMove()
-    /// The reveal last carried out, so each is carried out once.
-    private var lastReveal: DayReveal?
+    private lazy var scroller = ScheduleListScroller(collectionView: collectionView)
     /// The Task whose row is drawn highlighted, while its floating Day picker is open.
     private var highlightedTaskID: TodoTask.ID?
 
@@ -41,6 +40,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         let shownSnapshot = dataSource.snapshot()
         let isFirst = shownSnapshot.numberOfSections == 0
         let redraw = content.redraw(from: self.content)
+        let shownHistoryFirstDay = self.content.schedule.historyFirstDay
         // SwiftUI updates the list whenever the screen changes, the composer included, mostly with nothing new.
         // Compared with the rows on screen, not the last content: a refused drop leaves its row moved there.
         if !isFirst, redraw == nil, Self.sameRows(snapshot, shownSnapshot) {
@@ -55,7 +55,12 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
         // Rows are keyed by Task ID, so a renamed or completed Task is redrawn in place.
         snapshot.reconfigureItems(redraw?.reconfiguredTaskIDs ?? [])
         snapshot.reloadItems(redraw?.reloadedTaskIDs ?? [])
-        dataSource.apply(snapshot, animatingDifferences: animated && !isFirst)
+        // Days added or removed above the screen by a page of History landing, or History turning on or off, would
+        // otherwise push the rows on screen along. A jump may follow, which then starts from where the user was.
+        let holdsStill = !isFirst && !animated && schedule.historyFirstDay != shownHistoryFirstDay
+        scroller.apply(snapshot, over: shownSnapshot, holdingStill: holdsStill) {
+            dataSource.apply(snapshot, animatingDifferences: animated && !isFirst)
+        }
         // An emptied Day or a new Today changes how a Day's header reads, and the Overdue header shows Move All only
         // while Overdue holds an Incomplete Task.
         reconfigureVisibleHeaders()
@@ -63,16 +68,12 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
 
     /// Brings the last Task of `reveal`'s Day into view, unless `reveal` was carried out before.
     func reveal(_ reveal: DayReveal?) {
-        guard let reveal, reveal != lastReveal else { return }
-        lastReveal = reveal
-        guard let dataSource else { return }
-        let section = Section.day(reveal.day)
-        let snapshot = dataSource.snapshot()
-        // Asking a snapshot for a section it lacks raises an exception.
-        guard snapshot.indexOfSection(section) != nil,
-              let lastTaskID = snapshot.itemIdentifiers(inSection: section).last,
-              let indexPath = dataSource.indexPath(for: lastTaskID) else { return }
-        collectionView.scrollToShowRow(at: indexPath)
+        if let dataSource { scroller.reveal(reveal, in: dataSource.snapshot()) }
+    }
+
+    /// Scrolls where `jump` asks, unless `jump` was carried out before.
+    func jump(_ jump: HistoryJump?) {
+        if let dataSource { scroller.jump(jump, today: content.today, in: dataSource.snapshot()) }
     }
 
     /// Highlights the row of the Task with `id`, and only that row; `nil` highlights none.
@@ -313,5 +314,13 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
             && snapshot.sectionIdentifiers.allSatisfy { section in
                 snapshot.itemIdentifiers(inSection: section) == other.itemIdentifiers(inSection: section)
             }
+    }
+}
+
+// MARK: - Scrolling
+// An extension, so the type's body stays within SwiftLint's length.
+extension ScheduleListController {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if collectionView.isNearTop { vm.loadEarlierHistory() }
     }
 }

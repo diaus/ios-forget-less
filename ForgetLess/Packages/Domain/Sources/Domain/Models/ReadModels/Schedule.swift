@@ -17,8 +17,9 @@ public struct Schedule: Sendable {
     /// The Overdue Tasks, with those completed from it on Today, oldest Day first.
     public let overdue: [TodoTask]
     public let days: [Day]
+    /// The first Day listed in History, or `nil` outside History.
+    public let historyFirstDay: Date?
     private let today: Date
-    private let showsHistory: Bool
 
     /// The Overdue Tasks, without those completed from it on Today: what a Move of all of Overdue moves.
     public var overdueIncomplete: [TodoTask] { overdue.filter { !$0.isComplete } }
@@ -41,12 +42,10 @@ public struct Schedule: Sendable {
         historyFirstDay: Date? = nil
     ) {
         self.today = today
+        self.historyFirstDay = historyFirstDay
         let showsHistory = historyFirstDay != nil
-        self.showsHistory = showsHistory
-        // History always lists Complete Tasks, and lists Overdue Tasks on their own Days.
-        let tasks = showsComplete || showsHistory
-            ? tasks
-            : tasks.filter { !$0.isComplete || keptTaskIDs.contains($0.id) }
+        let tasks = showsComplete ? tasks : tasks.filter { !$0.isComplete || keptTaskIDs.contains($0.id) }
+        // History lists Overdue Tasks on their own Days.
         // A Task completed from Overdue stays there until Today rolls over, so a mis-tap can be undone.
         overdue = showsHistory ? [] : tasks.filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }
         // Grouping keeps each Day's Tasks in the order given.
@@ -141,6 +140,10 @@ public struct Schedule: Sendable {
 
     private func isOverdue(_ task: TodoTask) -> Bool {
         overdue.contains { $0.id == task.id }
+    }
+
+    private var showsHistory: Bool {
+        historyFirstDay != nil
     }
 
     /// Whether the Schedule lists `task`, in Overdue or on a Day: only a Task it lists can move.

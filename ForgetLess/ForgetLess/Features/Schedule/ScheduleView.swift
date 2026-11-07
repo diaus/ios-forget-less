@@ -30,8 +30,11 @@ struct ScheduleView: View {
         .overlay {
             FloatingDayPickerOverlayView(listFrame: listFrame)
         }
-        // Restarts on a new Today and on coming back, when a fresh fetch also picks up changes made outside the app.
-        .task(id: ScheduleObservation(today: vm.today, isActive: scenePhase == .active)) {
+        // Restarts on a new Today, on a new History first Day, and on coming back, when a fresh fetch also picks up
+        // changes made outside the app.
+        .task(id: ScheduleObservation(
+            today: vm.today, historyFirstDay: vm.historyFirstDay, isActive: scenePhase == .active
+        )) {
             if scenePhase == .active {
                 await vm.observeSchedule()
             }
@@ -130,6 +133,7 @@ struct ScheduleView: View {
     /// What the Schedule is observed for; a change restarts the observation.
     private struct ScheduleObservation: Equatable {
         let today: Date
+        let historyFirstDay: Date?
         let isActive: Bool
     }
 }

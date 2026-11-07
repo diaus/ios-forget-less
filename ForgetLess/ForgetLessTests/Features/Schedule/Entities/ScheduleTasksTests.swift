@@ -78,7 +78,7 @@ struct ScheduleTasksTests {
         _ = scheduleTasks.moveToEnd(moving, of: today.addingDays(3))
         let stored = task("Buy milk", id: moving.id, day: 5, sortIndex: 0)
 
-        scheduleTasks.observe([stored])
+        scheduleTasks.observe([stored], historyFirstDay: nil)
 
         #expect(names(on: 3, in: scheduleTasks).isEmpty)
         #expect(names(on: 5, in: scheduleTasks) == ["Buy milk"])
@@ -93,6 +93,29 @@ struct ScheduleTasksTests {
 
         #expect(destination == nil)
         #expect(scheduleTasks.task(withID: moving.id)?.day == today)
+    }
+
+    @Test func inHistoryAMoveListsTheTaskOnADayBeforeTodayBeforeTheStoreHasIt() {
+        let moving = task("Buy milk", day: 0, sortIndex: 0)
+        let scheduleTasks = observed([moving], historyFirstDay: today.addingDays(-60))
+
+        let moved = scheduleTasks.move(moving, to: MoveDestination(day: today.addingDays(-1), after: nil))
+
+        #expect(moved)
+        #expect(names(on: -1, in: scheduleTasks) == ["Buy milk"])
+        #expect(names(on: 0, in: scheduleTasks).isEmpty)
+        #expect(scheduleTasks.schedule.overdue.isEmpty)
+    }
+
+    @Test func inHistoryAMoveToTheEndOfADayBeforeTodayListsTheTaskLastThere() {
+        let moving = task("Buy milk", day: 0, sortIndex: 0)
+        let other = task("Call Mum", day: -30, sortIndex: 0, isComplete: true)
+        let scheduleTasks = observed([other, moving], historyFirstDay: today.addingDays(-60))
+
+        let destination = scheduleTasks.moveToEnd(moving, of: today.addingDays(-30))
+
+        #expect(destination == MoveDestination(day: today.addingDays(-30), after: other.id))
+        #expect(names(on: -30, in: scheduleTasks) == ["Call Mum", "Buy milk"])
     }
 
     @Test func aMoveOfATaskTheScheduleDoesNotListIsRefusedAndMovesNothing() {
@@ -134,13 +157,16 @@ struct ScheduleTasksTests {
         ScheduleListing(today: today, showsComplete: showsComplete, keptTaskIDs: keptTaskIDs)
     }
 
-    /// Tasks that have observed `tasks`, listed by `listingNow`, or with every Task listed.
+    /// Tasks that have observed `tasks`, fetched from `historyFirstDay` on in History, listed by `listingNow`, or
+    /// with every Task listed.
     private func observed(
-        _ tasks: [TodoTask], listedBy listingNow: (@MainActor () -> ScheduleListing)? = nil
+        _ tasks: [TodoTask],
+        historyFirstDay: Date? = nil,
+        listedBy listingNow: (@MainActor () -> ScheduleListing)? = nil
     ) -> ScheduleTasks {
         let scheduleTasks = ScheduleTasks(today: today)
         scheduleTasks.listing = listingNow ?? { listing() }
-        scheduleTasks.observe(tasks)
+        scheduleTasks.observe(tasks, historyFirstDay: historyFirstDay)
         return scheduleTasks
     }
 

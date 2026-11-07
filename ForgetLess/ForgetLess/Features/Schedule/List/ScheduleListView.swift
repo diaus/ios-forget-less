@@ -25,6 +25,8 @@ struct ScheduleListView: UIViewRepresentable {
             movesTasks: vm.movesTasks,
             animated: context.transaction.animation != nil
         )
+        // After the Schedule it jumps within.
+        context.coordinator.jump(vm.historyJump)
         context.coordinator.reveal(vm.composerSession.dayReveal)
         context.coordinator.highlightRow(of: vm.floatingDayPicker?.target.taskID)
         collectionView.targetContentInsets = UIEdgeInsets(

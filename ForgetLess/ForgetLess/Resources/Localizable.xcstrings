@@ -137,6 +137,23 @@
         }
       }
     },
+    "day.yesterday" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yesterday"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вчора"
+          }
+        }
+      }
+    },
     "dayPicker.taskCount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -266,6 +283,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Закрити"
+          }
+        }
+      }
+    },
+    "schedule.history" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Історія"
           }
         }
       }

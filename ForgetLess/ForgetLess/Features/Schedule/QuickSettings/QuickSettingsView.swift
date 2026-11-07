@@ -7,6 +7,14 @@ struct QuickSettingsView: View {
 
     var body: some View {
         HStack(spacing: 8) {
+            Button { withAnimation { vm.showsHistory.toggle() } } label: {
+                Image(systemName: "clock.arrow.circlepath")
+                    .quickSettingSquare(isFilled: vm.showsHistory)
+            }
+            .buttonStyle(.plain)
+            .accessibilityRepresentation {
+                Toggle(isOn: $vm.showsHistory.animation()) { Text(.scheduleHistory) }
+            }
             Button { withAnimation { vm.showsComplete.toggle() } } label: {
                 Image(systemName: vm.showsComplete ? "checklist.checked" : "checklist.unchecked")
                     .quickSettingSquare()
@@ -16,6 +24,8 @@ struct QuickSettingsView: View {
             .accessibilityRepresentation {
                 Toggle(isOn: $vm.showsComplete.animation()) { Text(.scheduleShowCompleteTasks) }
             }
+            // History always lists Complete Tasks, so the choice can't change them there.
+            .disabled(vm.showsHistory)
             Button { withAnimation { vm.movesTasks.toggle() } } label: {
                 Image(systemName: vm.movesTasks ? "lock.open" : "lock")
                     .quickSettingSquare()
@@ -37,18 +47,21 @@ struct QuickSettingsView: View {
 }
 
 private extension View {
-    /// Gives every quick setting the same face, on or off.
+    /// Gives every quick setting the same face, filled where its glyph alone doesn't show it's on.
     @ViewBuilder
-    func quickSettingSquare() -> some View {
+    func quickSettingSquare(isFilled: Bool = false) -> some View {
         let square = font(.body.weight(.medium))
-            .foregroundStyle(.primary)
+            // Inverted on the fill, which is the primary colour.
+            .foregroundStyle(isFilled ? Color(.systemBackground) : Color.primary)
             .frame(width: 36, height: 36)
             .contentShape(.rect(cornerRadius: 8))
         if #available(iOS 26, *) {
-            square.glassEffect(.regular.interactive(), in: .rect(cornerRadius: 8))
+            square.glassEffect(.regular.tint(isFilled ? .primary : nil).interactive(), in: .rect(cornerRadius: 8))
         } else {
             // Not `.bordered`, which tints the square with the accent.
-            square.background(.fill.tertiary, in: .rect(cornerRadius: 8))
+            square.background(
+                isFilled ? AnyShapeStyle(.primary) : AnyShapeStyle(.fill.tertiary), in: .rect(cornerRadius: 8)
+            )
         }
     }
 }

@@ -13,14 +13,33 @@ final class ScheduleViewModel {
     /// The sheet Day picker's choice; `nil` once it has closed. Kept until then, so the sheet keeps its content as it
     /// goes.
     var sheetDayPicker: SheetDayPickerState?
-    /// Whether the Schedule lists Complete Tasks. Kept across launches.
+    /// Whether the Schedule lists Complete Tasks: always in History, else as the user chose.
     var showsComplete: Bool {
+        get { showsCompleteChoice || showsHistory }
+        set { showsCompleteChoice = newValue }
+    }
+    /// The user's Show Complete Tasks choice, kept as it was while History is on. Kept across launches.
+    private var showsCompleteChoice: Bool {
         didSet {
-            UserDefaults.standard.showsComplete = showsComplete
+            UserDefaults.standard.showsComplete = showsCompleteChoice
             keptTasks.releaseAll()
             scheduleTasks.relist()
         }
     }
+    /// Whether the Schedule lists History. Off at every launch.
+    var showsHistory = false {
+        didSet {
+            guard showsHistory != oldValue else { return }
+            // Set here, and listed once the Tasks from it are observed, which restarts the observation.
+            historyFirstDay = showsHistory ? today.addingDays(-Self.historyPageDayCount) : nil
+            // Released without relisting: the next Tasks observed relist in the same update as the new listing.
+            keptTasks.releaseAll()
+        }
+    }
+    /// The first Day the Schedule is observed from in History, or `nil` outside History.
+    private(set) var historyFirstDay: Date?
+    /// The list's last jump on History turning on or off; `nil` before the first.
+    private(set) var historyJump: HistoryJump?
     /// Whether Tasks can be moved. Kept across launches.
     var movesTasks: Bool {
         didSet {
@@ -42,7 +61,7 @@ final class ScheduleViewModel {
         let writes = ScheduleWrites()
         let taskMoves = TaskMoves(scheduleTasks: scheduleTasks, writes: writes)
         self.today = today
-        self.showsComplete = UserDefaults.standard.showsComplete
+        self.showsCompleteChoice = UserDefaults.standard.showsComplete
         self.movesTasks = UserDefaults.standard.movesTasks
         self.scheduleTasks = scheduleTasks
         self.writes = writes
@@ -58,6 +77,9 @@ final class ScheduleViewModel {
     }
 
     // MARK: - Loading
+    /// How many Days further back History lists each time the list nears its top.
+    private static let historyPageDayCount = 60
+
     /// Brings Today up to date.
     func refresh() {
         today = .today
@@ -66,17 +88,32 @@ final class ScheduleViewModel {
         floatingDayPicker?.picker.update(today: today)
     }
 
-    /// Keeps the Schedule up to date with the stored Tasks for the current Today, until the calling task is cancelled.
+    /// Keeps the Schedule up to date with the stored Tasks for the current Today, and the History first Day, until the
+    /// calling task is cancelled.
     func observeSchedule() async {
+        let historyFirstDay = historyFirstDay
         do {
-            for await tasks in try await repository.scheduleTasks(today: today, historyFirstDay: nil) {
-                scheduleTasks.observe(tasks)
+            for await tasks in try await repository.scheduleTasks(today: today, historyFirstDay: historyFirstDay) {
+                let listedHistory = scheduleTasks.historyFirstDay != nil
+                scheduleTasks.observe(tasks, historyFirstDay: historyFirstDay)
+                // Once the Tasks for the new listing are in, so the list jumps within the Schedule it then shows.
+                // Neither a page loaded further back nor a new Today jumps.
+                if (historyFirstDay != nil) != listedHistory {
+                    historyJump = HistoryJump(to: historyFirstDay != nil ? .yesterday : .top)
+                }
                 closeFloatingDayPickerWithNothingToMove()
                 closeSheetDayPickerWithNothingToMove()
             }
         } catch {
             writes.errorMessage = error.userMessage
         }
+    }
+
+    /// Lists the Days further back in History, unless the Schedule lists outside History or a page further back is
+    /// still loading.
+    func loadEarlierHistory() {
+        guard let historyFirstDay, historyFirstDay == scheduleTasks.historyFirstDay else { return }
+        self.historyFirstDay = historyFirstDay.addingDays(-Self.historyPageDayCount)
     }
 
     // MARK: - Completion

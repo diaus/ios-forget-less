@@ -24,7 +24,7 @@ extension ScheduleTests {
         #expect(schedule.days.last?.day == laterDay)
     }
 
-    @Test func historyListsCompleteTasksOnTheirDaysEvenWhileHiddenAndHasNoOverdue() throws {
+    @Test func historyListsTasksCompletedFromOverdueOnTheirDaysAndHasNoOverdue() throws {
         let today = try day("2026-03-01")
         let yesterday = try day("2026-02-28")
         let tasks = [
@@ -34,9 +34,7 @@ extension ScheduleTests {
             task("Completed today", day: today, sortIndex: 0, completeDay: today),
         ]
 
-        let schedule = Schedule(
-            tasks: tasks, today: today, showsComplete: false, keptTaskIDs: [], historyFirstDay: yesterday
-        )
+        let schedule = Schedule(tasks: tasks, today: today, historyFirstDay: yesterday)
 
         #expect(schedule.overdue.isEmpty)
         #expect(schedule.days[0].tasks.map(\.name) == ["Completed yesterday", "Overdue", "Completed from Overdue"])
