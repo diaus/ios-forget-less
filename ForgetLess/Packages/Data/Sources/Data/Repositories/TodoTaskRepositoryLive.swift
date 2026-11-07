@@ -9,7 +9,7 @@ import Utils
 actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     nonisolated let modelExecutor: any ModelExecutor
     nonisolated let modelContainer: ModelContainer
-    /// Tells the open `scheduleTasks(today:)` streams that the store changed.
+    /// Tells the open `scheduleTasks(today:historyFirstDay:)` streams that the store changed.
     private let notifier = ChangeNotifier()
     private let logger = Logger(subsystem: "ForgetLess.Data", category: "TodoTaskRepository")
     /// The Schedule's order, which every list of Tasks the repository returns comes in.
@@ -21,17 +21,17 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     }
 
     // MARK: - TodoTaskRepository
-    func scheduleTasks(today: Date) throws -> AsyncStream<[TodoTask]> {
+    func scheduleTasks(today: Date, historyFirstDay: Date?) throws -> AsyncStream<[TodoTask]> {
         // Subscribed before the first fetch, so a write during it still sends.
         let changes = notifier.changes
-        let first = try fetchScheduleTasks(today: today)
+        let first = try fetchScheduleTasks(today: today, historyFirstDay: historyFirstDay)
         let (stream, continuation) = AsyncStream.makeStream(of: [TodoTask].self, bufferingPolicy: .bufferingNewest(1))
         continuation.yield(first)
         let refetching = Task { [weak self] in
             for await _ in changes {
                 guard let self else { break }
                 do {
-                    continuation.yield(try await fetchScheduleTasks(today: today))
+                    continuation.yield(try await fetchScheduleTasks(today: today, historyFirstDay: historyFirstDay))
                 } catch {
                     // The consumer keeps the last Tasks it got; the next change fetches again.
                     logger.error("Could not fetch the Schedule's Tasks: \(String(describing: error))")
@@ -109,7 +109,10 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     }
 
     // MARK: - Helpers
-    private func fetchScheduleTasks(today: Date) throws -> [TodoTask] {
+    private func fetchScheduleTasks(today: Date, historyFirstDay: Date?) throws -> [TodoTask] {
+        if let historyFirstDay {
+            return try fetchInScheduleOrder(#Predicate { $0.day >= historyFirstDay }).map { $0.toDomain() }
+        }
         // An Incomplete Task has no `completeDay`, so it counts as completed on no Day yet.
         let distantFuture = Date.distantFuture
         return try fetchInScheduleOrder(

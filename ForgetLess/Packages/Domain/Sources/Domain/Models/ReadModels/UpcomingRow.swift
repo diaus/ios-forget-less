@@ -18,7 +18,7 @@ public struct UpcomingRow: Hashable, Identifiable, Sendable {
         id = task.id
         name = task.name
         marker = switch task.day.relativeDay(today: today) {
-        case .beforeToday: .overdue
+        case .beforeToday, .yesterday: .overdue
         case .today: nil
         // The widget lists nothing after Tomorrow, so a later Day never comes up.
         case .tomorrow, .later: .tomorrow

@@ -11,6 +11,7 @@ struct DateDayChipTests {
         ("2026-10-31", .weekday),
         ("2026-11-01", .later),
         ("2026-10-24", .past),
+        ("2026-10-20", .past),
     ])
     func aDayChipIsCategorisedByTheDayRelativeToToday(yearMonthDay: String, category: DayChipCategory) throws {
         let today = try day("2026-10-25")

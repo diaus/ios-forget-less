@@ -17,6 +17,8 @@ public struct Schedule: Sendable {
     /// The Overdue Tasks, with those completed from it on Today, oldest Day first.
     public let overdue: [TodoTask]
     public let days: [Day]
+    private let today: Date
+    private let showsHistory: Bool
 
     /// The Overdue Tasks, without those completed from it on Today: what a Move of all of Overdue moves.
     public var overdueIncomplete: [TodoTask] { overdue.filter { !$0.isComplete } }
@@ -28,27 +30,36 @@ public struct Schedule: Sendable {
     ///   - firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
     ///   - windowDayCount: How many Days from Today on are listed, with Tasks or not. A later Day is listed only for
     ///     its Tasks.
+    ///   - historyFirstDay: The first Day listed in History, or `nil` to list outside History.
     public init(
         tasks: [TodoTask],
         today: Date,
         showsComplete: Bool = true,
         keptTaskIDs: Set<UUID> = [],
         firstWeekday: Int = Date.firstWeekday,
-        windowDayCount: Int = 100
+        windowDayCount: Int = 100,
+        historyFirstDay: Date? = nil
     ) {
-        let tasks = showsComplete ? tasks : tasks.filter { !$0.isComplete || keptTaskIDs.contains($0.id) }
+        self.today = today
+        let showsHistory = historyFirstDay != nil
+        self.showsHistory = showsHistory
+        // History always lists Complete Tasks, and lists Overdue Tasks on their own Days.
+        let tasks = showsComplete || showsHistory
+            ? tasks
+            : tasks.filter { !$0.isComplete || keptTaskIDs.contains($0.id) }
         // A Task completed from Overdue stays there until Today rolls over, so a mis-tap can be undone.
-        overdue = tasks.filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }
+        overdue = showsHistory ? [] : tasks.filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }
         // Grouping keeps each Day's Tasks in the order given.
         let tasksByDay = Dictionary(grouping: tasks) { $0.day }
-        let window = (0..<windowDayCount).map { today.addingDays($0) }
+        let pastDays = historyFirstDay?.days(upTo: today) ?? []
         let afterWindow = today.addingDays(windowDayCount)
+        let window = today.days(upTo: afterWindow)
         var laterDays: [Date] = []
         // The input is in Day order, so each Day's Tasks are next to each other and its first one adds it.
         for task in tasks where task.day >= afterWindow && laterDays.last != task.day {
             laterDays.append(task.day)
         }
-        let listedDays = window + laterDays
+        let listedDays = pastDays + window + laterDays
         days = listedDays.indices.map { index in
             let day = listedDays[index]
             let previousDay = index > 0 ? listedDays[index - 1] : nil
@@ -69,16 +80,14 @@ public struct Schedule: Sendable {
 
     /// The move rule for a Move to the end of `day`, listed or not: whether `task` can go there.
     public func canMoveToEnd(_ task: TodoTask, of day: Date) -> Bool {
-        // The window opens on Today, and Overdue is never a destination.
-        guard let today = days.first?.day, day.canBePlanned(today: today) else { return false }
-        return isListed(task)
+        // Outside History, Overdue is never a destination.
+        day.canBeChosen(today: today, showsHistory: showsHistory) && isListed(task)
     }
 
     /// The move rule for a Move of the Overdue Tasks to the top of `day`: whether there are any, and they can go there.
     public func canMoveOverdueTasks(toStartOf day: Date) -> Bool {
-        // The window opens on Today, and Overdue is never a destination.
-        guard let today = days.first?.day, day.canBePlanned(today: today) else { return false }
-        return !overdueIncomplete.isEmpty
+        // Overdue is never a destination.
+        day.canBePlanned(today: today) && !overdueIncomplete.isEmpty
     }
 
     /// Where `task` goes one step up among the Tasks listed, or `nil` when there's none.
@@ -96,8 +105,8 @@ public struct Schedule: Sendable {
     /// Where `task` goes one step down among the Tasks listed, or `nil` when there's none.
     public func destinationOneStepDown(for task: TodoTask) -> MoveDestination? {
         // Overdue is never a destination, so an Overdue Task's next stop is the top of Today.
-        if isOverdue(task), let today = days.first {
-            return MoveDestination(day: today.day, after: nil)
+        if isOverdue(task) {
+            return MoveDestination(day: today, after: nil)
         }
         guard let (dayIndex, taskIndex) = position(of: task) else { return nil }
         let day = days[dayIndex]

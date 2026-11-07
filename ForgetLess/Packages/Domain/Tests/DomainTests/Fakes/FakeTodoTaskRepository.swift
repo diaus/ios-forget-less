@@ -6,8 +6,11 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
     private(set) var tasks: [TodoTask] = []
 
     /// Sends the Tasks once, then ends.
-    func scheduleTasks(today: Date) -> AsyncStream<[TodoTask]> {
-        let scheduleTasks = tasks.filter { $0.day >= today || ($0.completeDay ?? .distantFuture) >= today }
+    func scheduleTasks(today: Date, historyFirstDay: Date?) -> AsyncStream<[TodoTask]> {
+        let scheduleTasks = tasks.filter { task in
+            if let historyFirstDay { return task.day >= historyFirstDay }
+            return task.day >= today || (task.completeDay ?? .distantFuture) >= today
+        }
         return AsyncStream { continuation in
             continuation.yield(scheduleTasks)
             continuation.finish()

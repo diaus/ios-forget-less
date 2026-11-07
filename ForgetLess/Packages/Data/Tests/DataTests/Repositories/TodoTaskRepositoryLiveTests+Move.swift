@@ -83,7 +83,7 @@ extension TodoTaskRepositoryLiveTests {
         let repository = TodoTaskRepositoryLive(modelContainer: container)
 
         try await repository.move(id: overdue.id, to: MoveDestination(day: today, after: nil))
-        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+        var scheduleTasks = try await repository.scheduleTasks(today: today, historyFirstDay: nil).makeAsyncIterator()
 
         let tasks = try #require(await scheduleTasks.next())
         #expect(tasks.map(\.name) == ["Buy milk", "Call mum"])
@@ -110,7 +110,7 @@ extension TodoTaskRepositoryLiveTests {
         let today = try Self.day("2026-10-25")
         let tomorrow = try Self.day("2026-10-26")
         try await repository.create(name: "Buy milk", day: today)
-        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+        var scheduleTasks = try await repository.scheduleTasks(today: today, historyFirstDay: nil).makeAsyncIterator()
         let task = try #require(await scheduleTasks.next()?.first)
 
         try await repository.move(id: task.id, to: MoveDestination(day: tomorrow, after: nil))

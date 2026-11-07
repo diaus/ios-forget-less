@@ -98,7 +98,7 @@ struct TodoTaskRepositoryLiveTests {
         try await repository.setComplete(id: completedToday.id, isComplete: true, today: today)
         try await repository.setComplete(id: completedYesterday.id, isComplete: true, today: yesterday)
 
-        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+        var scheduleTasks = try await repository.scheduleTasks(today: today, historyFirstDay: nil).makeAsyncIterator()
 
         let first = try #require(await scheduleTasks.next())
         #expect(Set(first.map(\.name)) == ["Overdue", "Completed today", "Today's", "Later"])
@@ -123,7 +123,7 @@ struct TodoTaskRepositoryLiveTests {
         )
 
         let repository = TodoTaskRepositoryLive(modelContainer: container)
-        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+        var scheduleTasks = try await repository.scheduleTasks(today: today, historyFirstDay: nil).makeAsyncIterator()
 
         let first = try #require(await scheduleTasks.next())
         #expect(first.map(\.name) == [
@@ -135,7 +135,7 @@ struct TodoTaskRepositoryLiveTests {
     func scheduleTasksAreSentAgainAfterEveryWrite() async throws {
         let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
         let today = try Self.day("2026-10-25")
-        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+        var scheduleTasks = try await repository.scheduleTasks(today: today, historyFirstDay: nil).makeAsyncIterator()
         #expect(await scheduleTasks.next() == [])
 
         try await repository.create(name: "Cal mum", day: today)
@@ -226,7 +226,7 @@ struct TodoTaskRepositoryLiveTests {
         let repository = TodoTaskRepositoryLive(modelContainer: try Self.inMemoryContainer())
         let today = try Self.day("2026-10-25")
         try await repository.create(name: "Buy milk", day: today)
-        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+        var scheduleTasks = try await repository.scheduleTasks(today: today, historyFirstDay: nil).makeAsyncIterator()
         let task = try #require(await scheduleTasks.next()?.first)
 
         try await repository.delete(id: task.id)
@@ -267,8 +267,8 @@ struct TodoTaskRepositoryLiveTests {
         try context.save()
     }
 
-    static func task(_ name: String, day: Date, sortIndex: Int) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: day, completeDay: nil, sortIndex: sortIndex)
+    static func task(_ name: String, day: Date, sortIndex: Int, completeDay: Date? = nil) -> TodoTask {
+        TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: sortIndex)
     }
 
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.

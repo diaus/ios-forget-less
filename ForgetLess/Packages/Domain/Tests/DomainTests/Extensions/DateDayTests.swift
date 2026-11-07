@@ -39,6 +39,21 @@ struct DateDayTests {
     }
 
     @Test(arguments: [
+        ("2026-10-25", false, true),
+        ("2026-10-26", false, true),
+        ("2026-10-24", false, false),
+        ("2025-12-31", false, false),
+        ("2026-10-25", true, true),
+        ("2026-10-26", true, true),
+        ("2026-10-24", true, true),
+        ("2025-12-31", true, true),
+    ])
+    func aDayBeforeTodayCanBeChosenOnlyInHistory(yearMonthDay: String, showsHistory: Bool, canBeChosen: Bool) throws {
+        let today = try day("2026-10-25")
+        #expect(try day(yearMonthDay).canBeChosen(today: today, showsHistory: showsHistory) == canBeChosen)
+    }
+
+    @Test(arguments: [
         ("2026-01-01", true),
         ("2026-12-31", true),
         ("2027-01-01", false),
@@ -89,16 +104,18 @@ struct DateDayTests {
     }
 
     @Test(arguments: [
-        ("2026-10-24", "2026-10-25", RelativeDay.beforeToday),
+        ("2026-10-23", "2026-10-25", RelativeDay.beforeToday),
         ("2025-03-01", "2026-10-25", RelativeDay.beforeToday),
+        ("2026-10-24", "2026-10-25", RelativeDay.yesterday),
         ("2026-10-25", "2026-10-25", RelativeDay.today),
         ("2026-10-26", "2026-10-25", RelativeDay.tomorrow),
         ("2026-10-27", "2026-10-25", RelativeDay.later),
-        ("2026-12-31", "2027-01-01", RelativeDay.beforeToday),
+        ("2026-12-30", "2027-01-01", RelativeDay.beforeToday),
+        ("2026-12-31", "2027-01-01", RelativeDay.yesterday),
         ("2027-01-01", "2026-12-31", RelativeDay.tomorrow),
         ("2027-01-02", "2026-12-31", RelativeDay.later),
     ])
-    func aDaySitsBeforeTodayOnTodayOnTomorrowOrLater(
+    func aDaySitsBeforeYesterdayOnYesterdayTodayTomorrowOrLater(
         yearMonthDay: String,
         today: String,
         relativeDay: RelativeDay

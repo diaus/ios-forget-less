@@ -87,7 +87,7 @@ extension UpcomingWidgetEntry {
         ]
         let listed = tasks.filter { task in
             switch task.day.relativeDay(today: today) {
-            case .beforeToday: showsOverdueTasks
+            case .beforeToday, .yesterday: showsOverdueTasks
             case .today: true
             case .tomorrow: showsTomorrowTasks
             case .later: false

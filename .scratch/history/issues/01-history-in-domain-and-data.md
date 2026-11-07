@@ -10,8 +10,15 @@
 
 **Blocked by:** None
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Domain tests: the History Schedule, the move rules in and out of History, `relativeDay` and the choosing rule (see the spec's Testing Decisions).
-- [ ] Data tests: the stream with and without a first Day.
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] Domain tests: the History Schedule, the move rules in and out of History, `relativeDay` and the choosing rule (see the spec's Testing Decisions).
+- [x] Data tests: the stream with and without a first Day.
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+
+## Comments
+
+- **2026-11-07, the choosing rule:** `Date.canBeChosen(today:showsHistory:)` in `Date+Day`. `canMoveToEnd(_:of:)` uses it, so in History it accepts a Day before the first Day listed too, as the floating picker that pages back without limit (story 25) will need.
+- **2026-11-07, the Schedule:** `Schedule(…, historyFirstDay:)`; `nil` lists outside History. A first Day on or after Today lists no past Day but still lists as History (no Overdue, Complete Tasks shown). Issue 02 never passes one, as the first Day starts about 60 Days back.
+- **2026-11-07, the stream:** `scheduleTasks(today:historyFirstDay:)`. The app passes `nil` until issue 02 holds the History state.
+- **2026-11-07, `yesterday`:** the app's Day chip, header formatting and the widget preview treat it as `beforeToday` until issue 02 names it "Yesterday". `DateDayChipTests` and `DateDayFormattingTests` gained a Day before Yesterday, since their only past Day is now Yesterday.

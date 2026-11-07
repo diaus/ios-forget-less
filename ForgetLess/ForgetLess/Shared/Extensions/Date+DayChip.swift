@@ -17,7 +17,7 @@ extension Date {
     // MARK: - Category
     func dayChipCategory(today: Date) -> DayChipCategory {
         switch relativeDay(today: today) {
-        case .beforeToday: .past
+        case .beforeToday, .yesterday: .past
         case .today: .today
         case .tomorrow: .tomorrow
         case .later: dayCount(from: today) < Date.daysPerWeek ? .weekday : .later

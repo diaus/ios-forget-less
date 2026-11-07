@@ -19,7 +19,7 @@ extension Date {
         switch relativeDay(today: today) {
         case .today: String(localized: .dayToday)
         case .tomorrow: String(localized: .dayTomorrow)
-        case .beforeToday, .later: nil
+        case .beforeToday, .yesterday, .later: nil
         }
     }
 

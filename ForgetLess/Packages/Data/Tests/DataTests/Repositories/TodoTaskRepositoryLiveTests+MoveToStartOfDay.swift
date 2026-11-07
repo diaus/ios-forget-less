@@ -107,7 +107,7 @@ extension TodoTaskRepositoryLiveTests {
         let tomorrow = try Self.day("2026-10-26")
         try await repository.create(name: "Buy milk", day: today)
         try await repository.create(name: "Pay rent", day: today)
-        var scheduleTasks = try await repository.scheduleTasks(today: today).makeAsyncIterator()
+        var scheduleTasks = try await repository.scheduleTasks(today: today, historyFirstDay: nil).makeAsyncIterator()
         let tasks = try #require(await scheduleTasks.next())
 
         try await repository.move(ids: tasks.map(\.id).reversed(), toStartOf: tomorrow)

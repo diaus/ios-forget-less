@@ -5,7 +5,7 @@ import Testing
 @MainActor
 struct DateDayFormattingTests {
     // MARK: - Tests
-    @Test(arguments: ["2026-10-31", "2026-11-01", "2027-03-02", "2026-10-24"])
+    @Test(arguments: ["2026-10-31", "2026-11-01", "2027-03-02", "2026-10-24", "2026-10-20"])
     func aDayOtherThanTodayOrTomorrowIsNamedByItsShortDate(yearMonthDay: String) throws {
         let today = try day("2026-10-25")
         let otherDay = try day(yearMonthDay)

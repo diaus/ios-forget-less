@@ -39,6 +39,11 @@ public extension Date {
         self >= today
     }
 
+    /// Whether this Day can be chosen for a Task, which in History is any Day.
+    func canBeChosen(today: Date, showsHistory: Bool) -> Bool {
+        showsHistory || canBePlanned(today: today)
+    }
+
     /// The Day after this one that a Task can be planned for, which is Today for a Day before Today.
     func nextDayToPlan(today: Date) -> Date {
         max(addingDays(1), today)
@@ -51,7 +56,8 @@ public extension Date {
 
     func relativeDay(today: Date) -> RelativeDay {
         switch dayCount(from: today) {
-        case ..<0: .beforeToday
+        case ..<(-1): .beforeToday
+        case -1: .yesterday
         case 0: .today
         case 1: .tomorrow
         default: .later
@@ -96,6 +102,11 @@ public extension Date {
     /// The first Day of this Day's week, for weeks that start on `firstWeekday`.
     internal func firstDayOfWeek(firstWeekday: Int) -> Date {
         addingDays(-dayCountIntoWeek(firstWeekday: firstWeekday))
+    }
+
+    /// The Days from this one up to `end`, `end` left out; none when `end` isn't after this Day.
+    internal func days(upTo end: Date) -> [Date] {
+        (0..<max(end.dayCount(from: self), 0)).map { addingDays($0) }
     }
 
     /// The 1st of this Day's month.

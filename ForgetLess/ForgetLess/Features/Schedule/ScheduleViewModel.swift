@@ -69,7 +69,7 @@ final class ScheduleViewModel {
     /// Keeps the Schedule up to date with the stored Tasks for the current Today, until the calling task is cancelled.
     func observeSchedule() async {
         do {
-            for await tasks in try await repository.scheduleTasks(today: today) {
+            for await tasks in try await repository.scheduleTasks(today: today, historyFirstDay: nil) {
                 scheduleTasks.observe(tasks)
                 closeFloatingDayPickerWithNothingToMove()
                 closeSheetDayPickerWithNothingToMove()
