@@ -30,6 +30,13 @@ The Day it is now on the device. Rolls over at local midnight.
 **Tomorrow**:
 The Day after Today.
 
+**Yesterday**:
+The Day before Today.
+
 **Overdue**:
 Describes an Incomplete Task whose Day is before Today.
 _Avoid_: Late, missed, past due
+
+**History**:
+A way of listing Days that shows every Day before Today, each with all its Tasks, Complete or not, in place of Overdue. In History any Day can be chosen for a Task, so a Task can be made Overdue on purpose.
+_Avoid_: Archive, past, log, timeline
