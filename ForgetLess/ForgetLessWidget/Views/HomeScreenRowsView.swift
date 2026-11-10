@@ -9,6 +9,8 @@ struct HomeScreenRowsView: View {
     let rows: [UpcomingRow]
     /// How many Tasks the content left out past `rows`; nil while the setting hides the count.
     let leftOutTaskCount: Int?
+    /// Whether the rows of the sizes with controls offer Move arrows besides the Complete circle.
+    let showsMoveArrows: Bool
 
     @Environment(\.widgetFamily) private var family
 
@@ -81,13 +83,15 @@ struct HomeScreenRowsView: View {
             CompleteCircleView(taskID: row.id, font: font)
             UpcomingRowView(row: row, font: font, cutWidth: nil, cutEnding: .empty, leftOutTaskCount: leftOutTaskCount)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            let destinations = row.oneStepDestinations
-            MoveStepsView(
-                taskID: row.id,
-                stepUp: destinations.stepUp,
-                stepDown: destinations.stepDown(allowingPassingATask: !isLastShownBeforeRowsLeftOut),
-                font: font
-            )
+            if showsMoveArrows {
+                let destinations = row.oneStepDestinations
+                MoveStepsView(
+                    taskID: row.id,
+                    stepUp: destinations.stepUp,
+                    stepDown: destinations.stepDown(allowingPassingATask: !isLastShownBeforeRowsLeftOut),
+                    font: font
+                )
+            }
         }
         .frame(height: font.lineHeight)
     }
@@ -127,4 +131,16 @@ struct HomeScreenRowsView: View {
     UpcomingWidget()
 } timeline: {
     UpcomingWidgetEntry.preview(taskCount: 11)
+}
+
+#Preview("Medium, Move arrows off", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 1, todayCount: 3, tomorrowCount: 1, rowLimit: nil, showsMoveArrows: false)
+}
+
+#Preview("Large, Move arrows off", as: .systemLarge) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 1, todayCount: 6, tomorrowCount: 2, rowLimit: nil, showsMoveArrows: false)
 }

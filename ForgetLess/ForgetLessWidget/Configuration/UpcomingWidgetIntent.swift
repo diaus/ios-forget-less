@@ -6,7 +6,7 @@ import WidgetKit
 // swiftlint:disable catalog_key_literal
 
 /// The widget's settings: whether it lists Overdue Tasks and Tomorrow's Tasks besides Today's, whether it counts the
-/// Tasks it leaves out, and how it lays them out.
+/// Tasks it leaves out, whether its rows offer Move arrows, and how it lays them out.
 struct UpcomingWidgetIntent: WidgetConfigurationIntent {
     static let title: LocalizedStringResource = "widget.title"
 
@@ -25,31 +25,46 @@ struct UpcomingWidgetIntent: WidgetConfigurationIntent {
     @Parameter(title: "widget.cutEnding", default: .empty)
     var cutEnding: CutEnding
 
+    @Parameter(title: "widget.showMoveArrows", default: true)
+    var showsMoveArrows: Bool
+
     // The Home Screen never shows two columns, so its sheet hides both layout settings. On the Lock Screen, the
-    // cut ending applies only to two columns, so the sheet hides it while they're off.
+    // cut ending applies only to two columns, so the sheet hides it while they're off. Only the sizes with controls
+    // have Move arrows to hide.
     static var parameterSummary: some ParameterSummary {
-        When(widgetFamily: .equalTo, .accessoryRectangular) {
-            When(\.$showsTwoColumns, .equalTo, true) {
-                Summary {
-                    \.$showsOverdueTasks
-                    \.$showsTomorrowTasks
-                    \.$showsLeftOutCount
-                    \.$showsTwoColumns
-                    \.$cutEnding
-                }
-            } otherwise: {
-                Summary {
-                    \.$showsOverdueTasks
-                    \.$showsTomorrowTasks
-                    \.$showsLeftOutCount
-                    \.$showsTwoColumns
+        Switch(.widgetFamily) {
+            Case(.accessoryRectangular) {
+                When(\.$showsTwoColumns, .equalTo, true) {
+                    Summary {
+                        \.$showsOverdueTasks
+                        \.$showsTomorrowTasks
+                        \.$showsLeftOutCount
+                        \.$showsTwoColumns
+                        \.$cutEnding
+                    }
+                } otherwise: {
+                    Summary {
+                        \.$showsOverdueTasks
+                        \.$showsTomorrowTasks
+                        \.$showsLeftOutCount
+                        \.$showsTwoColumns
+                    }
                 }
             }
-        } otherwise: {
-            Summary {
-                \.$showsOverdueTasks
-                \.$showsTomorrowTasks
-                \.$showsLeftOutCount
+            Case([.systemMedium, .systemLarge]) {
+                Summary {
+                    \.$showsOverdueTasks
+                    \.$showsTomorrowTasks
+                    \.$showsLeftOutCount
+                    \.$showsMoveArrows
+                }
+            }
+            DefaultCase {
+                Summary {
+                    \.$showsOverdueTasks
+                    \.$showsTomorrowTasks
+                    \.$showsLeftOutCount
+                }
             }
         }
     }

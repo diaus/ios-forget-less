@@ -1158,6 +1158,23 @@
         }
       }
     },
+    "widget.showMoveArrows" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Move Arrows"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показувати стрілки переміщення"
+          }
+        }
+      }
+    },
     "widget.showOverdueTasks" : {
       "extractionState" : "manual",
       "localizations" : {

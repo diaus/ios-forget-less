@@ -16,7 +16,8 @@ struct UpcomingWidget: Widget {
             UpcomingWidgetView(
                 content: entry.content,
                 cutEnding: entry.cutEnding,
-                showsLeftOutCount: entry.showsLeftOutCount
+                showsLeftOutCount: entry.showsLeftOutCount,
+                showsMoveArrows: entry.showsMoveArrows
             )
         }
         .configurationDisplayName(Text(.widgetTitle))

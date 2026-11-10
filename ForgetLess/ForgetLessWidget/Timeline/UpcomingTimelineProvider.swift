@@ -80,7 +80,8 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
             date: moment,
             content: content,
             cutEnding: configuration.cutEnding,
-            showsLeftOutCount: configuration.showsLeftOutCount
+            showsLeftOutCount: configuration.showsLeftOutCount,
+            showsMoveArrows: configuration.showsMoveArrows
         )
     }
 }

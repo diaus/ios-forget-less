@@ -35,7 +35,8 @@ extension UpcomingWidgetEntry {
         todayCount: Int,
         tomorrowCount: Int,
         rowLimit: Int? = UpcomingWidgetContent.maxRowCount,
-        showsLeftOutCount: Bool = true
+        showsLeftOutCount: Bool = true,
+        showsMoveArrows: Bool = true
     ) -> UpcomingWidgetEntry {
         let today = Date.today
         let days = Array(repeating: today.addingDays(-1), count: overdueCount)
@@ -51,7 +52,12 @@ extension UpcomingWidgetEntry {
             )
         }
         let content = UpcomingWidgetContent(tasks: tasks, today: today, listsTomorrow: true, rowLimit: rowLimit)
-        return UpcomingWidgetEntry(date: .now, content: content, showsLeftOutCount: showsLeftOutCount)
+        return UpcomingWidgetEntry(
+            date: .now,
+            content: content,
+            showsLeftOutCount: showsLeftOutCount,
+            showsMoveArrows: showsMoveArrows
+        )
     }
 
     /// Long names on every kind of Day, so each marker meets a cut name.

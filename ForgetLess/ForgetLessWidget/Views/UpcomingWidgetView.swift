@@ -7,6 +7,7 @@ struct UpcomingWidgetView: View {
     let content: UpcomingWidgetContent
     let cutEnding: CutEnding
     let showsLeftOutCount: Bool
+    let showsMoveArrows: Bool
 
     @Environment(\.widgetFamily) private var family
 
@@ -22,7 +23,11 @@ struct UpcomingWidgetView: View {
                 if family.isOnLockScreen {
                     LockScreenRowsView(rows: rows, leftOutTaskCount: leftOutTaskCountIfShown, cutEnding: cutEnding)
                 } else {
-                    HomeScreenRowsView(rows: rows, leftOutTaskCount: leftOutTaskCountIfShown)
+                    HomeScreenRowsView(
+                        rows: rows,
+                        leftOutTaskCount: leftOutTaskCountIfShown,
+                        showsMoveArrows: showsMoveArrows
+                    )
                 }
             }
         }
