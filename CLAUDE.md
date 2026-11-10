@@ -24,6 +24,8 @@ Build, test and run through the MobileBuildMCP tools (`build_sim`, `test_sim`, `
 
 SourceKit's "No such module" diagnostics for the local packages are index noise; `build_sim` is the source of truth.
 
+`RenderPreview` for widget previews: `docs/agents/previews.md` (the first render's `timelineReloadTimeout`, blank Lock Screen renders).
+
 ## Done
 
 Before reporting done:
