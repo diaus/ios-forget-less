@@ -53,10 +53,13 @@ struct FloatingDayPickerOverlayView: View {
     }
 
     // MARK: - UI Components
-    /// Takes every touch outside the picker, so a touch on the list only closes the picker, and never scrolls it.
+    /// Sets the screen back behind the picker, as the sheet Day picker does, and takes every touch outside the picker,
+    /// so a touch on the list only closes the picker, and never scrolls it.
     private var backdrop: some View {
-        Color.clear
+        Color(.floatingDayPickerDim)
             .contentShape(.rect)
             .gesture(DragGesture(minimumDistance: 0).onEnded { _ in vm.closeFloatingDayPicker() })
+            // Fades while the picker grows or shrinks, rather than snapping.
+            .transition(.opacity)
     }
 }
