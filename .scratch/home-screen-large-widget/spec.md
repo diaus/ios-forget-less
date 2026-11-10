@@ -15,7 +15,7 @@ The "Upcoming" widget gains the large and medium Home Screen sizes (`.systemLarg
 1. As a user, I want a large "Upcoming" widget on the Home Screen, with the same settings and the same Tasks in the Schedule's order, so that I see more of my list.
 2. As a user, I want the sizes with controls to keep every row at the full font and gap (17pt, 5pt apart), listing as many as fit from the top and never shrinking them, so that every row stays readable and its controls easy to hit. The small widget still fits rows by shrinking the gaps first, then the font.
 3. As a user, I want a circle at the front of each row that makes the Task Complete on Today, so that I tick it off without opening the app.
-4. As a user, I want a completed Task to leave the widget, so that the widget holds only what's still to do.
+4. As a user, I want a Task I complete to stay in its place, struck through, for the widget's Grace Period, then leave, so that the widget holds only what's still to do and a mis-tap can be undone.
 5. As a user, I want the up arrow to Move the Task one step up and the down arrow to Move it one step down, so that each arrow does what it shows.
 6. As a user, I want a step to pass the listed Task beside it, skipping the Complete Tasks the widget doesn't list, so that every tap changes what I see.
 7. As a user, I want a step down from the last Today row to put the Task first on Tomorrow, and a step up from the first Tomorrow row to put it last on Today, so that I can push a Task to Tomorrow and bring it back.
@@ -28,6 +28,13 @@ The "Upcoming" widget gains the large and medium Home Screen sizes (`.systemLarg
 14. As a VoiceOver user, I want the circle read as "Complete" and the arrows as "Move Up" and "Move Down", with an arrow that can't act left out.
 15. As a user, I want the small widget and the Lock Screen widget unchanged.
 16. As a user, I want a medium "Upcoming" widget with the large one's circle and arrows, so that I can tick off and Move Tasks from a widget half the size.
+17. As a user, I want to tap the checked circle of a Task in its Grace Period to make it Incomplete again, in place, so that I undo a mis-tap without opening the app.
+18. As a user, I want to set each medium and large widget's Grace Period ("Keep Complete Tasks For": Off, 3 s, 5 s, 10 s or 20 s; 3 s by default), with Off dropping a Task at once, so that each widget keeps a Task as long as suits it.
+19. As a user, I want a Task in its Grace Period to show no Move arrows, and the "+N" to stay as it was until the Task leaves, so that only the undo is offered and the rest of the widget doesn't shift.
+20. As a user, I want a Task I complete in the app kept on a widget for what's left of that widget's Grace Period, so that every widget follows one rule.
+21. As a user, I want a Task in its Grace Period dropped at the rollover, so that the widget shows the new Today straight away.
+22. As a VoiceOver user, I want the checked circle read as "Make Incomplete".
+23. As a user, I want a Task I complete from Overdue in the app to stay in Overdue, Complete, for an hour, even past midnight, so that a mis-tap can be undone whatever my time zone.
 
 ## Implementation Decisions
 
@@ -46,6 +53,11 @@ The "Upcoming" widget gains the large and medium Home Screen sizes (`.systemLarg
   - Two App Intents, Complete and Move, write through `TodoTaskWriter`. They're hidden from Shortcuts. A failed write is logged.
   - Each intent reloads every timeline after its write (ADR 0005).
   - The row controls live with the rows views.
+- **Grace Period and the Overdue hour** (issues 03 and 04):
+  - A Task stores `completeTime`, the moment it was made Complete, in place of `completeDay` (ADR 0007). V1 is edited in place, with `originalName` for the one device holding real data.
+  - Overdue keeps a Task completed from it for an hour after `completeTime`, measured against now, and the app rebuilds the Schedule when that hour ends.
+  - The widget's setting is a `WidgetConfigurationIntent` parameter, shown only on the sizes with controls. The timeline lists the Complete Tasks within it, with an entry for each one's leaving, and none in the rollover entry.
+  - The circle of a Task in its Grace Period runs an intent that makes it Incomplete.
 - **ADR 0005** records that the widget writes, and supersedes ADR 0003's no-write consequence.
 
 ## Testing Decisions
@@ -63,6 +75,6 @@ The "Upcoming" widget gains the large and medium Home Screen sizes (`.systemLarg
 ## Out of Scope
 
 - The extra-large size, and controls on the small size or the Lock Screen.
-- Undo from the widget.
+- Undo from the widget after the Grace Period.
 - Opening a specific Task on tap.
 - Showing that Tasks were left out: see `.scratch/widget-left-out-count/`.

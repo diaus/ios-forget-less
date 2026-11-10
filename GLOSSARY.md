@@ -14,6 +14,10 @@ _Avoid_: Todo, item, reminder, entry
 The two states of a Task. A Task is Complete once the user has done it, and can be made Incomplete again.
 _Avoid_: Done, finished, checked, closed, open, pending
 
+**Grace Period**:
+The short time a Task just made Complete stays listed where Complete Tasks are hidden, struck through, so the tap can be undone. The app has one Grace Period, and each Home Screen widget with controls has its own.
+_Avoid_: Kept duration, undo window, delay
+
 **Move**:
 To give a Task a new place: a position on its own Day or on another. Moving never makes a Task Complete or Incomplete.
 _Avoid_: Drag, reorder, reschedule, postpone
@@ -34,7 +38,7 @@ The Day after Today.
 The Day before Today.
 
 **Overdue**:
-Describes an Incomplete Task whose Day is before Today.
+Describes an Incomplete Task whose Day is before Today. A Task completed from Overdue stays listed there, Complete, for an hour.
 _Avoid_: Late, missed, past due
 
 **History**:

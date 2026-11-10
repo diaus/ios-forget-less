@@ -18,4 +18,5 @@ Every Day is reckoned in `Calendar.gmt` (Domain): the current calendar with its 
 ## Consequences
 
 - Never compute with a Day using `Calendar.current` or `startOfDay(for:)`. Either one shifts the Day by the UTC offset. Use `Calendar.gmt`, and format with `Date.FormatStyle(calendar: .gmt, timeZone: .gmt)`.
+- The moment a Task was made Complete is not a Day: it's stored as a plain moment and never compared with Today (ADR 0007).
 - A time-zone change leaves every Day valid. The app only recomputes Today: at midnight, and when the local year/month/day changes with the zone.
