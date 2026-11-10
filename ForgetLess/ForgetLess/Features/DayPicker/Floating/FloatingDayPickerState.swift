@@ -15,13 +15,12 @@ struct FloatingDayPickerState {
     /// Whether the picker took the keyboard down to make room, so closing it brings the keyboard back.
     private(set) var hasHiddenKeyboard = false
 
-    /// - Parameter firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
-    init(today: Date, day: Date, showsHistory: Bool, firstWeekday: Int = Date.firstWeekday) {
+    init(today: Date, day: Date, showsHistory: Bool) {
         self.today = today
         self.day = day
         self.showsHistory = showsHistory
         let ownMonthOffset = day.monthCount(from: today)
-        let ownMonth = DayPickerCalendar.Month(today: today, offset: ownMonthOffset, firstWeekday: firstWeekday)
+        let ownMonth = DayPickerCalendar.Month(today: today, offset: ownMonthOffset)
         let ownMonthShowsDay = ownMonth.weeks(count: FloatingDayPickerLayout.weekCount).joined().contains(day)
         // A Day its own month's weeks cut off at the end falls in the next month's first week.
         self.monthOffset = ownMonthShowsDay ? ownMonthOffset : ownMonthOffset + 1

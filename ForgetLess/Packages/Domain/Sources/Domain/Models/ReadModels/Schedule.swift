@@ -28,7 +28,6 @@ public struct Schedule: Sendable {
     ///   - tasks: In order of Day, then position within it, as the repository sends them.
     ///   - showsComplete: Whether Complete Tasks are listed.
     ///   - keptTaskIDs: Complete Tasks listed even while Complete Tasks are hidden, so a mis-tap can be undone.
-    ///   - firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
     ///   - windowDayCount: How many Days from Today on are listed, with Tasks or not. A later Day is listed only for
     ///     its Tasks.
     ///   - historyFirstDay: The first Day listed in History, or `nil` to list outside History.
@@ -37,7 +36,6 @@ public struct Schedule: Sendable {
         today: Date,
         showsComplete: Bool = true,
         keptTaskIDs: Set<UUID> = [],
-        firstWeekday: Int = Date.firstWeekday,
         windowDayCount: Int = 100,
         historyFirstDay: Date? = nil
     ) {
@@ -65,7 +63,7 @@ public struct Schedule: Sendable {
             return Day(
                 day: day,
                 tasks: tasksByDay[day, default: []],
-                startsWeek: previousDay.map { !day.isInSameWeek(as: $0, firstWeekday: firstWeekday) } ?? false,
+                startsWeek: previousDay.map { !day.isInSameWeek(as: $0) } ?? false,
                 startsMonth: previousDay.map { !day.isInSameMonth(as: $0) } ?? day.isFirstDayOfMonth
             )
         }

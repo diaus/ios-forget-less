@@ -31,7 +31,9 @@ struct FloatingDayPickerStateTests {
         let today = try day("2026-11-10")
         let day = try day(dayYearMonthDay)
 
-        let picker = FloatingDayPickerState(today: today, day: day, showsHistory: false, firstWeekday: firstWeekday)
+        let picker = Date.withFirstWeekday(firstWeekday) {
+            FloatingDayPickerState(today: today, day: day, showsHistory: false)
+        }
 
         #expect(picker.monthOffset == monthOffset)
         #expect(picker.chosenDay == day)

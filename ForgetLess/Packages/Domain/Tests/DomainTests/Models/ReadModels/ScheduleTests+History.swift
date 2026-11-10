@@ -41,12 +41,13 @@ extension ScheduleTests {
         #expect(schedule.days[1].tasks.map(\.name) == ["Completed today"])
     }
 
-    @Test func historysWeeksAndMonthsCarryOnAcrossThePastAndIntoToday() throws {
+    @Test(.firstWeekday(2))
+    func historysWeeksAndMonthsCarryOnAcrossThePastAndIntoToday() throws {
         // Monday 2026-11-02, with weeks starting on Monday.
         let today = try day("2026-11-02")
         let firstDay = try day("2026-10-20")
 
-        let schedule = Schedule(tasks: [], today: today, firstWeekday: 2, historyFirstDay: firstDay)
+        let schedule = Schedule(tasks: [], today: today, historyFirstDay: firstDay)
 
         let throughToday = schedule.days.prefix { $0.day <= today }
         #expect(throughToday.filter(\.startsWeek).map(\.day) == [try day("2026-10-26"), today])

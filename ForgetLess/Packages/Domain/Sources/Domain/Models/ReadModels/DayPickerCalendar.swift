@@ -10,10 +10,9 @@ public struct DayPickerCalendar: Sendable {
         public let days: [Date]
 
         /// The month `offset` months after Today's month, which is offset 0, or before it when negative.
-        /// - Parameter firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
-        public init(today: Date, offset: Int, firstWeekday: Int = Date.firstWeekday) {
+        public init(today: Date, offset: Int) {
             firstDay = today.firstDayOfMonth.addingMonths(offset)
-            leadingBlankCount = firstDay.dayCountIntoWeek(firstWeekday: firstWeekday)
+            leadingBlankCount = firstDay.dayCountIntoWeek
             let dayCount = firstDay.addingMonths(1).dayCount(from: firstDay)
             days = (0..<dayCount).map(firstDay.addingDays)
         }
@@ -44,19 +43,15 @@ public struct DayPickerCalendar: Sendable {
     public let months: [Month]
 
     /// `monthCount` months from the month `firstMonthOffset` months after Today's, or before it when negative.
-    /// - Parameter firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
-    public init(today: Date, firstMonthOffset: Int = 0, monthCount: Int, firstWeekday: Int = Date.firstWeekday) {
-        weekdays = Self.weekdays(firstWeekday: firstWeekday)
-        months = (firstMonthOffset..<firstMonthOffset + monthCount).map {
-            Month(today: today, offset: $0, firstWeekday: firstWeekday)
-        }
+    public init(today: Date, firstMonthOffset: Int = 0, monthCount: Int) {
+        weekdays = Self.weekdays()
+        months = (firstMonthOffset..<firstMonthOffset + monthCount).map { Month(today: today, offset: $0) }
     }
 
     /// A Day of each weekday, in the order the header shows them, to be formatted as its weekday.
-    /// - Parameter firstWeekday: The weekday weeks start on, numbered as `Date.firstWeekday` is.
-    public static func weekdays(firstWeekday: Int = Date.firstWeekday) -> [Date] {
+    public static func weekdays() -> [Date] {
         // Any week holds every weekday once, and the epoch is a Day.
-        let weekStart = Date(timeIntervalSince1970: 0).firstDayOfWeek(firstWeekday: firstWeekday)
+        let weekStart = Date(timeIntervalSince1970: 0).firstDayOfWeek
         return (0..<Date.daysPerWeek).map(weekStart.addingDays)
     }
 

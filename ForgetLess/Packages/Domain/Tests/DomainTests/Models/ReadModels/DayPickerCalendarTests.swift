@@ -2,10 +2,11 @@ import Domain
 import Foundation
 import Testing
 
+@Suite(.firstWeekday(2))
 struct DayPickerCalendarTests {
     // MARK: - Tests
     @Test func theMonthsStartWithTodaysMonthAndNumberAsManyAsAskedFor() throws {
-        let calendar = DayPickerCalendar(today: try day("2026-08-17"), monthCount: 3, firstWeekday: 2)
+        let calendar = DayPickerCalendar(today: try day("2026-08-17"), monthCount: 3)
 
         let firstDays = [try day("2026-08-01"), try day("2026-09-01"), try day("2026-10-01")]
         #expect(calendar.months.map(\.firstDay) == firstDays)
@@ -13,7 +14,7 @@ struct DayPickerCalendarTests {
 
     @Test func theMonthsCanStartBeforeTodaysMonthAndRunBackIntoThePreviousYear() throws {
         let today = try day("2026-02-17")
-        let calendar = DayPickerCalendar(today: today, firstMonthOffset: -2, monthCount: 4, firstWeekday: 2)
+        let calendar = DayPickerCalendar(today: today, firstMonthOffset: -2, monthCount: 4)
 
         let firstDays = try ["2025-12-01", "2026-01-01", "2026-02-01", "2026-03-01"].map(day)
         #expect(calendar.months.map(\.firstDay) == firstDays)
@@ -21,7 +22,7 @@ struct DayPickerCalendarTests {
     }
 
     @Test func theMonthsRunOnIntoTheNextYear() throws {
-        let calendar = DayPickerCalendar(today: try day("2026-12-31"), monthCount: 3, firstWeekday: 2)
+        let calendar = DayPickerCalendar(today: try day("2026-12-31"), monthCount: 3)
 
         let firstDays = [try day("2026-12-01"), try day("2027-01-01"), try day("2027-02-01")]
         let lastDays = [try day("2026-12-31"), try day("2027-01-31"), try day("2027-02-28")]
@@ -31,7 +32,8 @@ struct DayPickerCalendarTests {
 
     @Test(arguments: [(2, [2, 3, 4, 5, 6, 7, 1]), (1, [1, 2, 3, 4, 5, 6, 7])])
     func theWeekdayHeaderStartsOnTheFirstWeekday(firstWeekday: Int, weekdays: [Int]) throws {
-        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 1, firstWeekday: firstWeekday)
+        let today = try day("2026-11-17")
+        let calendar = Date.withFirstWeekday(firstWeekday) { DayPickerCalendar(today: today, monthCount: 1) }
 
         #expect(calendar.weekdays.map { Calendar.gmt.component(.weekday, from: $0) } == weekdays)
     }
@@ -39,7 +41,8 @@ struct DayPickerCalendarTests {
     // 2026-11-01 is a Sunday and 2026-12-01 a Tuesday.
     @Test(arguments: [(2, [6, 1]), (1, [0, 2])])
     func theBlankCellsBeforeEachMonthsFirstDayFollowTheFirstWeekday(firstWeekday: Int, blankCounts: [Int]) throws {
-        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 2, firstWeekday: firstWeekday)
+        let today = try day("2026-11-17")
+        let calendar = Date.withFirstWeekday(firstWeekday) { DayPickerCalendar(today: today, monthCount: 2) }
 
         #expect(calendar.months.map(\.leadingBlankCount) == blankCounts)
     }
@@ -51,14 +54,14 @@ struct DayPickerCalendarTests {
         ("2027-02-10", 28),
     ])
     func aMonthHoldsEachOfItsDaysInOrderFromTheFirst(today: String, dayCount: Int) throws {
-        let month = try #require(DayPickerCalendar(today: try day(today), monthCount: 1, firstWeekday: 2).months.first)
+        let month = try #require(DayPickerCalendar(today: try day(today), monthCount: 1).months.first)
 
         #expect(month.days.map { $0.dayCount(from: month.firstDay) } == Array(0..<dayCount))
     }
 
     // 2026-11-01 is a Sunday, so a Monday start leaves six blank cells before it.
     @Test func aMonthsWeeksPadItsFirstAndLastWeekWithBlankCells() throws {
-        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 1, firstWeekday: 2)
+        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 1)
         let month = try #require(calendar.months.first)
 
         let blanks = { (count: Int) in [Date?](repeating: nil, count: count) }
@@ -70,7 +73,7 @@ struct DayPickerCalendarTests {
 
     // 2027-02-01 is a Monday, and February 2027 has 28 Days.
     @Test func aMonthThatFillsWholeWeeksHasNoBlankCells() throws {
-        let calendar = DayPickerCalendar(today: try day("2027-02-10"), monthCount: 1, firstWeekday: 2)
+        let calendar = DayPickerCalendar(today: try day("2027-02-10"), monthCount: 1)
         let month = try #require(calendar.months.first)
 
         #expect(month.weeks.count == 4)
@@ -80,7 +83,7 @@ struct DayPickerCalendarTests {
     }
 
     @Test func theWeekHoldingADayIsFoundInItsMonth() throws {
-        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 2, firstWeekday: 2)
+        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 2)
 
         let week = try #require(calendar.week(containing: try day("2026-12-03")))
         // 2026-12-01 is a Tuesday.
@@ -89,7 +92,7 @@ struct DayPickerCalendarTests {
 
     @Test(arguments: ["2026-10-31", "2027-01-01"])
     func noWeekHoldsADayOutsideTheMonthsShown(yearMonthDay: String) throws {
-        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 2, firstWeekday: 2)
+        let calendar = DayPickerCalendar(today: try day("2026-11-17"), monthCount: 2)
 
         #expect(calendar.week(containing: try day(yearMonthDay)) == nil)
     }
@@ -101,7 +104,7 @@ struct DayPickerCalendarTests {
         (15, "2028-02-01", "2028-02-29"),
     ])
     func aMonthAtAnOffsetIsThatManyMonthsAfterTodaysMonth(offset: Int, firstDay: String, lastDay: String) throws {
-        let month = DayPickerCalendar.Month(today: try day("2026-11-17"), offset: offset, firstWeekday: 2)
+        let month = DayPickerCalendar.Month(today: try day("2026-11-17"), offset: offset)
 
         #expect(try month.firstDay == day(firstDay))
         #expect(try month.days.last == day(lastDay))
@@ -110,18 +113,20 @@ struct DayPickerCalendarTests {
     @Test(arguments: [2, 1])
     func aMonthAtAnOffsetIsTheSameMonthTheMonthsShow(firstWeekday: Int) throws {
         let today = try day("2026-11-17")
-        let months = DayPickerCalendar(today: today, monthCount: 4, firstWeekday: firstWeekday).months
+        Date.withFirstWeekday(firstWeekday) {
+            let months = DayPickerCalendar(today: today, monthCount: 4).months
 
-        for (offset, shown) in months.enumerated() {
-            let month = DayPickerCalendar.Month(today: today, offset: offset, firstWeekday: firstWeekday)
-            #expect(month.leadingBlankCount == shown.leadingBlankCount)
-            #expect(month.days == shown.days)
+            for (offset, shown) in months.enumerated() {
+                let month = DayPickerCalendar.Month(today: today, offset: offset)
+                #expect(month.leadingBlankCount == shown.leadingBlankCount)
+                #expect(month.days == shown.days)
+            }
         }
     }
 
     @Test(arguments: [(2, [2, 3, 4, 5, 6, 7, 1]), (1, [1, 2, 3, 4, 5, 6, 7])])
     func theWeekdayHeaderStartsOnTheFirstWeekdayWithoutAnyMonth(firstWeekday: Int, weekdays: [Int]) {
-        let header = DayPickerCalendar.weekdays(firstWeekday: firstWeekday)
+        let header = Date.withFirstWeekday(firstWeekday) { DayPickerCalendar.weekdays() }
 
         #expect(header.map { Calendar.gmt.component(.weekday, from: $0) } == weekdays)
     }
@@ -131,7 +136,8 @@ struct DayPickerCalendarTests {
     func aFiveWeekGridStartsOnTheWeekHoldingTheFirstAndRunsOnConsecutiveDays(
         firstWeekday: Int, firstCell: String
     ) throws {
-        let month = DayPickerCalendar.Month(today: try day("2026-11-17"), offset: 1, firstWeekday: firstWeekday)
+        let today = try day("2026-11-17")
+        let month = Date.withFirstWeekday(firstWeekday) { DayPickerCalendar.Month(today: today, offset: 1) }
 
         let weeks = month.weeks(count: 5)
 
@@ -143,8 +149,8 @@ struct DayPickerCalendarTests {
     // March 2026 runs from a Sunday to a Tuesday, so with a Monday start it spans 6 weeks.
     @Test func aMonthSpanningSixWeeksLosesItsLastRowsDaysToTheNextMonthsGrid() throws {
         let today = try day("2026-03-10")
-        let march = DayPickerCalendar.Month(today: today, offset: 0, firstWeekday: 2).weeks(count: 5)
-        let april = DayPickerCalendar.Month(today: today, offset: 1, firstWeekday: 2).weeks(count: 5)
+        let march = DayPickerCalendar.Month(today: today, offset: 0).weeks(count: 5)
+        let april = DayPickerCalendar.Month(today: today, offset: 1).weeks(count: 5)
 
         #expect(try march.last?.last == day("2026-03-29"))
         #expect(try april.first?.prefix(2) == [day("2026-03-30"), day("2026-03-31")])
@@ -152,7 +158,7 @@ struct DayPickerCalendarTests {
 
     // 2027-02-01 is a Monday, and February 2027 has 28 Days.
     @Test func aFebruarySpanningFourWeeksGetsMarchsFirstWeekAsItsFifthRow() throws {
-        let month = DayPickerCalendar.Month(today: try day("2027-02-10"), offset: 0, firstWeekday: 2)
+        let month = DayPickerCalendar.Month(today: try day("2027-02-10"), offset: 0)
 
         let weeks = month.weeks(count: 5)
 

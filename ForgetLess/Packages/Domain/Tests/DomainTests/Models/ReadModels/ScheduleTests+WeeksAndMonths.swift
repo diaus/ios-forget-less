@@ -9,7 +9,7 @@ extension ScheduleTests {
     func todayNeverStartsAWeekEvenOnTheFirstWeekday(firstWeekday: Int) throws {
         // A Sunday, then a Monday.
         for today in [try day("2026-11-01"), try day("2026-11-02")] {
-            let schedule = Schedule(tasks: [], today: today, firstWeekday: firstWeekday)
+            let schedule = Date.withFirstWeekday(firstWeekday) { Schedule(tasks: [], today: today) }
 
             #expect(!schedule.days[0].startsWeek)
         }
@@ -19,7 +19,7 @@ extension ScheduleTests {
     func inTheWindowOnlyTheFirstWeekdayStartsAWeek(firstWeekday: Int, firstWeekStart: String) throws {
         let today = try day("2026-11-01")
 
-        let schedule = Schedule(tasks: [], today: today, firstWeekday: firstWeekday)
+        let schedule = Date.withFirstWeekday(firstWeekday) { Schedule(tasks: [], today: today) }
 
         let weekStarts = schedule.days.filter(\.startsWeek).map(\.day)
         let firstStart = try day(firstWeekStart)
@@ -29,7 +29,8 @@ extension ScheduleTests {
         #expect(weekStarts == expected)
     }
 
-    @Test func aDayAfterTheWindowStartsAWeekWhenTheDayListedBeforeIsInAnotherOne() throws {
+    @Test(.firstWeekday(2))
+    func aDayAfterTheWindowStartsAWeekWhenTheDayListedBeforeIsInAnotherOne() throws {
         // The window runs through Monday 2027-02-08.
         let today = try day("2026-11-01")
         let tasks = [
@@ -37,7 +38,7 @@ extension ScheduleTests {
             task("A week on, mid-week", day: try day("2027-02-17"), sortIndex: 0),
         ]
 
-        let schedule = Schedule(tasks: tasks, today: today, firstWeekday: 2)
+        let schedule = Schedule(tasks: tasks, today: today)
 
         #expect(schedule.days.dropFirst(100).map(\.startsWeek) == [false, true])
     }

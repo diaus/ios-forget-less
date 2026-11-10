@@ -80,7 +80,9 @@ struct DateDayTests {
         firstWeekday: Int,
         isInSameWeek: Bool
     ) throws {
-        #expect(try day(yearMonthDay).isInSameWeek(as: try day(other), firstWeekday: firstWeekday) == isInSameWeek)
+        let (first, second) = (try day(yearMonthDay), try day(other))
+
+        #expect(Date.withFirstWeekday(firstWeekday) { first.isInSameWeek(as: second) } == isInSameWeek)
     }
 
     @Test(arguments: [

@@ -3,8 +3,20 @@ import Foundation
 public extension Calendar {
     /// The calendar every Day is reckoned in (ADR 0001).
     static var gmt: Calendar {
-        var calendar = Calendar.current
+        var calendar = Calendar.user
         calendar.timeZone = .gmt
+        return calendar
+    }
+
+    // Auto-updating, since this default is made once and must follow the user's later changes to their settings.
+    /// The user's calendar: the device's, or the one a test pins with `Date.withFirstWeekday`.
+    @TaskLocal internal static var user: Calendar = .autoupdatingCurrent
+
+    /// A Gregorian calendar whose weeks start on `firstWeekday`, the same on any machine.
+    internal static func pinned(firstWeekday: Int) -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        calendar.firstWeekday = firstWeekday
         return calendar
     }
 

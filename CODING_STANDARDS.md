@@ -63,7 +63,7 @@ These are the judgement calls tooling can't make. Tooling already enforces these
   - use a fake the code under test can never reach, so the assertion passes whatever the code does.
 - **View models stay untested**. Logic in one that deserves a test moves to Domain.
 - **A test that registers on `Container.shared` runs with FactoryTesting's `.container` trait,** so its registration doesn't carry over into tests running in parallel.
-- **Tests never depend on the machine's clock or time zone.** Pass `today`, never `Date.today`. Days are GMT midnights, so only the Today rule's tests pin a local time zone, on both sides of GMT.
+- **Tests never depend on the machine's clock, time zone or region.** Pass `today`, never `Date.today`. Days are GMT midnights, so only the Today rule's tests pin a local time zone, on both sides of GMT. A test that depends on the weekday weeks start on pins it with the `.firstWeekday(_:)` trait, or with `Date.withFirstWeekday` inside a test that takes the weekday as an argument. Production code never takes the weekday as a parameter just for tests.
 - **SwiftData fetches are unordered unless sorted.** The repository's lists of Tasks are sorted in the query, by Day then `sortIndex`, as its protocol doc comments promise, so their tests assert that order and their callers rely on it. Any other fetch is compared as a set or sorted first.
 
 ## Blast radius (reviews)

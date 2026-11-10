@@ -8,12 +8,12 @@ public extension Date {
 
     /// Today as it is at `moment`, by the device's calendar.
     static func today(at moment: Date) -> Date {
-        Calendar.current.day(containing: moment)
+        Calendar.user.day(containing: moment)
     }
 
     /// The moment Today next rolls over after `moment`, by the device's calendar.
     static func nextRollover(after moment: Date) -> Date {
-        Calendar.current.nextRollover(after: moment)
+        Calendar.user.nextRollover(after: moment)
     }
 
     /// The Day `dayCount` Days after this one, or before it when negative.
@@ -71,15 +71,24 @@ public extension Date {
         Calendar.gmt.isDate(self, equalTo: day, toGranularity: .year)
     }
 
-    /// The weekday the user's weeks start on, numbered as `Calendar` numbers them (1 is Sunday).
-    static var firstWeekday: Int {
-        Calendar.current.firstWeekday
+    /// Runs `operation` with weeks that start on `firstWeekday`, numbered as `Calendar` numbers weekdays (1 is
+    /// Sunday), in the Gregorian calendar, so tests don't depend on the machine's region.
+    static func withFirstWeekday<Result>(_ firstWeekday: Int, operation: () throws -> Result) rethrows -> Result {
+        try Calendar.$user.withValue(.pinned(firstWeekday: firstWeekday), operation: operation)
     }
 
-    /// Whether this Day is in the same week as `day`, for weeks that start on `firstWeekday`.
-    func isInSameWeek(as day: Date, firstWeekday: Int) -> Bool {
-        var calendar = Calendar.gmt
-        calendar.firstWeekday = firstWeekday
+    /// Runs `operation` with weeks that start on `firstWeekday`, numbered as `Calendar` numbers weekdays (1 is
+    /// Sunday), in the Gregorian calendar, so tests don't depend on the machine's region.
+    nonisolated(nonsending) static func withFirstWeekday<Result>(
+        _ firstWeekday: Int,
+        operation: nonisolated(nonsending) () async throws -> Result
+    ) async rethrows -> Result {
+        try await Calendar.$user.withValue(.pinned(firstWeekday: firstWeekday), operation: operation)
+    }
+
+    /// Whether this Day is in the same week as `day`.
+    func isInSameWeek(as day: Date) -> Bool {
+        let calendar = Calendar.gmt
         // Every Day falls in a week.
         let weekStart = { (day: Date) in calendar.dateInterval(of: .weekOfYear, for: day)!.start }
         return weekStart(self) == weekStart(day)
@@ -96,14 +105,15 @@ public extension Date {
 
     static let daysPerWeek = 7
 
-    /// How many Days of its week come before this Day, for weeks that start on `firstWeekday`.
-    internal func dayCountIntoWeek(firstWeekday: Int) -> Int {
-        (Calendar.gmt.component(.weekday, from: self) - firstWeekday + Date.daysPerWeek) % Date.daysPerWeek
+    /// How many Days of its week come before this Day.
+    internal var dayCountIntoWeek: Int {
+        let calendar = Calendar.gmt
+        return (calendar.component(.weekday, from: self) - calendar.firstWeekday + Date.daysPerWeek) % Date.daysPerWeek
     }
 
-    /// The first Day of this Day's week, for weeks that start on `firstWeekday`.
-    internal func firstDayOfWeek(firstWeekday: Int) -> Date {
-        addingDays(-dayCountIntoWeek(firstWeekday: firstWeekday))
+    /// The first Day of this Day's week.
+    internal var firstDayOfWeek: Date {
+        addingDays(-dayCountIntoWeek)
     }
 
     /// The Days from this one up to `end`, `end` left out; none when `end` isn't after this Day.
