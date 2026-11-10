@@ -17,6 +17,26 @@ struct FloatingDayPickerStateTests {
         #expect(picker.chosenDay == today.addingDays(dayCount))
     }
 
+    @Test(arguments: [
+        // November 2026 starts on a Sunday, so with weeks from Monday its last Day falls in a sixth week.
+        ("2026-11-29", 2, 0),
+        ("2026-11-30", 2, 1),
+        ("2026-11-30", 1, 0),
+    ])
+    func itOpensOnTheMonthThatShowsItsDayWhenItsOwnMonthCutsItOff(
+        dayYearMonthDay: String,
+        firstWeekday: Int,
+        monthOffset: Int
+    ) throws {
+        let today = try day("2026-11-10")
+        let day = try day(dayYearMonthDay)
+
+        let picker = FloatingDayPickerState(today: today, day: day, showsHistory: false, firstWeekday: firstWeekday)
+
+        #expect(picker.monthOffset == monthOffset)
+        #expect(picker.chosenDay == day)
+    }
+
     @Test(arguments: [-1, -40])
     func withItsDayBeforeTodayItOpensOnTodaysMonthWithNothingChosen(dayCount: Int) {
         let picker = FloatingDayPickerState(today: today, day: today.addingDays(dayCount), showsHistory: false)
