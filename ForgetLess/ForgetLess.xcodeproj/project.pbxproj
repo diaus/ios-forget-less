@@ -466,6 +466,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ForgetLess/ForgetLess.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = CP7QJ3G8V3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -500,6 +501,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ForgetLess/ForgetLess.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = CP7QJ3G8V3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -574,6 +576,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ForgetLessWidget/ForgetLessWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = CP7QJ3G8V3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ForgetLessWidget/Info.plist;
@@ -604,6 +607,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ForgetLessWidget/ForgetLessWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = CP7QJ3G8V3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ForgetLessWidget/Info.plist;
