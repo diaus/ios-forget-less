@@ -7,18 +7,18 @@ public struct TodoTask: Identifiable, Equatable, Sendable {
     public var name: String
     /// The Task's Day, as 00:00 GMT.
     public var day: Date
-    /// The Day the Task was made Complete; `nil` while Incomplete.
-    public var completeDay: Date?
+    /// The moment the Task was made Complete, not a Day; `nil` while Incomplete.
+    public var completeTime: Date?
     /// The Task's place within its Day.
     public var sortIndex: Int
 
-    public var isComplete: Bool { completeDay != nil }
+    public var isComplete: Bool { completeTime != nil }
 
-    public init(id: UUID, name: String, day: Date, completeDay: Date?, sortIndex: Int) {
+    public init(id: UUID, name: String, day: Date, completeTime: Date?, sortIndex: Int) {
         self.id = id
         self.name = name
         self.day = day
-        self.completeDay = completeDay
+        self.completeTime = completeTime
         self.sortIndex = sortIndex
     }
 

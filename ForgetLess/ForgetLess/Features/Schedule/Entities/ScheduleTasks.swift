@@ -20,10 +20,13 @@ final class ScheduleTasks {
     private var listed: [TodoTask] = []
     /// The Tasks last observed in the store.
     private var stored: [TodoTask] = []
+    /// When the Tasks are listed again for the hour of the next Task kept in Overdue ending, or `nil` when they aren't.
+    @ObservationIgnored private var overdueHourEnd: Date?
+    @ObservationIgnored private var overdueHourEndRelist: Task<Void, Never>?
 
     /// Lists no Task yet, on `today`.
     init(today: Date) {
-        schedule = Schedule(tasks: [], today: today)
+        schedule = Schedule(tasks: [], today: today, now: .now)
     }
 
     // MARK: - Listing
@@ -50,11 +53,13 @@ final class ScheduleTasks {
         schedule = Schedule(
             tasks: listed,
             today: listing.today,
+            now: listing.now,
             showsComplete: listing.showsComplete,
             keptTaskIDs: listing.keptTaskIDs,
             historyFirstDay: historyFirstDay
         )
         incompleteTaskCountsByDay = listed.incompleteTaskCountsByDay
+        relistAtNextOverdueHourEnd()
     }
 
     // MARK: - Moving
@@ -94,5 +99,25 @@ final class ScheduleTasks {
     func dropUnsavedMoves() {
         listed = stored
         relist()
+    }
+
+    // MARK: - Helpers
+    /// Has the Tasks listed again once the hour of the next Task kept in Overdue ends, so it leaves without a relaunch.
+    private func relistAtNextOverdueHourEnd() {
+        let end = schedule.nextOverdueHourEnd
+        guard end != overdueHourEnd else { return }
+        overdueHourEnd = end
+        overdueHourEndRelist?.cancel()
+        guard let end else {
+            overdueHourEndRelist = nil
+            return
+        }
+        overdueHourEndRelist = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(end.timeIntervalSinceNow))
+            guard !Task.isCancelled, let self else { return }
+            // Cleared first: a sleep that ends a moment early lists the same end again, which must start a new one.
+            overdueHourEnd = nil
+            relist()
+        }
     }
 }

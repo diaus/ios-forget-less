@@ -7,7 +7,7 @@ extension TodoTaskModel {
             id: task.id,
             name: task.name,
             day: task.day,
-            completeDay: task.completeDay,
+            completeTime: task.completeTime,
             sortIndex: task.sortIndex
         )
     }
@@ -17,7 +17,7 @@ extension TodoTaskModel {
             id: id,
             name: name,
             day: day,
-            completeDay: completeDay,
+            completeTime: completeTime,
             sortIndex: sortIndex
         )
     }

@@ -58,10 +58,11 @@ struct ScheduleListContentTests {
     /// What the list shows of `tasks` on `today`, or on this suite's Today.
     private func content(_ tasks: [TodoTask], today: Date? = nil) -> ScheduleListContent {
         let today = today ?? self.today
-        return ScheduleListContent(schedule: Schedule(tasks: tasks, today: today), today: today)
+        // These Tasks are all Incomplete, so the moment listed at changes nothing.
+        return ScheduleListContent(schedule: Schedule(tasks: tasks, today: today, now: today), today: today)
     }
 
     private func task(_ name: String, day dayCount: Int, sortIndex: Int) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: today.addingDays(dayCount), completeDay: nil, sortIndex: sortIndex)
+        TodoTask(id: UUID(), name: name, day: today.addingDays(dayCount), completeTime: nil, sortIndex: sortIndex)
     }
 }

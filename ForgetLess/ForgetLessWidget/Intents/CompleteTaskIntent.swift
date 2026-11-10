@@ -28,7 +28,7 @@ struct CompleteTaskIntent: AppIntent {
         await WidgetStoreWrite.run(
             taskID: taskID, logger: Self.logger, failureMessage: "Could not make the Task Complete"
         ) { repository, id in
-            try await repository.setComplete(id: id, isComplete: true, today: .today)
+            try await repository.setComplete(id: id, isComplete: true, now: .now)
         }
         return .result()
     }

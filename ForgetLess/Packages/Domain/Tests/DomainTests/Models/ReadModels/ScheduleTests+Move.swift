@@ -10,18 +10,18 @@ extension ScheduleTests {
         let yesterday = try day("2026-02-28")
         let first = task("Buy milk", day: yesterday, sortIndex: 0)
         let second = task("Call mum", day: yesterday, sortIndex: 1)
-        let schedule = Schedule(tasks: [first, second], today: today)
+        let schedule = Schedule(tasks: [first, second], today: today, now: today)
 
         #expect(!schedule.canMove(second, to: MoveDestination(day: yesterday, after: nil)))
         #expect(!schedule.canMove(first, to: MoveDestination(day: yesterday, after: second.id)))
     }
 
-    @Test func aTaskCompletedFromOverdueOnTodayCanMoveToTodayButNotWithinOverdue() throws {
+    @Test func aTaskKeptInOverdueCanMoveToTodayButNotWithinOverdue() throws {
         let today = try day("2026-03-01")
         let yesterday = try day("2026-02-28")
-        let completed = task("Buy milk", day: yesterday, sortIndex: 0, completeDay: today)
+        let completed = task("Buy milk", day: yesterday, sortIndex: 0, completeTime: today)
         let overdue = task("Call mum", day: yesterday, sortIndex: 1)
-        let schedule = Schedule(tasks: [completed, overdue], today: today)
+        let schedule = Schedule(tasks: [completed, overdue], today: today, now: today)
 
         #expect(!schedule.canMove(completed, to: MoveDestination(day: yesterday, after: overdue.id)))
         #expect(schedule.canMove(completed, to: MoveDestination(day: today, after: nil)))
@@ -32,7 +32,7 @@ extension ScheduleTests {
         let yesterday = try day("2026-02-28")
         let overdue = task("Buy milk", day: yesterday, sortIndex: 0)
         let todays = task("Call mum", day: today, sortIndex: 0)
-        let schedule = Schedule(tasks: [overdue, todays], today: today)
+        let schedule = Schedule(tasks: [overdue, todays], today: today, now: today)
 
         #expect(!schedule.canMove(todays, to: MoveDestination(day: yesterday, after: nil)))
         #expect(!schedule.canMove(todays, to: MoveDestination(day: yesterday, after: overdue.id)))
@@ -43,7 +43,7 @@ extension ScheduleTests {
         let yesterday = try day("2026-02-28")
         let overdue = task("Buy milk", day: yesterday, sortIndex: 0)
         let todays = task("Call mum", day: today, sortIndex: 0)
-        let schedule = Schedule(tasks: [overdue, todays], today: today)
+        let schedule = Schedule(tasks: [overdue, todays], today: today, now: today)
 
         for windowDay in schedule.days.map(\.day) {
             #expect(schedule.canMove(overdue, to: MoveDestination(day: windowDay, after: nil)))
@@ -57,7 +57,7 @@ extension ScheduleTests {
         let laterDay = try day("2026-09-01")
         let later = task("Renew passport", day: laterDay, sortIndex: 0)
         let todays = task("Call mum", day: today, sortIndex: 0)
-        let schedule = Schedule(tasks: [todays, later], today: today)
+        let schedule = Schedule(tasks: [todays, later], today: today, now: today)
 
         #expect(schedule.canMove(todays, to: MoveDestination(day: laterDay, after: later.id)))
         #expect(!schedule.canMove(todays, to: MoveDestination(day: try day("2026-09-02"), after: nil)))
@@ -65,8 +65,8 @@ extension ScheduleTests {
 
     @Test func aHiddenCompleteTaskCantMove() throws {
         let today = try day("2026-03-01")
-        let completed = task("Buy milk", day: today, sortIndex: 0, completeDay: today)
-        let schedule = Schedule(tasks: [completed], today: today, showsComplete: false)
+        let completed = task("Buy milk", day: today, sortIndex: 0, completeTime: today)
+        let schedule = Schedule(tasks: [completed], today: today, now: today, showsComplete: false)
 
         #expect(!schedule.canMove(completed, to: MoveDestination(day: today.addingDays(1), after: nil)))
     }
@@ -74,7 +74,7 @@ extension ScheduleTests {
     @Test func aTaskCanMoveToAnyDayFromTodayOnListedOrNot() throws {
         let today = try day("2026-03-01")
         let todays = task("Call mum", day: today, sortIndex: 0)
-        let schedule = Schedule(tasks: [todays], today: today)
+        let schedule = Schedule(tasks: [todays], today: today, now: today)
 
         #expect(schedule.canMoveToEnd(todays, of: today))
         #expect(schedule.canMoveToEnd(todays, of: today.addingDays(3)))
@@ -85,7 +85,7 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let yesterday = try day("2026-02-28")
         let overdue = task("Buy milk", day: try day("2026-02-20"), sortIndex: 0)
-        let schedule = Schedule(tasks: [overdue], today: today)
+        let schedule = Schedule(tasks: [overdue], today: today, now: today)
 
         #expect(schedule.canMoveToEnd(overdue, of: today))
         #expect(!schedule.canMoveToEnd(overdue, of: yesterday))
@@ -94,8 +94,8 @@ extension ScheduleTests {
 
     @Test func aHiddenCompleteTaskCantMoveToADay() throws {
         let today = try day("2026-03-01")
-        let completed = task("Buy milk", day: today, sortIndex: 0, completeDay: today)
-        let schedule = Schedule(tasks: [completed], today: today, showsComplete: false)
+        let completed = task("Buy milk", day: today, sortIndex: 0, completeTime: today)
+        let schedule = Schedule(tasks: [completed], today: today, now: today, showsComplete: false)
 
         #expect(!schedule.canMoveToEnd(completed, of: today.addingDays(1)))
     }
@@ -103,7 +103,7 @@ extension ScheduleTests {
     @Test func theOverdueTasksCanMoveToTodayOrLaterButNeverToADayBeforeIt() throws {
         let today = try day("2026-03-01")
         let overdue = task("Buy milk", day: try day("2026-02-20"), sortIndex: 0)
-        let schedule = Schedule(tasks: [overdue], today: today)
+        let schedule = Schedule(tasks: [overdue], today: today, now: today)
 
         #expect(schedule.canMoveOverdueTasks(toStartOf: today))
         #expect(schedule.canMoveOverdueTasks(toStartOf: try day("2026-09-02")))
@@ -112,8 +112,8 @@ extension ScheduleTests {
 
     @Test func overdueHoldingOnlyTasksCompletedFromItOnTodayHasNothingToMove() throws {
         let today = try day("2026-03-01")
-        let completed = task("Buy milk", day: try day("2026-02-20"), sortIndex: 0, completeDay: today)
-        let schedule = Schedule(tasks: [completed], today: today)
+        let completed = task("Buy milk", day: try day("2026-02-20"), sortIndex: 0, completeTime: today)
+        let schedule = Schedule(tasks: [completed], today: today, now: today)
 
         #expect(!schedule.canMoveOverdueTasks(toStartOf: today))
     }
@@ -124,7 +124,7 @@ extension ScheduleTests {
         let tasks = ["Buy milk", "Call mum", "Walk the dog", "Pay rent"].enumerated().map { index, name in
             task(name, day: today, sortIndex: index)
         }
-        let schedule = Schedule(tasks: tasks, today: today)
+        let schedule = Schedule(tasks: tasks, today: today, now: today)
 
         #expect(schedule.destinationOneStepUp(for: tasks[2]) == MoveDestination(day: today, after: tasks[0].id))
         #expect(schedule.destinationOneStepUp(for: tasks[1]) == MoveDestination(day: today, after: nil))
@@ -137,7 +137,7 @@ extension ScheduleTests {
         let todaysFirst = task("Buy milk", day: today, sortIndex: 0)
         let todaysLast = task("Call mum", day: today, sortIndex: 1)
         let tomorrowsFirst = task("Walk the dog", day: tomorrow, sortIndex: 0)
-        let schedule = Schedule(tasks: [todaysFirst, todaysLast, tomorrowsFirst], today: today)
+        let schedule = Schedule(tasks: [todaysFirst, todaysLast, tomorrowsFirst], today: today, now: today)
 
         #expect(schedule.destinationOneStepDown(for: todaysLast) == MoveDestination(day: tomorrow, after: nil))
         #expect(schedule.destinationOneStepUp(for: tomorrowsFirst) == MoveDestination(day: today, after: todaysLast.id))
@@ -148,7 +148,7 @@ extension ScheduleTests {
         let tomorrow = try day("2026-03-02")
         let todays = task("Buy milk", day: today, sortIndex: 0)
         let afterTomorrows = task("Call mum", day: try day("2026-03-03"), sortIndex: 0)
-        let schedule = Schedule(tasks: [todays, afterTomorrows], today: today)
+        let schedule = Schedule(tasks: [todays, afterTomorrows], today: today, now: today)
 
         #expect(schedule.destinationOneStepDown(for: todays) == MoveDestination(day: tomorrow, after: nil))
         #expect(schedule.destinationOneStepUp(for: afterTomorrows) == MoveDestination(day: tomorrow, after: nil))
@@ -159,11 +159,11 @@ extension ScheduleTests {
         let yesterday = try day("2026-02-28")
         let overdue = [
             task("Buy milk", day: yesterday, sortIndex: 0),
-            task("Call mum", day: yesterday, sortIndex: 1, completeDay: today),
+            task("Call mum", day: yesterday, sortIndex: 1, completeTime: today),
             task("Walk the dog", day: yesterday, sortIndex: 2),
         ]
         let todays = task("Pay rent", day: today, sortIndex: 0)
-        let schedule = Schedule(tasks: overdue + [todays], today: today)
+        let schedule = Schedule(tasks: overdue + [todays], today: today, now: today)
 
         for task in overdue {
             #expect(schedule.destinationOneStepUp(for: task) == nil)
@@ -175,7 +175,7 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let overdue = task("Buy milk", day: try day("2026-02-28"), sortIndex: 0)
         let todays = task("Call mum", day: today, sortIndex: 0)
-        let schedule = Schedule(tasks: [overdue, todays], today: today)
+        let schedule = Schedule(tasks: [overdue, todays], today: today, now: today)
 
         #expect(schedule.destinationOneStepUp(for: todays) == nil)
     }
@@ -185,7 +185,7 @@ extension ScheduleTests {
         let laterDay = try day("2026-09-01")
         let first = task("Renew passport", day: laterDay, sortIndex: 0)
         let last = task("Book flights", day: laterDay, sortIndex: 1)
-        let schedule = Schedule(tasks: [first, last], today: today)
+        let schedule = Schedule(tasks: [first, last], today: today, now: today)
 
         #expect(schedule.destinationOneStepDown(for: last) == nil)
         #expect(schedule.destinationOneStepDown(for: first) == MoveDestination(day: laterDay, after: last.id))
@@ -194,7 +194,7 @@ extension ScheduleTests {
     @Test func theLastTaskOfTheWindowHasNoStepDownWhenNoLaterDayIsListed() throws {
         let today = try day("2026-03-01")
         let lastWindowTask = task("Buy milk", day: try day("2026-06-08"), sortIndex: 0)
-        let schedule = Schedule(tasks: [lastWindowTask], today: today)
+        let schedule = Schedule(tasks: [lastWindowTask], today: today, now: today)
 
         #expect(schedule.destinationOneStepDown(for: lastWindowTask) == nil)
     }
@@ -205,7 +205,7 @@ extension ScheduleTests {
         let laterDay = try day("2026-09-01")
         let lastWindowTask = task("Buy milk", day: lastWindowDay, sortIndex: 0)
         let later = task("Renew passport", day: laterDay, sortIndex: 0)
-        let schedule = Schedule(tasks: [lastWindowTask, later], today: today)
+        let schedule = Schedule(tasks: [lastWindowTask, later], today: today, now: today)
 
         #expect(schedule.destinationOneStepDown(for: lastWindowTask) == MoveDestination(day: laterDay, after: nil))
         let lastOfTheWindow = MoveDestination(day: lastWindowDay, after: lastWindowTask.id)
@@ -216,12 +216,12 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let tomorrow = try day("2026-03-02")
         let first = task("Buy milk", day: today, sortIndex: 0)
-        let hidden = task("Call mum", day: today, sortIndex: 1, completeDay: today)
+        let hidden = task("Call mum", day: today, sortIndex: 1, completeTime: today)
         let last = task("Walk the dog", day: today, sortIndex: 2)
-        let hiddenTomorrow = task("Pay rent", day: tomorrow, sortIndex: 0, completeDay: today)
+        let hiddenTomorrow = task("Pay rent", day: tomorrow, sortIndex: 0, completeTime: today)
         let tomorrows = task("Book flights", day: tomorrow, sortIndex: 1)
         let schedule = Schedule(
-            tasks: [first, hidden, last, hiddenTomorrow, tomorrows], today: today, showsComplete: false
+            tasks: [first, hidden, last, hiddenTomorrow, tomorrows], today: today, now: today, showsComplete: false
         )
 
         #expect(schedule.destinationOneStepUp(for: last) == MoveDestination(day: today, after: nil))
@@ -235,7 +235,7 @@ extension ScheduleTests {
         let tasks = ["Buy milk", "Call mum", "Walk the dog"].enumerated().map { index, name in
             task(name, day: today, sortIndex: index)
         }
-        let schedule = Schedule(tasks: tasks, today: today)
+        let schedule = Schedule(tasks: tasks, today: today, now: today)
 
         // Dropped third: below "Call mum" and "Walk the dog" once it's lifted out.
         let destination = schedule.destination(forDropOf: tasks[0], on: today, at: 2)
@@ -248,7 +248,7 @@ extension ScheduleTests {
         let tomorrow = try day("2026-03-02")
         let todays = task("Buy milk", day: today, sortIndex: 0)
         let tomorrows = task("Call mum", day: tomorrow, sortIndex: 0)
-        let schedule = Schedule(tasks: [todays, tomorrows], today: today)
+        let schedule = Schedule(tasks: [todays, tomorrows], today: today, now: today)
 
         let destination = schedule.destination(forDropOf: todays, on: tomorrow, at: 0)
 
@@ -259,7 +259,7 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let todays = task("Buy milk", day: today, sortIndex: 0)
         let tomorrows = task("Call mum", day: try day("2026-03-02"), sortIndex: 0)
-        let schedule = Schedule(tasks: [todays, tomorrows], today: today)
+        let schedule = Schedule(tasks: [todays, tomorrows], today: today, now: today)
 
         #expect(schedule.canMove(todays, droppedOn: tomorrows.day, at: 1))
         #expect(!schedule.canMove(todays, droppedOn: try day("2026-09-01"), at: 0))
@@ -269,10 +269,12 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let tomorrow = try day("2026-03-02")
         let upper = task("Buy milk", day: today, sortIndex: 0)
-        let hidden = task("Call mum", day: today, sortIndex: 1, completeDay: today)
+        let hidden = task("Call mum", day: today, sortIndex: 1, completeTime: today)
         let lower = task("Walk the dog", day: today, sortIndex: 2)
         let tomorrows = task("Pay rent", day: tomorrow, sortIndex: 0)
-        let schedule = Schedule(tasks: [upper, hidden, lower, tomorrows], today: today, showsComplete: false)
+        let schedule = Schedule(
+            tasks: [upper, hidden, lower, tomorrows], today: today, now: today, showsComplete: false
+        )
 
         let destination = schedule.destination(forDropOf: tomorrows, on: today, at: 1)
 

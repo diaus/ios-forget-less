@@ -16,7 +16,7 @@ extension TodoTaskRepositoryLiveTests {
         let bookAFlight = Self.task("Book a flight", day: lastWeek, sortIndex: 4)
         let payRent = Self.task("Pay rent", day: yesterday, sortIndex: 1)
         var callMum = Self.task("Call mum", day: tomorrow, sortIndex: 6)
-        callMum.completeDay = yesterday
+        callMum.completeTime = yesterday
         let buyMilk = Self.task("Buy milk", day: tomorrow, sortIndex: 2)
         try Self.insert([bookAFlight, payRent, buyMilk, callMum], into: container)
         let repository = TodoTaskRepositoryLive(modelContainer: container)
@@ -27,7 +27,7 @@ extension TodoTaskRepositoryLiveTests {
 
         #expect(tomorrowsTasks.map(\.name) == ["Book a flight", "Pay rent", "Buy milk", "Call mum"])
         #expect(tomorrowsTasks.map(\.sortIndex) == [0, 1, 2, 3])
-        #expect(tomorrowsTasks.map(\.completeDay) == [nil, nil, nil, yesterday])
+        #expect(tomorrowsTasks.map(\.completeTime) == [nil, nil, nil, yesterday])
     }
 
     @Test func theDaysTheMovedTasksLeftKeepTheirOtherTasksAsTheyWere() async throws {

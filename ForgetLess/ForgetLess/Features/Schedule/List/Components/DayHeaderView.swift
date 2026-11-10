@@ -30,5 +30,5 @@ struct DayHeaderView: View {
 }
 
 #Preview(traits: .sizeThatFitsLayout) {
-    DayHeaderView(scheduleDay: Schedule(tasks: [.previewIncomplete], today: .today).days[0])
+    DayHeaderView(scheduleDay: Schedule(tasks: [.previewIncomplete], today: .today, now: .now).days[0])
 }

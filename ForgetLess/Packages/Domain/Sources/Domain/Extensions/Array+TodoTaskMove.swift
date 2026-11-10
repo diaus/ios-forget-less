@@ -35,7 +35,8 @@ public extension Array where Element == TodoTask {
     /// and, if `listsTomorrow`, Tomorrow are listed.
     /// - Parameter self: The listed Incomplete Tasks, in order of Day, then position within it.
     func oneStepDestinations(today: Date, listsTomorrow: Bool) -> [OneStepDestinations] {
-        let schedule = Schedule(tasks: self, today: today, windowDayCount: listsTomorrow ? 2 : 1)
+        // Only Incomplete Tasks are listed, so any moment the Schedule lists at gives the same steps.
+        let schedule = Schedule(tasks: self, today: today, now: today, windowDayCount: listsTomorrow ? 2 : 1)
         return indices.map { index in
             let task = self[index]
             let stepDown = schedule.destinationOneStepDown(for: task)

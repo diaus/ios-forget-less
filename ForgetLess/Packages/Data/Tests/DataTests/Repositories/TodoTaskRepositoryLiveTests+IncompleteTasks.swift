@@ -63,16 +63,16 @@ extension TodoTaskRepositoryLiveTests {
         #expect(incomplete.map(\.name) == names)
     }
 
-    @Test func incompleteTasksNeverHoldACompleteTaskEvenOneCompletedFromOverdueOnToday() async throws {
+    @Test func incompleteTasksNeverHoldACompleteTaskEvenOneKeptInOverdue() async throws {
         let container = try Self.inMemoryContainer()
         let yesterday = try Self.day("2026-10-24")
         let today = try Self.day("2026-10-25")
         try Self.insert(
             [
                 Self.task("Overdue", day: yesterday, sortIndex: 0),
-                TodoTask(id: UUID(), name: "Completed from Overdue", day: yesterday, completeDay: today, sortIndex: 1),
+                TodoTask(id: UUID(), name: "Completed from Overdue", day: yesterday, completeTime: today, sortIndex: 1),
                 Self.task("Today's", day: today, sortIndex: 0),
-                TodoTask(id: UUID(), name: "Completed today", day: today, completeDay: today, sortIndex: 1),
+                TodoTask(id: UUID(), name: "Completed today", day: today, completeTime: today, sortIndex: 1),
             ],
             into: container
         )

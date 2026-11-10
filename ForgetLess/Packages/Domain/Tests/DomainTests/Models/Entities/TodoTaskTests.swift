@@ -42,7 +42,7 @@ struct TodoTaskTests {
     }
 
     @Test func aTaskMovedFirstGoesAheadOfEveryTaskOfTheDayCompleteOnesIncluded() {
-        let tasksOfDay = [task("Buy milk", completeDay: day), task("Call mum")]
+        let tasksOfDay = [task("Buy milk", completeTime: day), task("Call mum")]
 
         let order = TodoTask.order(afterMoving: task("Pay rent"), to: destination(after: nil), in: tasksOfDay)
 
@@ -56,7 +56,9 @@ struct TodoTaskTests {
     }
 
     @Test func aTaskMovedAfterATaskFollowedByCompleteOnesLandsBeforeThem() {
-        let tasksOfDay = [task("Buy milk"), task("Call mum", completeDay: day), task("Walk the dog", completeDay: day)]
+        let tasksOfDay = [
+            task("Buy milk"), task("Call mum", completeTime: day), task("Walk the dog", completeTime: day),
+        ]
 
         let order = TodoTask.order(afterMoving: task("Pay rent"), to: destination(after: tasksOfDay[0]), in: tasksOfDay)
 
@@ -98,7 +100,7 @@ struct TodoTaskTests {
 
     @Test func theOrderRuleNumbersTheDayFromZeroWithTheMovedTaskOnIt() {
         let tasksOfDay = [task("Buy milk", sortIndex: 3), task("Call mum", sortIndex: 7)]
-        let moved = TodoTask(id: UUID(), name: "Pay rent", day: day.addingDays(1), completeDay: nil, sortIndex: 5)
+        let moved = TodoTask(id: UUID(), name: "Pay rent", day: day.addingDays(1), completeTime: nil, sortIndex: 5)
 
         let order = TodoTask.order(afterMoving: moved, to: destination(after: tasksOfDay[0]), in: tasksOfDay)
 
@@ -108,8 +110,8 @@ struct TodoTaskTests {
     }
 
     @Test func tasksMovedToTheTopOfADayGoAboveEveryTaskThereInTheOrderGiven() {
-        let hidden = task("Water the plants", completeDay: day.addingDays(-3))
-        let tasksOfDay = [task("Buy milk"), task("Call mum", completeDay: day), hidden]
+        let hidden = task("Water the plants", completeTime: day.addingDays(-3))
+        let tasksOfDay = [task("Buy milk"), task("Call mum", completeTime: day), hidden]
         let moved = [overdueTask("Pay rent", daysAgo: 1), overdueTask("Book a flight", daysAgo: 5)]
 
         let order = TodoTask.order(afterMoving: moved, toStartOf: day, in: tasksOfDay)
@@ -140,15 +142,15 @@ struct TodoTaskTests {
 
     // MARK: - Helpers
     private func overdueTask(_ name: String, daysAgo: Int) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: day.addingDays(-daysAgo), completeDay: nil, sortIndex: 4)
+        TodoTask(id: UUID(), name: name, day: day.addingDays(-daysAgo), completeTime: nil, sortIndex: 4)
     }
 
     private func task(sortIndex: Int) -> TodoTask {
-        TodoTask(id: UUID(), name: "Buy milk", day: day, completeDay: nil, sortIndex: sortIndex)
+        TodoTask(id: UUID(), name: "Buy milk", day: day, completeTime: nil, sortIndex: sortIndex)
     }
 
-    private func task(_ name: String, completeDay: Date? = nil, sortIndex: Int = 0) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: sortIndex)
+    private func task(_ name: String, completeTime: Date? = nil, sortIndex: Int = 0) -> TodoTask {
+        TodoTask(id: UUID(), name: name, day: day, completeTime: completeTime, sortIndex: sortIndex)
     }
 
     private func destination(after task: TodoTask?) -> MoveDestination {

@@ -40,12 +40,12 @@ struct ArrayTodoTaskMoveTests {
     @Test func aCompleteOverdueTaskMovedToTodayStaysComplete() throws {
         let today = try day("2026-03-01")
         let yesterday = try day("2026-02-28")
-        let completed = task("Buy milk", day: yesterday, sortIndex: 0, completeDay: today)
+        let completed = task("Buy milk", day: yesterday, sortIndex: 0, completeTime: today)
 
         let moved = [completed].movingTask(id: completed.id, to: MoveDestination(day: today, after: nil))
 
         #expect(moved.map(\.day) == [today])
-        #expect(moved.map(\.completeDay) == [today])
+        #expect(moved.map(\.completeTime) == [today])
     }
 
     @Test func aTaskMovedToTheEndOfADayGoesAfterEveryTaskThereCompleteOrNot() throws {
@@ -54,7 +54,7 @@ struct ArrayTodoTaskMoveTests {
         let tasks = [
             task("Buy milk", day: today, sortIndex: 0),
             task("Walk the dog", day: tomorrow, sortIndex: 0),
-            task("Pay rent", day: tomorrow, sortIndex: 1, completeDay: today),
+            task("Pay rent", day: tomorrow, sortIndex: 1, completeTime: today),
             task("Call mum", day: try day("2026-03-03"), sortIndex: 0),
         ]
 
@@ -81,11 +81,11 @@ struct ArrayTodoTaskMoveTests {
         let tomorrow = try day("2026-03-02")
         let tasks = [
             task("Book a flight", day: lastWeek, sortIndex: 4),
-            task("Completed from Overdue", day: lastWeek, sortIndex: 5, completeDay: today),
+            task("Completed from Overdue", day: lastWeek, sortIndex: 5, completeTime: today),
             task("Pay rent", day: yesterday, sortIndex: 1),
             task("Buy milk", day: today, sortIndex: 0),
             task("Walk the dog", day: tomorrow, sortIndex: 2),
-            task("Call mum", day: tomorrow, sortIndex: 6, completeDay: today),
+            task("Call mum", day: tomorrow, sortIndex: 6, completeTime: today),
         ]
 
         let moved = tasks.movingTasks(ids: [tasks[0].id, tasks[2].id], toStartOf: tomorrow)
@@ -110,8 +110,8 @@ struct ArrayTodoTaskMoveTests {
     }
 
     // MARK: - Helpers
-    private func task(_ name: String, day: Date, sortIndex: Int, completeDay: Date? = nil) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: sortIndex)
+    private func task(_ name: String, day: Date, sortIndex: Int, completeTime: Date? = nil) -> TodoTask {
+        TodoTask(id: UUID(), name: name, day: day, completeTime: completeTime, sortIndex: sortIndex)
     }
 
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.

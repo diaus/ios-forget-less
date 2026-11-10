@@ -9,7 +9,8 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
     func scheduleTasks(today: Date, historyFirstDay: Date?) -> AsyncStream<[TodoTask]> {
         let scheduleTasks = tasks.filter { task in
             if let historyFirstDay { return task.day >= historyFirstDay }
-            return task.day >= today || (task.completeDay ?? .distantFuture) >= today
+            let completedSince = Date.now.addingTimeInterval(-Schedule.overdueHour)
+            return task.day >= today || (task.completeTime ?? .distantFuture) >= completedSince
         }
         return AsyncStream { continuation in
             continuation.yield(scheduleTasks)
@@ -26,7 +27,7 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
             id: UUID(),
             name: name,
             day: day,
-            completeDay: nil,
+            completeTime: nil,
             sortIndex: TodoTask.nextSortIndex(in: tasks.filter { $0.day == day })
         )
         tasks.append(task)
@@ -37,9 +38,9 @@ actor FakeTodoTaskRepository: TodoTaskRepository {
         tasks[index].name = name
     }
 
-    func setComplete(id: UUID, isComplete: Bool, today: Date) {
+    func setComplete(id: UUID, isComplete: Bool, now: Date) {
         guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
-        tasks[index].completeDay = isComplete ? today : nil
+        tasks[index].completeTime = isComplete ? now : nil
     }
 
     func move(id: UUID, to destination: MoveDestination) {

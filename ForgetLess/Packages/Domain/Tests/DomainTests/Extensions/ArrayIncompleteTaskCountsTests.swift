@@ -8,7 +8,7 @@ struct ArrayIncompleteTaskCountsTests {
         let today = try day("2026-11-01")
         let tasks = [
             task("Buy milk", day: today),
-            task("Call mum", day: today, completeDay: today),
+            task("Call mum", day: today, completeTime: today),
             task("Walk the dog", day: today),
         ]
 
@@ -34,16 +34,16 @@ struct ArrayIncompleteTaskCountsTests {
         let tomorrow = try day("2026-11-02")
         let tasks = [
             task("Buy milk", day: today),
-            task("Call mum", day: tomorrow, completeDay: today),
-            task("Walk the dog", day: tomorrow, completeDay: today),
+            task("Call mum", day: tomorrow, completeTime: today),
+            task("Walk the dog", day: tomorrow, completeTime: today),
         ]
 
         #expect(tasks.incompleteTaskCountsByDay[tomorrow] == nil)
     }
 
     // MARK: - Helpers
-    private func task(_ name: String, day: Date, completeDay: Date? = nil) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: day, completeDay: completeDay, sortIndex: 0)
+    private func task(_ name: String, day: Date, completeTime: Date? = nil) -> TodoTask {
+        TodoTask(id: UUID(), name: name, day: day, completeTime: completeTime, sortIndex: 0)
     }
 
     /// The Day `yyyy-MM-dd`, as 00:00 GMT.

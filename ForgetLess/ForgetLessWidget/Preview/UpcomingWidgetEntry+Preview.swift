@@ -20,7 +20,7 @@ extension UpcomingWidgetEntry {
                 id: UUID(),
                 name: previewNames[index % previewNames.count],
                 day: today,
-                completeDay: nil,
+                completeTime: nil,
                 sortIndex: index
             )
         }
@@ -47,7 +47,7 @@ extension UpcomingWidgetEntry {
                 id: UUID(),
                 name: previewNames[index % previewNames.count],
                 day: day,
-                completeDay: nil,
+                completeTime: nil,
                 sortIndex: index
             )
         }
@@ -69,7 +69,7 @@ extension UpcomingWidgetEntry {
                 id: UUID(),
                 name: "Return the library books before Friday",
                 day: days[index % days.count],
-                completeDay: nil,
+                completeTime: nil,
                 sortIndex: index
             )
         }
@@ -86,10 +86,10 @@ extension UpcomingWidgetEntry {
     ) -> UpcomingWidgetEntry {
         let today = Date.today
         let tasks = [
-            TodoTask(id: UUID(), name: "Pay rent", day: today.addingDays(-2), completeDay: nil, sortIndex: 0),
-            TodoTask(id: UUID(), name: "Buy oat milk", day: today, completeDay: nil, sortIndex: 0),
-            TodoTask(id: UUID(), name: "Call mum", day: today, completeDay: nil, sortIndex: 1),
-            TodoTask(id: UUID(), name: "Water the plants", day: today.addingDays(1), completeDay: nil, sortIndex: 0),
+            TodoTask(id: UUID(), name: "Pay rent", day: today.addingDays(-2), completeTime: nil, sortIndex: 0),
+            TodoTask(id: UUID(), name: "Buy oat milk", day: today, completeTime: nil, sortIndex: 0),
+            TodoTask(id: UUID(), name: "Call mum", day: today, completeTime: nil, sortIndex: 1),
+            TodoTask(id: UUID(), name: "Water the plants", day: today.addingDays(1), completeTime: nil, sortIndex: 0),
         ]
         let listed = tasks.filter { task in
             switch task.day.relativeDay(today: today) {

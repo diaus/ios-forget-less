@@ -12,7 +12,7 @@ extension UpcomingWidgetContent {
             (.widgetSampleCallMum, today.addingDays(1)),
         ]
         let tasks = names.enumerated().map { index, sample in
-            TodoTask(id: UUID(), name: String(localized: sample.0), day: sample.1, completeDay: nil, sortIndex: index)
+            TodoTask(id: UUID(), name: String(localized: sample.0), day: sample.1, completeTime: nil, sortIndex: index)
         }
         return UpcomingWidgetContent(tasks: tasks, today: today, listsTomorrow: true)
     }

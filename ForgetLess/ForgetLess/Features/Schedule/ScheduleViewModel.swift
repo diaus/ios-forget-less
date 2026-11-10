@@ -125,7 +125,7 @@ final class ScheduleViewModel {
             // Stays kept, so no rebuild drops it before the Tasks observed hold it Incomplete.
             keptTasks.stopGracePeriod(of: task.id)
         }
-        writes.run { try await self.repository.setComplete(id: task.id, isComplete: isComplete, today: self.today) }
+        writes.run { try await self.repository.setComplete(id: task.id, isComplete: isComplete, now: .now) }
     }
 
     // MARK: - Moving
@@ -226,6 +226,6 @@ final class ScheduleViewModel {
             composerSession.composer.editedTask?.id, sheetDayPicker?.target.taskID, floatingDayPicker?.target.taskID,
         ]
         let keptTaskIDs = keptTasks.ids.union(heldTaskIDs.compactMap { $0 })
-        return ScheduleListing(today: today, showsComplete: showsComplete, keptTaskIDs: keptTaskIDs)
+        return ScheduleListing(today: today, now: .now, showsComplete: showsComplete, keptTaskIDs: keptTaskIDs)
     }
 }

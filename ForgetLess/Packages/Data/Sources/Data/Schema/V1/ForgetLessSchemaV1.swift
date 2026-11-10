@@ -15,14 +15,16 @@ enum ForgetLessSchemaV1: VersionedSchema {
         @Attribute(.unique) var id: UUID
         var name: String
         var day: Date
-        var completeDay: Date?
+        // Renamed from `completeDay` in place (ADR 0007); `originalName` goes once the device holding real data has
+        // run it.
+        @Attribute(originalName: "completeDay") var completeTime: Date?
         var sortIndex: Int
 
-        init(id: UUID, name: String, day: Date, completeDay: Date?, sortIndex: Int) {
+        init(id: UUID, name: String, day: Date, completeTime: Date?, sortIndex: Int) {
             self.id = id
             self.name = name
             self.day = day
-            self.completeDay = completeDay
+            self.completeTime = completeTime
             self.sortIndex = sortIndex
         }
     }

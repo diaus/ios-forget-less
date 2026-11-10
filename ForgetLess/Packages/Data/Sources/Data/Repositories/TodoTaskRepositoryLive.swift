@@ -46,7 +46,7 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
     func incompleteTasks(from firstDay: Date?, through lastDay: Date) throws -> [TodoTask] {
         let firstDay = firstDay ?? .distantPast
         return try fetchInScheduleOrder(
-            #Predicate { $0.completeDay == nil && $0.day >= firstDay && $0.day <= lastDay }
+            #Predicate { $0.completeTime == nil && $0.day >= firstDay && $0.day <= lastDay }
         ).map { $0.toDomain() }
     }
 
@@ -56,7 +56,7 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
             id: UUID(),
             name: name,
             day: day,
-            completeDay: nil,
+            completeTime: nil,
             sortIndex: TodoTask.nextSortIndex(in: try tasks(on: day))
         )
         modelContext.insert(TodoTaskModel(task))
@@ -69,9 +69,9 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         try saveAndNotify()
     }
 
-    func setComplete(id: UUID, isComplete: Bool, today: Date) throws {
+    func setComplete(id: UUID, isComplete: Bool, now: Date) throws {
         guard let model = try model(id: id) else { return }
-        model.completeDay = isComplete ? today : nil
+        model.completeTime = isComplete ? now : nil
         try saveAndNotify()
     }
 
@@ -113,10 +113,12 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         if let historyFirstDay {
             return try fetchInScheduleOrder(#Predicate { $0.day >= historyFirstDay }).map { $0.toDomain() }
         }
-        // An Incomplete Task has no `completeDay`, so it counts as completed on no Day yet.
+        // Overdue may still keep a Task completed from it within the hour; the Schedule decides which.
+        let completedSince = Date.now.addingTimeInterval(-Schedule.overdueHour)
+        // An Incomplete Task has no `completeTime`, so it counts as never completed.
         let distantFuture = Date.distantFuture
         return try fetchInScheduleOrder(
-            #Predicate { $0.day >= today || ($0.completeDay ?? distantFuture) >= today }
+            #Predicate { $0.day >= today || ($0.completeTime ?? distantFuture) >= completedSince }
         ).map { $0.toDomain() }
     }
 

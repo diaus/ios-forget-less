@@ -14,18 +14,28 @@ public struct Schedule: Sendable {
         public var id: Date { day }
     }
 
-    /// The Overdue Tasks, with those completed from it on Today, oldest Day first.
+    /// How long Overdue keeps a Task completed from it, so a mis-tap can be undone.
+    public static let overdueHour: TimeInterval = 60 * 60
+
+    /// The Overdue Tasks, with those completed from it within the hour, oldest Day first.
     public let overdue: [TodoTask]
     public let days: [Day]
     /// The first Day listed in History, or `nil` outside History.
     public let historyFirstDay: Date?
     private let today: Date
 
-    /// The Overdue Tasks, without those completed from it on Today: what a Move of all of Overdue moves.
+    /// The Overdue Tasks, without those completed from it: what a Move of all of Overdue moves.
     public var overdueIncomplete: [TodoTask] { overdue.filter { !$0.isComplete } }
+
+    /// When the hour of the next Task kept in Overdue ends and the Schedule lists otherwise; `nil` when Overdue keeps
+    /// none.
+    public var nextOverdueHourEnd: Date? {
+        overdue.compactMap(Self.overdueHourEnd).min()
+    }
 
     /// - Parameters:
     ///   - tasks: In order of Day, then position within it, as the repository sends them.
+    ///   - now: The moment the Schedule lists at, which ends the hour a Task completed from Overdue stays there.
     ///   - showsComplete: Whether Complete Tasks are listed.
     ///   - keptTaskIDs: Complete Tasks listed even while Complete Tasks are hidden, so a mis-tap can be undone.
     ///   - windowDayCount: How many Days from Today on are listed, with Tasks or not. A later Day is listed only for
@@ -34,6 +44,7 @@ public struct Schedule: Sendable {
     public init(
         tasks: [TodoTask],
         today: Date,
+        now: Date,
         showsComplete: Bool = true,
         keptTaskIDs: Set<UUID> = [],
         windowDayCount: Int = 100,
@@ -44,8 +55,11 @@ public struct Schedule: Sendable {
         let showsHistory = historyFirstDay != nil
         let tasks = showsComplete ? tasks : tasks.filter { !$0.isComplete || keptTaskIDs.contains($0.id) }
         // History lists Overdue Tasks on their own Days.
-        // A Task completed from Overdue stays there until Today rolls over, so a mis-tap can be undone.
-        overdue = showsHistory ? [] : tasks.filter { $0.day < today && ($0.completeDay ?? .distantFuture) >= today }
+        overdue = showsHistory ? [] : tasks.filter { task in
+            guard task.day < today else { return false }
+            // Measured against now, so the hour runs on past midnight.
+            return Self.overdueHourEnd(of: task).map { now < $0 } ?? true
+        }
         // Grouping keeps each Day's Tasks in the order given.
         let tasksByDay = Dictionary(grouping: tasks) { $0.day }
         let pastDays = historyFirstDay?.days(upTo: today) ?? []
@@ -144,6 +158,11 @@ public struct Schedule: Sendable {
     }
 
     // MARK: - Helpers
+    /// When Overdue stops keeping `task`, were it completed from there; `nil` while it's Incomplete.
+    private static func overdueHourEnd(of task: TodoTask) -> Date? {
+        task.completeTime?.addingTimeInterval(overdueHour)
+    }
+
     private func position(of task: TodoTask) -> (dayIndex: Int, taskIndex: Int)? {
         for (dayIndex, day) in days.enumerated() {
             if let taskIndex = day.tasks.firstIndex(where: { $0.id == task.id }) {

@@ -36,9 +36,9 @@ struct ScheduleTasksTests {
     @Test func aMoveOfTheOverdueTasksListsThemAtTheTopOfTheDayInOverduesOrderAndLeavesTheCompleteOnes() {
         let lastWeeks = task("Pay rent", day: -7, sortIndex: 3)
         let yesterdays = task("Buy milk", day: -1, sortIndex: 0)
-        // Completed from Overdue on Today, so it stays there.
+        // Completed from Overdue at the moment the Tasks are listed at, so it stays there.
         let completed = TodoTask(
-            id: UUID(), name: "Call Mum", day: today.addingDays(-1), completeDay: today, sortIndex: 1
+            id: UUID(), name: "Call Mum", day: today.addingDays(-1), completeTime: today, sortIndex: 1
         )
         let tomorrows = task("Walk the dog", day: 1, sortIndex: 0)
         let scheduleTasks = observed([lastWeeks, yesterdays, completed, tomorrows])
@@ -152,9 +152,27 @@ struct ScheduleTasksTests {
         #expect(scheduleTasks.incompleteTaskCountsByDay == [today: 2])
     }
 
+    @Test(.timeLimit(.minutes(1)))
+    func aTaskKeptInOverdueLeavesItOnceItsHourEndsWithNoNewTasksObserved() async throws {
+        let completed = TodoTask(
+            id: UUID(), name: "Call Mum", day: today.addingDays(-1),
+            completeTime: Date.now.addingTimeInterval(0.2 - Schedule.overdueHour), sortIndex: 0
+        )
+        // Listed at the moment each rebuild happens, as the Schedule screen lists.
+        let scheduleTasks = observed([completed]) { listing(now: .now) }
+        #expect(scheduleTasks.schedule.overdue.map(\.name) == ["Call Mum"])
+
+        while !scheduleTasks.schedule.overdue.isEmpty {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+    }
+
     // MARK: - Helpers
-    private func listing(showsComplete: Bool = true, keptTaskIDs: Set<UUID> = []) -> ScheduleListing {
-        ScheduleListing(today: today, showsComplete: showsComplete, keptTaskIDs: keptTaskIDs)
+    /// The listing at `now`, or at the start of this suite's Today.
+    private func listing(
+        now: Date? = nil, showsComplete: Bool = true, keptTaskIDs: Set<UUID> = []
+    ) -> ScheduleListing {
+        ScheduleListing(today: today, now: now ?? today, showsComplete: showsComplete, keptTaskIDs: keptTaskIDs)
     }
 
     /// Tasks that have observed `tasks`, fetched from `historyFirstDay` on in History, listed by `listingNow`, or
@@ -174,7 +192,7 @@ struct ScheduleTasksTests {
         _ name: String, id: UUID = UUID(), day dayCount: Int, sortIndex: Int, isComplete: Bool = false
     ) -> TodoTask {
         let day = today.addingDays(dayCount)
-        return TodoTask(id: id, name: name, day: day, completeDay: isComplete ? day : nil, sortIndex: sortIndex)
+        return TodoTask(id: id, name: name, day: day, completeTime: isComplete ? day : nil, sortIndex: sortIndex)
     }
 
     /// The names of the Tasks the Schedule lists on the Day `dayCount` Days from Today, in order.

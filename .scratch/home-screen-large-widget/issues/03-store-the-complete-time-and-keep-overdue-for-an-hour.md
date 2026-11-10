@@ -14,8 +14,8 @@ Status: ready-for-agent
 
 **Blocked by:** none
 
-- [ ] Domain tests: a Task completed from Overdue 59 minutes before now is listed in Overdue, and one completed 61 minutes before isn't. One completed at 23:30 is still listed at 00:15 on the next Today. With Complete Tasks hidden, a Task completed from Overdue is listed only while it's kept.
-- [ ] Data tests: `setComplete` stores the moment it's given and clears it on Incomplete. Outside History, the stream lists a Task completed from Overdue within the last hour and leaves out one completed earlier.
-- [ ] On the iOS 27 simulator, a store made by the build before this change keeps its Tasks, Complete ones included, after the new build is installed over it. Since the simulator wipes a store that won't open, the Tasks must still be there afterwards.
-- [ ] In the app, with Complete Tasks shown, an Overdue Task made Complete stays in Overdue, struck through, and leaves an hour later without a relaunch.
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] Domain tests: a Task completed from Overdue 59 minutes before now is listed in Overdue, and one completed 61 minutes before isn't. One completed at 23:30 is still listed at 00:15 on the next Today. With Complete Tasks hidden, a Task completed from Overdue is listed only while it's kept.
+- [x] Data tests: `setComplete` stores the moment it's given and clears it on Incomplete. Outside History, the stream lists a Task completed from Overdue within the last hour and leaves out one completed earlier.
+- [x] On the iOS 27 simulator, a store made by the build before this change keeps its Tasks, Complete ones included, after the new build is installed over it. Since the simulator wipes a store that won't open, the Tasks must still be there afterwards.
+- [x] In the app, with Complete Tasks shown, an Overdue Task made Complete stays in Overdue, struck through, and leaves an hour later without a relaunch.
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.

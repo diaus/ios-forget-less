@@ -14,10 +14,10 @@ extension TodoTaskRepositoryLiveTests {
             [
                 Self.task("Today's", day: today, sortIndex: 0),
                 Self.task("Yesterday's second", day: yesterday, sortIndex: 1),
-                Self.task("Completed on the first Day", day: firstDay, sortIndex: 0, completeDay: firstDay),
+                Self.task("Completed on the first Day", day: firstDay, sortIndex: 0, completeTime: firstDay),
                 Self.task("Before the first Day", day: try Self.day("2026-10-19"), sortIndex: 0),
-                Self.task("Yesterday's first", day: yesterday, sortIndex: 0, completeDay: yesterday),
-                Self.task("Later", day: try Self.day("2027-03-01"), sortIndex: 0, completeDay: today),
+                Self.task("Yesterday's first", day: yesterday, sortIndex: 0, completeTime: yesterday),
+                Self.task("Later", day: try Self.day("2027-03-01"), sortIndex: 0, completeTime: today),
             ],
             into: container
         )
@@ -43,11 +43,11 @@ extension TodoTaskRepositoryLiveTests {
 
         try await repository.create(name: "Buy milk", day: yesterday)
         let created = try #require(await scheduleTasks.next()?.first)
-        try await repository.setComplete(id: created.id, isComplete: true, today: today)
+        try await repository.setComplete(id: created.id, isComplete: true, now: today)
         let completed = try #require(await scheduleTasks.next()?.first)
 
         #expect(created.name == "Buy milk")
         #expect(created.day == yesterday)
-        #expect(completed.completeDay == today)
+        #expect(completed.completeTime == today)
     }
 }

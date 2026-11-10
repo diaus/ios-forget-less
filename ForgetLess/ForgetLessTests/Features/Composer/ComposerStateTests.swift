@@ -28,7 +28,7 @@ struct ComposerStateTests {
     ])
     func whileEditingOnlyATrimmedNameOtherThanTheSavedOneIsAChange(taskName: String, hasChanges: Bool) {
         var composer = ComposerState(day: day)
-        composer.editedTask = TodoTask(id: UUID(), name: "Buy milk", day: day, completeDay: nil, sortIndex: 0)
+        composer.editedTask = TodoTask(id: UUID(), name: "Buy milk", day: day, completeTime: nil, sortIndex: 0)
         composer.taskName = taskName
 
         #expect(composer.hasChanges == hasChanges)
@@ -55,7 +55,7 @@ struct ComposerStateTests {
 
     @Test func whileEditingADayIsRevealedOnceSteppedTo() {
         var composer = ComposerState(day: day)
-        composer.editedTask = TodoTask(id: UUID(), name: "Buy milk", day: day, completeDay: nil, sortIndex: 0)
+        composer.editedTask = TodoTask(id: UUID(), name: "Buy milk", day: day, completeTime: nil, sortIndex: 0)
         #expect(!composer.revealsDayOnDismiss)
 
         composer.step(to: day.addingDays(1))
@@ -99,7 +99,7 @@ struct ComposerStateTests {
 
     @Test func hidingDropsTheEditedTaskAndItsNameSoTheNextAddStartsBlank() {
         var composer = ComposerState(day: day)
-        composer.show(editing: TodoTask(id: UUID(), name: "Buy milk", day: day, completeDay: nil, sortIndex: 0))
+        composer.show(editing: TodoTask(id: UUID(), name: "Buy milk", day: day, completeTime: nil, sortIndex: 0))
         composer.taskName = "Buy bread"
 
         composer.hide()

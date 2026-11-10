@@ -15,7 +15,7 @@ final class ScheduleListController: NSObject, UICollectionViewDelegate {
     @Injected(\.scheduleViewModel) private var vm
     private var dataSource: UICollectionViewDiffableDataSource<Section, TodoTask.ID>?
     /// What the list last showed.
-    private var content = ScheduleListContent(schedule: Schedule(tasks: [], today: .today), today: .today)
+    private var content = ScheduleListContent(schedule: Schedule(tasks: [], today: .today, now: .now), today: .today)
     private let rowMove = TaskRowMove()
     private lazy var scroller = ScheduleListScroller(collectionView: collectionView)
     /// The Task whose row is drawn highlighted, while its floating Day picker is open.

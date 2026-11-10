@@ -9,7 +9,7 @@ extension ScheduleTests {
     func todayNeverStartsAWeekEvenOnTheFirstWeekday(firstWeekday: Int) throws {
         // A Sunday, then a Monday.
         for today in [try day("2026-11-01"), try day("2026-11-02")] {
-            let schedule = Date.withFirstWeekday(firstWeekday) { Schedule(tasks: [], today: today) }
+            let schedule = Date.withFirstWeekday(firstWeekday) { Schedule(tasks: [], today: today, now: today) }
 
             #expect(!schedule.days[0].startsWeek)
         }
@@ -19,7 +19,7 @@ extension ScheduleTests {
     func inTheWindowOnlyTheFirstWeekdayStartsAWeek(firstWeekday: Int, firstWeekStart: String) throws {
         let today = try day("2026-11-01")
 
-        let schedule = Date.withFirstWeekday(firstWeekday) { Schedule(tasks: [], today: today) }
+        let schedule = Date.withFirstWeekday(firstWeekday) { Schedule(tasks: [], today: today, now: today) }
 
         let weekStarts = schedule.days.filter(\.startsWeek).map(\.day)
         let firstStart = try day(firstWeekStart)
@@ -38,7 +38,7 @@ extension ScheduleTests {
             task("A week on, mid-week", day: try day("2027-02-17"), sortIndex: 0),
         ]
 
-        let schedule = Schedule(tasks: tasks, today: today)
+        let schedule = Schedule(tasks: tasks, today: today, now: today)
 
         #expect(schedule.days.dropFirst(100).map(\.startsWeek) == [false, true])
     }
@@ -47,7 +47,7 @@ extension ScheduleTests {
     @Test func theFirstOfEachMonthInTheWindowStartsAMonth() throws {
         let today = try day("2026-11-10")
 
-        let schedule = Schedule(tasks: [], today: today)
+        let schedule = Schedule(tasks: [], today: today, now: today)
 
         let monthStarts = schedule.days.filter(\.startsMonth).map(\.day)
         #expect(monthStarts == [try day("2026-12-01"), try day("2027-01-01"), try day("2027-02-01")])
@@ -55,7 +55,7 @@ extension ScheduleTests {
 
     @Test(arguments: [("2026-11-01", true), ("2026-11-02", false)])
     func todayStartsAMonthOnlyOnTheFirst(today: String, startsMonth: Bool) throws {
-        let schedule = Schedule(tasks: [], today: try day(today))
+        let schedule = Schedule(tasks: [], today: try day(today), now: try day(today))
 
         #expect(schedule.days[0].startsMonth == startsMonth)
     }
@@ -68,7 +68,7 @@ extension ScheduleTests {
             task("Next month, mid-month", day: try day("2027-03-15"), sortIndex: 0),
         ]
 
-        let schedule = Schedule(tasks: tasks, today: today)
+        let schedule = Schedule(tasks: tasks, today: today, now: today)
 
         #expect(schedule.days.dropFirst(100).map(\.startsMonth) == [false, true])
     }

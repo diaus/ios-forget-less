@@ -63,7 +63,7 @@ extension TodoTaskRepositoryLiveTests {
         let today = try Self.day("2026-10-25")
         let tomorrow = try Self.day("2026-10-26")
         var completed = Self.task("Buy milk", day: today, sortIndex: 0)
-        completed.completeDay = today
+        completed.completeTime = today
         try Self.insert([completed], into: container)
         let repository = TodoTaskRepositoryLive(modelContainer: container)
 
@@ -71,7 +71,7 @@ extension TodoTaskRepositoryLiveTests {
         let tomorrowsTasks = try await TodoTaskRepositoryLive(modelContainer: container).tasks(on: tomorrow)
 
         #expect(tomorrowsTasks.map(\.id) == [completed.id])
-        #expect(tomorrowsTasks.first?.completeDay == today)
+        #expect(tomorrowsTasks.first?.completeTime == today)
     }
 
     @Test func anOverdueTaskMovedToTodayLeavesOverdue() async throws {
@@ -88,7 +88,7 @@ extension TodoTaskRepositoryLiveTests {
         let tasks = try #require(await scheduleTasks.next())
         #expect(tasks.map(\.name) == ["Buy milk", "Call mum"])
         #expect(tasks.map(\.day) == [today, today])
-        #expect(tasks.first?.completeDay == nil)
+        #expect(tasks.first?.completeTime == nil)
     }
 
     @Test func movingATaskThatDoesNotExistChangesNothing() async throws {

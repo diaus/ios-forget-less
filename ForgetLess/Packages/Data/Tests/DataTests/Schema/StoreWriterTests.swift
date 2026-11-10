@@ -20,12 +20,12 @@ struct StoreWriterTests {
             modelContainer: try #require(try ForgetLessModelContainer.makeExisting(at: store, allowsSave: true))
         )
 
-        try await writer.setComplete(id: id, isComplete: true, today: day)
+        try await writer.setComplete(id: id, isComplete: true, now: day)
 
         let reader = TodoTaskRepositoryLive(
             modelContainer: try #require(try ForgetLessModelContainer.makeExisting(at: store, allowsSave: false))
         )
-        #expect(try await reader.tasks(on: day).map(\.completeDay) == [day])
+        #expect(try await reader.tasks(on: day).map(\.completeTime) == [day])
     }
 
     @Test func opensNothingAndCreatesNoStoreWhileThereIsNone() throws {

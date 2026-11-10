@@ -14,7 +14,7 @@ extension ScheduleTests {
             task("Renew passport", day: laterDay, sortIndex: 0),
         ]
 
-        let schedule = Schedule(tasks: tasks, today: today, historyFirstDay: firstDay)
+        let schedule = Schedule(tasks: tasks, today: today, now: today, historyFirstDay: firstDay)
 
         let pastDays = try ["2026-02-26", "2026-02-27", "2026-02-28"].map(day)
         #expect(schedule.days.prefix(4).map(\.day) == pastDays + [today])
@@ -28,13 +28,13 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let yesterday = try day("2026-02-28")
         let tasks = [
-            task("Completed yesterday", day: yesterday, sortIndex: 0, completeDay: yesterday),
+            task("Completed yesterday", day: yesterday, sortIndex: 0, completeTime: yesterday),
             task("Overdue", day: yesterday, sortIndex: 1),
-            task("Completed from Overdue", day: yesterday, sortIndex: 2, completeDay: today),
-            task("Completed today", day: today, sortIndex: 0, completeDay: today),
+            task("Completed from Overdue", day: yesterday, sortIndex: 2, completeTime: today),
+            task("Completed today", day: today, sortIndex: 0, completeTime: today),
         ]
 
-        let schedule = Schedule(tasks: tasks, today: today, historyFirstDay: yesterday)
+        let schedule = Schedule(tasks: tasks, today: today, now: today, historyFirstDay: yesterday)
 
         #expect(schedule.overdue.isEmpty)
         #expect(schedule.days[0].tasks.map(\.name) == ["Completed yesterday", "Overdue", "Completed from Overdue"])
@@ -47,7 +47,7 @@ extension ScheduleTests {
         let today = try day("2026-11-02")
         let firstDay = try day("2026-10-20")
 
-        let schedule = Schedule(tasks: [], today: today, historyFirstDay: firstDay)
+        let schedule = Schedule(tasks: [], today: today, now: today, historyFirstDay: firstDay)
 
         let throughToday = schedule.days.prefix { $0.day <= today }
         #expect(throughToday.filter(\.startsWeek).map(\.day) == [try day("2026-10-26"), today])
@@ -77,7 +77,7 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let laterDay = try day("2026-09-01")
         let tasks = [task("Renew passport", day: laterDay, sortIndex: 0)]
-        let schedule = Schedule(tasks: tasks, today: today, historyFirstDay: try day("2026-02-20"))
+        let schedule = Schedule(tasks: tasks, today: today, now: today, historyFirstDay: try day("2026-02-20"))
 
         #expect(schedule.listedDay(onOrBefore: try day(listedDay)) == (try day(listedDay)))
     }
@@ -86,7 +86,7 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let laterDay = try day("2026-09-01")
         let tasks = [task("Renew passport", day: laterDay, sortIndex: 0)]
-        let schedule = Schedule(tasks: tasks, today: today, historyFirstDay: try day("2026-02-20"))
+        let schedule = Schedule(tasks: tasks, today: today, now: today, historyFirstDay: try day("2026-02-20"))
 
         #expect(schedule.listedDay(onOrBefore: try day("2026-12-25")) == laterDay)
     }
@@ -95,13 +95,14 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let laterDay = try day("2026-09-01")
         let tasks = [task("Renew passport", day: laterDay, sortIndex: 0)]
-        let schedule = Schedule(tasks: tasks, today: today, historyFirstDay: try day("2026-02-20"))
+        let schedule = Schedule(tasks: tasks, today: today, now: today, historyFirstDay: try day("2026-02-20"))
 
         #expect(schedule.listedDay(onOrBefore: try day("2026-07-04")) == (try day("2026-06-08")))
     }
 
     @Test func aDayBeforeTheFirstListedDayGivesNone() throws {
-        let schedule = Schedule(tasks: [], today: try day("2026-03-01"), historyFirstDay: try day("2026-02-20"))
+        let today = try day("2026-03-01")
+        let schedule = Schedule(tasks: [], today: today, now: today, historyFirstDay: try day("2026-02-20"))
 
         #expect(schedule.listedDay(onOrBefore: try day("2026-02-19")) == nil)
     }
@@ -111,9 +112,9 @@ extension ScheduleTests {
         let today = try day("2026-03-01")
         let yesterday = try day("2026-02-28")
         let firstDay = try day("2026-02-20")
-        let yesterdays = task("Buy milk", day: yesterday, sortIndex: 0, completeDay: yesterday)
+        let yesterdays = task("Buy milk", day: yesterday, sortIndex: 0, completeTime: yesterday)
         let todays = task("Call mum", day: today, sortIndex: 0)
-        let schedule = Schedule(tasks: [yesterdays, todays], today: today, historyFirstDay: firstDay)
+        let schedule = Schedule(tasks: [yesterdays, todays], today: today, now: today, historyFirstDay: firstDay)
 
         #expect(schedule.canMove(todays, to: MoveDestination(day: yesterday, after: yesterdays.id)))
         #expect(schedule.canMove(todays, to: MoveDestination(day: firstDay, after: nil)))
@@ -128,7 +129,9 @@ extension ScheduleTests {
         let yesterday = try day("2026-02-28")
         let yesterdays = task("Buy milk", day: yesterday, sortIndex: 0)
         let todays = task("Call mum", day: today, sortIndex: 0)
-        let schedule = Schedule(tasks: [yesterdays, todays], today: today, historyFirstDay: try day("2026-02-20"))
+        let schedule = Schedule(
+            tasks: [yesterdays, todays], today: today, now: today, historyFirstDay: try day("2026-02-20")
+        )
 
         #expect(schedule.destinationOneStepUp(for: todays) == MoveDestination(day: yesterday, after: yesterdays.id))
         #expect(schedule.destinationOneStepDown(for: yesterdays) == MoveDestination(day: today, after: nil))
@@ -139,7 +142,7 @@ extension ScheduleTests {
         let yesterday = try day("2026-02-28")
         let overdue = task("Buy milk", day: yesterday, sortIndex: 0)
         let todays = task("Call mum", day: today, sortIndex: 0)
-        let schedule = Schedule(tasks: [overdue, todays], today: today)
+        let schedule = Schedule(tasks: [overdue, todays], today: today, now: today)
 
         #expect(!schedule.canMove(todays, to: MoveDestination(day: yesterday, after: overdue.id)))
         #expect(!schedule.canMove(todays, droppedOn: yesterday, at: 0))

@@ -92,7 +92,7 @@ struct UpcomingWidgetContentTests {
 
     // MARK: - Helpers
     private func task(_ name: String, day: Date) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: day, completeDay: nil, sortIndex: 0)
+        TodoTask(id: UUID(), name: name, day: day, completeTime: nil, sortIndex: 0)
     }
 
     private func rows(of content: UpcomingWidgetContent) -> [UpcomingRow] {
