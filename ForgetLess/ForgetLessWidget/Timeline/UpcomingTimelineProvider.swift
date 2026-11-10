@@ -57,7 +57,7 @@ nonisolated struct UpcomingTimelineProvider: AppIntentTimelineProvider {
 
     /// How long the widget keeps a Task made Complete: only the sizes with controls, which can undo it, keep one.
     private static func gracePeriod(for configuration: UpcomingWidgetIntent, family: WidgetFamily) -> TimeInterval {
-        family.hasControls ? configuration.gracePeriod.duration : 0
+        family.hasControls ? (configuration.gracePeriod ?? .standard).duration : 0
     }
 
     /// The Tasks the widget lists at `moment`, on its Today, with those made Complete less than `gracePeriod` before

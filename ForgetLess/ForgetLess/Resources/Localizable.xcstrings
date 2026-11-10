@@ -1037,23 +1037,6 @@
         }
       }
     },
-    "widget.gracePeriod.fiveSeconds" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5 s"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5 с"
-          }
-        }
-      }
-    },
     "widget.gracePeriod.off" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1067,57 +1050,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Вимкнено"
-          }
-        }
-      }
-    },
-    "widget.gracePeriod.tenSeconds" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "10 s"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "10 с"
-          }
-        }
-      }
-    },
-    "widget.gracePeriod.threeSeconds" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "3 s"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "3 с"
-          }
-        }
-      }
-    },
-    "widget.gracePeriod.twentySeconds" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "20 s"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "20 с"
           }
         }
       }

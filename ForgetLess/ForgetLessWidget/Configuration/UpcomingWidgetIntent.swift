@@ -28,8 +28,8 @@ struct UpcomingWidgetIntent: WidgetConfigurationIntent {
     @Parameter(title: "widget.showMoveArrows", default: true)
     var showsMoveArrows: Bool
 
-    @Parameter(title: "widget.gracePeriod", default: .threeSeconds)
-    var gracePeriod: WidgetGracePeriod
+    @Parameter(title: "widget.gracePeriod")
+    var gracePeriod: WidgetGracePeriod?
 
     // The Home Screen never shows two columns, so its sheet hides both layout settings. On the Lock Screen, the
     // cut ending applies only to two columns, so the sheet hides it while they're off. Only the sizes with controls

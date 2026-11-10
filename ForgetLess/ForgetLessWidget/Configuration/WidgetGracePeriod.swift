@@ -1,37 +1,42 @@
 import AppIntents
 import Foundation
 
-// App Intents metadata takes only string literals, not catalog symbols, so the titles are their catalog keys, which
-// the system looks up in the widget's copy of the String Catalog.
-// swiftlint:disable catalog_key_literal
-
 /// A choice of the widget's Grace Period, which only the sizes with controls offer (ADR 0005).
-nonisolated enum WidgetGracePeriod: String, AppEnum {
-    case off
-    case threeSeconds
-    case fiveSeconds
-    case tenSeconds
-    case twentySeconds
-
+nonisolated struct WidgetGracePeriod: AppEntity {
+    // App Intents metadata takes only string literals, not catalog symbols, so the title is its catalog key, which
+    // the system looks up in the widget's copy of the String Catalog.
+    // swiftlint:disable:next catalog_key_literal
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "widget.gracePeriod"
+    static let defaultQuery = WidgetGracePeriodQuery()
+    static let choices = [0, 3, 5, 10, 20].map(WidgetGracePeriod.init(id:))
+    static let standard = WidgetGracePeriod(id: 3)
 
-    static let caseDisplayRepresentations: [WidgetGracePeriod: DisplayRepresentation] = [
-        .off: "widget.gracePeriod.off",
-        .threeSeconds: "widget.gracePeriod.threeSeconds",
-        .fiveSeconds: "widget.gracePeriod.fiveSeconds",
-        .tenSeconds: "widget.gracePeriod.tenSeconds",
-        .twentySeconds: "widget.gracePeriod.twentySeconds",
-    ]
+    /// The Grace Period in whole seconds.
+    let id: Int
 
     var duration: TimeInterval {
-        switch self {
-        case .off: 0
-        case .threeSeconds: 3
-        case .fiveSeconds: 5
-        case .tenSeconds: 10
-        case .twentySeconds: 20
-        }
+        TimeInterval(id)
+    }
+
+    var displayRepresentation: DisplayRepresentation {
+        guard id > 0 else { return DisplayRepresentation(title: .widgetGracePeriodOff) }
+        // The formatter localizes the duration, so it needs no catalog key: a title the catalog lacks shows as written.
+        let title = Duration.seconds(id).formatted(.units(allowed: [.seconds], width: .abbreviated))
+        return DisplayRepresentation(title: LocalizedStringResource(stringLiteral: title))
     }
 }
 
-// swiftlint:enable catalog_key_literal
+/// The Grace Periods a widget's settings offer.
+nonisolated struct WidgetGracePeriodQuery: EnumerableEntityQuery {
+    func allEntities() async -> [WidgetGracePeriod] {
+        WidgetGracePeriod.choices
+    }
+
+    func entities(for identifiers: [Int]) async -> [WidgetGracePeriod] {
+        WidgetGracePeriod.choices.filter { identifiers.contains($0.id) }
+    }
+
+    func defaultResult() async -> WidgetGracePeriod? {
+        .standard
+    }
+}
