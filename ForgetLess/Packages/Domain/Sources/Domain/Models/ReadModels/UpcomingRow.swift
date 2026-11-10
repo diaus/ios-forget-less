@@ -11,6 +11,8 @@ public struct UpcomingRow: Hashable, Identifiable, Sendable {
     public let id: UUID
     public let name: String
     public let marker: Marker?
+    /// Whether the Task is Complete, listed only for the widget's Grace Period.
+    public let isComplete: Bool
     /// Where the Task goes one step up or down, which only the sizes with controls offer.
     public let oneStepDestinations: OneStepDestinations
 
@@ -23,6 +25,7 @@ public struct UpcomingRow: Hashable, Identifiable, Sendable {
         // The widget lists nothing after Tomorrow, so a later Day never comes up.
         case .tomorrow, .later: .tomorrow
         }
+        isComplete = task.isComplete
         self.oneStepDestinations = oneStepDestinations
     }
 }

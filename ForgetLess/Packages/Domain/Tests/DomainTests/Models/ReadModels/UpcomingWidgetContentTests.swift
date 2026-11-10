@@ -90,9 +90,54 @@ struct UpcomingWidgetContentTests {
         #expect(leftOutTaskCount(of: onlyTomorrowLeftOut) == 0)
     }
 
+    @Test func aKeptTaskIsListedInItsPlaceWithNoSteps() {
+        let tasks = [
+            task("Pay rent", day: today.addingDays(-1)),
+            task("Fix the bike", day: today.addingDays(-1), isComplete: true),
+            task("Buy milk", day: today),
+            task("Call mum", day: today, isComplete: true),
+            task("Walk the dog", day: today.addingDays(1)),
+        ]
+
+        let content = UpcomingWidgetContent(tasks: tasks, today: today, listsTomorrow: true)
+
+        let rows = rows(of: content)
+        #expect(rows.map(\.id) == tasks.map(\.id))
+        #expect(rows.map(\.isComplete) == [false, true, false, true, false])
+        let noSteps = OneStepDestinations(stepUp: nil, stepDown: nil, stepDownPassesATask: false)
+        #expect(rows[1].oneStepDestinations == noSteps)
+        #expect(rows[3].oneStepDestinations == noSteps)
+    }
+
+    @Test func theStepsOfTheRowsBesideAKeptTaskPassOverIt() {
+        let tasks = [
+            task("Buy milk", day: today),
+            task("Call mum", day: today, isComplete: true),
+            task("Pay rent", day: today),
+        ]
+
+        let rows = rows(of: UpcomingWidgetContent(tasks: tasks, today: today, listsTomorrow: false))
+
+        #expect(rows[0].oneStepDestinations.stepDown == MoveDestination(day: today, after: tasks[2].id))
+        #expect(rows[2].oneStepDestinations.stepUp == MoveDestination(day: today, after: nil))
+    }
+
+    @Test func aKeptTaskCountsAsARowShownNotAsLeftOut() {
+        let tasks = [
+            task("Buy milk", day: today),
+            task("Call mum", day: today, isComplete: true),
+            task("Pay rent", day: today),
+        ]
+
+        let content = UpcomingWidgetContent(tasks: tasks, today: today, listsTomorrow: false, rowLimit: 2)
+
+        #expect(rowIDs(of: content) == tasks.prefix(2).map(\.id))
+        #expect(leftOutTaskCount(of: content) == 1)
+    }
+
     // MARK: - Helpers
-    private func task(_ name: String, day: Date) -> TodoTask {
-        TodoTask(id: UUID(), name: name, day: day, completeTime: nil, sortIndex: 0)
+    private func task(_ name: String, day: Date, isComplete: Bool = false) -> TodoTask {
+        TodoTask(id: UUID(), name: name, day: day, completeTime: isComplete ? today : nil, sortIndex: 0)
     }
 
     private func rows(of content: UpcomingWidgetContent) -> [UpcomingRow] {

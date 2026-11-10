@@ -3,7 +3,8 @@ import SwiftUI
 import WidgetKit
 
 /// The Lock Screen and Home Screen widget: Overdue and Today's Incomplete Tasks, and Tomorrow's when its setting is on.
-/// The sizes with controls also make them Complete and Move them.
+/// The sizes with controls also make them Complete and Move them, and keep a Task made Complete for their Grace
+/// Period.
 struct UpcomingWidget: Widget {
     nonisolated static let kind = "UpcomingWidget"
 

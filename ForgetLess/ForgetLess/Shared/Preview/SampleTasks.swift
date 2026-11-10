@@ -11,7 +11,9 @@ struct SampleTasks: PreviewModifier {
             try await repository.create(name: task.name, day: task.day)
             guard let completeTime = task.completeTime else { continue }
             // `create` picks its own ID, so the stored Task, Incomplete until now, is found by its name.
-            let createdOnDay = try await repository.incompleteTasks(from: task.day, through: task.day)
+            let createdOnDay = try await repository.upcomingTasks(
+                from: task.day, through: task.day, completedWithin: 0, before: .now
+            )
             if let stored = createdOnDay.first(where: { $0.name == task.name }) {
                 try await repository.setComplete(id: stored.id, isComplete: true, now: completeTime)
             }

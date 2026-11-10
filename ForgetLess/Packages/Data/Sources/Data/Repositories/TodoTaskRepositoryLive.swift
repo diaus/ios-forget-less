@@ -43,10 +43,22 @@ actor TodoTaskRepositoryLive: TodoTaskRepository, ModelActor {
         return stream
     }
 
-    func incompleteTasks(from firstDay: Date?, through lastDay: Date) throws -> [TodoTask] {
+    func upcomingTasks(
+        from firstDay: Date?,
+        through lastDay: Date,
+        completedWithin gracePeriod: TimeInterval,
+        before now: Date
+    ) throws -> [TodoTask] {
         let firstDay = firstDay ?? .distantPast
+        let keptAfter = now.addingTimeInterval(-gracePeriod)
+        // `#Predicate` can't compare an optional, so `completeTime` needs a fallback; it never applies, as the nil case
+        // is matched first.
+        let distantPast = Date.distantPast
         return try fetchInScheduleOrder(
-            #Predicate { $0.completeTime == nil && $0.day >= firstDay && $0.day <= lastDay }
+            #Predicate {
+                $0.day >= firstDay && $0.day <= lastDay
+                    && ($0.completeTime == nil || ($0.completeTime ?? distantPast) > keptAfter)
+            }
         ).map { $0.toDomain() }
     }
 

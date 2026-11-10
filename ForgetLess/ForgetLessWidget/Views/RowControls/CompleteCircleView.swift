@@ -3,9 +3,11 @@ import SwiftUI
 import UIKit
 import WidgetKit
 
-/// The circle of the sizes with controls, which makes its row's Task Complete.
+/// The circle of the sizes with controls, which makes its row's Task Complete, or Incomplete again during the widget's
+/// Grace Period.
 struct CompleteCircleView: View {
     let taskID: UUID
+    let isComplete: Bool
     let font: UIFont
 
     /// Wider than the glyph, so a thumb hits it.
@@ -14,14 +16,15 @@ struct CompleteCircleView: View {
     private let circleGray = Color(uiColor: .systemGray)
 
     var body: some View {
-        Button(intent: CompleteTaskIntent(taskID: taskID)) {
-            Image(systemName: "circle")
+        Button(intent: CompleteTaskIntent(taskID: taskID, isComplete: !isComplete)) {
+            Image(systemName: isComplete ? "checkmark.circle.fill" : "circle")
                 .font(Font(font))
-                .foregroundStyle(circleGray)
+                // `circle` has one layer, so it takes the first style.
+                .foregroundStyle(isComplete ? .white : circleGray, circleGray)
                 .frame(width: Self.tapWidth, height: font.lineHeight, alignment: .leading)
                 .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text(.widgetCompleteTask))
+        .accessibilityLabel(Text(isComplete ? .widgetMakeTaskIncomplete : .widgetCompleteTask))
     }
 }

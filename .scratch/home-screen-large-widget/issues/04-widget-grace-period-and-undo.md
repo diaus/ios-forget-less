@@ -14,9 +14,16 @@ Status: ready-for-agent
 
 **Blocked by:** 03
 
-- [ ] Domain tests: a kept Task is listed in its place with no steps. A neighbouring row's step passes over it. The "+N" counts it as shown. With no kept Tasks, the content is as before.
-- [ ] Data test: the read lists a Task completed within the duration and leaves out one completed before it.
+- [x] Domain tests: a kept Task is listed in its place with no steps. A neighbouring row's step passes over it. The "+N" counts it as shown. With no kept Tasks, the content is as before.
+- [x] Data test: the read lists a Task completed within the duration and leaves out one completed before it.
 - [ ] Previews (`RenderPreview`) of the medium and large sizes with a kept row among Incomplete ones, on Today and in Overdue.
 - [ ] The settings sheet of a medium and a large widget shows "Keep Complete Tasks For" with its five choices, and the small and Lock Screen sheets don't.
 - [ ] On the iOS 27 simulator's Home Screen: a Task made Complete stays struck through for about 3 s, then leaves. Tapping its circle within that time makes it Incomplete again, in place. With Off, it leaves at once.
-- [ ] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+- [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.
+
+## Comments
+
+2026-11-10, after code review:
+- A step down now stays among the rows that fit even when the last row shown is kept (`[UpcomingRow].stepDown(ofRowAt:shownRowCount:)`, Domain-tested). Before, `[A, K | B]` let A step past B, out of sight.
+- The timeline's leave moments are a Domain function (`[TodoTask].gracePeriodEnds(lasting:before:)`), with tests.
+- Left open: the previews didn't render (WidgetKit `timelineReloadTimeout` in the preview host), the Lock Screen settings sheet wasn't checked, and the simulator check wasn't redone after these fixes. On the simulator a tap's undo has about 1.2 s of dead time while WidgetKit reloads, so 3 s leaves about 1.8 s to undo.

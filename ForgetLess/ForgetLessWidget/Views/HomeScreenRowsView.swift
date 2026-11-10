@@ -38,7 +38,6 @@ struct HomeScreenRowsView: View {
             let sizing = family.hasControls ? Self.controlsSizing : Self.smallSizeSizing
             let layout = sizing.layout(rowCount: rows.count, height: proxy.size.height)
             let font = UIFont.systemFont(ofSize: layout.fontSize)
-            let leavesRowsOut = layout.rowCount < rows.count
             // The rows that don't fit are left out too.
             let totalLeftOutTaskCount = leftOutTaskCount.map {
                 $0 + UpcomingWidgetContent.leftOutTaskCount(of: rows.dropFirst(layout.rowCount))
@@ -52,7 +51,7 @@ struct HomeScreenRowsView: View {
                             row,
                             font: font,
                             leftOutTaskCount: rowLeftOutTaskCount,
-                            isLastShownBeforeRowsLeftOut: leavesRowsOut && isLastShown
+                            stepDown: rows.stepDown(ofRowAt: index, shownRowCount: layout.rowCount)
                         )
                     } else {
                         UpcomingRowView(
@@ -71,26 +70,21 @@ struct HomeScreenRowsView: View {
     }
 
     // MARK: - UI Components
-    /// A row of the sizes with controls, with its circle and arrows. `isLastShownBeforeRowsLeftOut` is whether rows
-    /// listed after it don't fit, so a step down mustn't put the Task among them.
+    /// A row of the sizes with controls, with its circle and arrows. `stepDown` is the step down it offers among the
+    /// rows that fit.
     private func rowWithControls(
         _ row: UpcomingRow,
         font: UIFont,
         leftOutTaskCount: Int,
-        isLastShownBeforeRowsLeftOut: Bool
+        stepDown: MoveDestination?
     ) -> some View {
         HStack(spacing: 0) {
-            CompleteCircleView(taskID: row.id, font: font)
+            CompleteCircleView(taskID: row.id, isComplete: row.isComplete, font: font)
             UpcomingRowView(row: row, font: font, cutWidth: nil, cutEnding: .empty, leftOutTaskCount: leftOutTaskCount)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            // A Task kept for the Grace Period has no steps, so its arrows are hidden in their place.
             if showsMoveArrows {
-                let destinations = row.oneStepDestinations
-                MoveStepsView(
-                    taskID: row.id,
-                    stepUp: destinations.stepUp,
-                    stepDown: destinations.stepDown(allowingPassingATask: !isLastShownBeforeRowsLeftOut),
-                    font: font
-                )
+                MoveStepsView(taskID: row.id, stepUp: row.oneStepDestinations.stepUp, stepDown: stepDown, font: font)
             }
         }
         .frame(height: font.lineHeight)
@@ -143,4 +137,16 @@ struct HomeScreenRowsView: View {
     UpcomingWidget()
 } timeline: {
     UpcomingWidgetEntry.preview(overdueCount: 1, todayCount: 6, tomorrowCount: 2, rowLimit: nil, showsMoveArrows: false)
+}
+
+#Preview("Medium, kept Tasks on Today and in Overdue", as: .systemMedium) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 2, todayCount: 3, tomorrowCount: 1, keptIndices: [1, 3], rowLimit: nil)
+}
+
+#Preview("Large, kept Tasks on Today and in Overdue", as: .systemLarge) {
+    UpcomingWidget()
+} timeline: {
+    UpcomingWidgetEntry.preview(overdueCount: 2, todayCount: 6, tomorrowCount: 2, keptIndices: [0, 4], rowLimit: nil)
 }

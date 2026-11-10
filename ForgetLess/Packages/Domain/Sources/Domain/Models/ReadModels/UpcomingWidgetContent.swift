@@ -16,7 +16,8 @@ public enum UpcomingWidgetContent: Hashable, Sendable {
     public static let maxRowCount = 2 * columnRowCount
 
     /// The rows for `tasks`, given in the Schedule's order: the first `rowLimit` of them, or all of them when it's nil.
-    /// No Task, or a `rowLimit` of 0, gives `.empty`.
+    /// No Task, or a `rowLimit` of 0, gives `.empty`. A Complete Task, kept for the widget's Grace Period, takes a row
+    /// like any other.
     /// - Parameter listsTomorrow: Whether the widget lists Tomorrow's Tasks, which a step down from Today can reach.
     public init(tasks: [TodoTask], today: Date, listsTomorrow: Bool, rowLimit: Int? = Self.maxRowCount) {
         let rowLimit = rowLimit ?? tasks.count

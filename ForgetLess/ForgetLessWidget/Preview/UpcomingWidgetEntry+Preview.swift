@@ -29,11 +29,12 @@ extension UpcomingWidgetEntry {
     }
 
     /// `overdueCount` Overdue Tasks, then `todayCount` of Today's and `tomorrowCount` of Tomorrow's, listing at most
-    /// `rowLimit` of them, or all when it's nil.
+    /// `rowLimit` of them, or all when it's nil. Those at `keptIndices` are Complete, kept for the Grace Period.
     static func preview(
         overdueCount: Int,
         todayCount: Int,
         tomorrowCount: Int,
+        keptIndices: Set<Int> = [],
         rowLimit: Int? = UpcomingWidgetContent.maxRowCount,
         showsLeftOutCount: Bool = true,
         showsMoveArrows: Bool = true
@@ -47,7 +48,7 @@ extension UpcomingWidgetEntry {
                 id: UUID(),
                 name: previewNames[index % previewNames.count],
                 day: day,
-                completeTime: nil,
+                completeTime: keptIndices.contains(index) ? .now : nil,
                 sortIndex: index
             )
         }

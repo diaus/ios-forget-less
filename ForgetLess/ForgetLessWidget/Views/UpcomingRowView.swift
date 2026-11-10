@@ -50,11 +50,13 @@ struct UpcomingRowView: View {
                 let name = row.name.cut(toFit: nameWidth, ending: cutEnding.text) { Self.width(of: $0, font: font) }
                 Text(verbatim: name)
                     .font(Font(font))
+                    .strikethrough(row.isComplete)
                     // Already cut to fit, so the system never adds its own "…".
                     .fixedSize()
             } else {
                 Text(verbatim: row.name)
                     .font(Font(font))
+                    .strikethrough(row.isComplete)
                     .lineLimit(1)
             }
         }
@@ -64,8 +66,9 @@ struct UpcomingRowView: View {
     }
 
     // MARK: - Helpers
+    // A Task kept for the Grace Period is greyed, as the app shows a Complete Task.
     private var rowStyle: HierarchicalShapeStyle {
-        row.marker == .tomorrow ? .secondary : .primary
+        row.marker == .tomorrow || row.isComplete ? .secondary : .primary
     }
 
     // Width is scarce on the Lock Screen, so only the Home Screen puts a space after the marker.

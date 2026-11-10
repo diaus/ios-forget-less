@@ -32,13 +32,19 @@ public extension Array where Element == TodoTask {
 
 public extension Array where Element == TodoTask {
     /// Where each of these listed Tasks goes one step up or down, by the Schedule's step rule, when only Overdue, Today
-    /// and, if `listsTomorrow`, Tomorrow are listed.
-    /// - Parameter self: The listed Incomplete Tasks, in order of Day, then position within it.
+    /// and, if `listsTomorrow`, Tomorrow are listed. A Complete Task, listed for the widget's Grace Period, goes
+    /// nowhere, and the other Tasks' steps pass over it.
+    /// - Parameter self: The listed Tasks, in order of Day, then position within it.
     func oneStepDestinations(today: Date, listsTomorrow: Bool) -> [OneStepDestinations] {
-        // Only Incomplete Tasks are listed, so any moment the Schedule lists at gives the same steps.
-        let schedule = Schedule(tasks: self, today: today, now: today, windowDayCount: listsTomorrow ? 2 : 1)
+        // Complete Tasks are hidden, so any moment the Schedule lists at gives the same steps.
+        let schedule = Schedule(
+            tasks: self, today: today, now: today, showsComplete: false, windowDayCount: listsTomorrow ? 2 : 1
+        )
         return indices.map { index in
             let task = self[index]
+            guard !task.isComplete else {
+                return OneStepDestinations(stepUp: nil, stepDown: nil, stepDownPassesATask: false)
+            }
             let stepDown = schedule.destinationOneStepDown(for: task)
             let next = index < count - 1 ? self[index + 1] : nil
             // A step to the top of a Day passes the next listed Task only while that Task is on a Day before it.
