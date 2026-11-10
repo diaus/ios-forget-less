@@ -8,7 +8,7 @@ The "Upcoming" widget shows what's left to do, but acting on it means opening th
 
 ## Solution
 
-The "Upcoming" widget gains the large and medium Home Screen sizes (`.systemLarge`, `.systemMedium`), the sizes with controls. They list the same Tasks with the same settings. Each row adds a circle at the front, which makes the Task Complete, and the `arrow.up.forward.and.arrow.down.backward.rectangle.fill` symbol at the end. Both of the symbol's arrows point inward: its left half, under the up arrow, Moves the Task one step up, and its right half, under the down arrow, Moves it one step down. Tapping anywhere else opens the app.
+The "Upcoming" widget gains the large and medium Home Screen sizes (`.systemLarge`, `.systemMedium`), the sizes with controls. They list the same Tasks with the same settings. Each row adds a circle at the front, which makes the Task Complete, and two arrows at the end, `arrowshape.up` and `arrowshape.down`: the up arrow Moves the Task one step up, and the down arrow Moves it one step down. Tapping anywhere else opens the app.
 
 ## User Stories
 
@@ -16,16 +16,16 @@ The "Upcoming" widget gains the large and medium Home Screen sizes (`.systemLarg
 2. As a user, I want the sizes with controls to keep every row at the full font and gap (17pt, 5pt apart), listing as many as fit from the top and never shrinking them, so that every row stays readable and its controls easy to hit. The small widget still fits rows by shrinking the gaps first, then the font.
 3. As a user, I want a circle at the front of each row that makes the Task Complete on Today, so that I tick it off without opening the app.
 4. As a user, I want a completed Task to leave the widget, so that the widget holds only what's still to do.
-5. As a user, I want the symbol's left half, under its up arrow, to Move the Task one step up, and its right half, under its down arrow, to Move it one step down, so that each half does what its arrow shows.
+5. As a user, I want the up arrow to Move the Task one step up and the down arrow to Move it one step down, so that each arrow does what it shows.
 6. As a user, I want a step to pass the listed Task beside it, skipping the Complete Tasks the widget doesn't list, so that every tap changes what I see.
 7. As a user, I want a step down from the last Today row to put the Task first on Tomorrow, and a step up from the first Tomorrow row to put it last on Today, so that I can push a Task to Tomorrow and bring it back.
 8. As a user, I want a Task never Moved into or out of Overdue from the widget, and an Overdue Task Moved only within its own Day, as in the app.
 9. As a user, I want a step down from the last Today row only while Tomorrow is listed, so that a Task never disappears after a tap.
 10. As a user, I want a step never to take a Task past a row the widget couldn't fit, so that a Task never disappears after a tap.
-11. As a user, I want a half that can't Move the Task dimmed, and to do nothing, so that I know before tapping.
-12. As a user, I want the halves' tap targets wider than the glyph, so that a thumb hits them.
+11. As a user, I want an arrow that can't Move the Task hidden, with its place kept so the arrows line up, so that I know before tapping.
+12. As a user, I want the arrows' tap targets wider than the glyph, so that a thumb hits them.
 13. As a user, I want the "!" and "→" markers kept on the sizes with controls, so that Overdue and Tomorrow rows still stand apart.
-14. As a VoiceOver user, I want the circle read as "Complete" and the halves as "Move Up" and "Move Down", with a half that can't act left out.
+14. As a VoiceOver user, I want the circle read as "Complete" and the arrows as "Move Up" and "Move Down", with an arrow that can't act left out.
 15. As a user, I want the small widget and the Lock Screen widget unchanged.
 16. As a user, I want a medium "Upcoming" widget with the large one's circle and arrows, so that I can tick off and Move Tasks from a widget half the size.
 
@@ -57,7 +57,7 @@ The "Upcoming" widget gains the large and medium Home Screen sizes (`.systemLarg
   - Overdue Tasks, on one past Day and across two;
   - the last row shown while later rows are left out, both the same-Day case and the Tomorrow case.
 - **Data:** `TodoTaskWriter` against a store file in a temporary folder. It returns nil with no store, and it saves a write that a fresh reader then reads.
-- **Widget:** `RenderPreview` of the large and medium sizes with 3, 8 and 20 Tasks, every marker, dimmed halves, the empty and unreadable states, and the gallery sample.
+- **Widget:** `RenderPreview` of the large and medium sizes with 3, 8 and 20 Tasks, every marker, hidden arrows, the empty and unreadable states, and the gallery sample.
 - **Done:** `build_sim`, `test_sim` and `scripts/check.sh` pass. On the iOS 27 simulator's Home Screen, the large and medium widgets are added and a Complete and a Move each change the list.
 
 ## Out of Scope
