@@ -1,6 +1,6 @@
 # 04: The widget's Grace Period, its setting, and undo
 
-Status: ready-for-agent
+Status: resolved
 
 **What to build:** On the medium and large sizes, a Task made Complete stays in its place, struck through, for the widget's Grace Period, then leaves. Tapping its checked circle within that time makes it Incomplete again. Each widget sets its own Grace Period. User stories 4 and 17–22 in `../spec.md`, and ADR 0005.
 
@@ -16,9 +16,9 @@ Status: ready-for-agent
 
 - [x] Domain tests: a kept Task is listed in its place with no steps. A neighbouring row's step passes over it. The "+N" counts it as shown. With no kept Tasks, the content is as before.
 - [x] Data test: the read lists a Task completed within the duration and leaves out one completed before it.
-- [ ] Previews (`RenderPreview`) of the medium and large sizes with a kept row among Incomplete ones, on Today and in Overdue.
-- [ ] The settings sheet of a medium and a large widget shows "Keep Complete Tasks For" with its five choices, and the small and Lock Screen sheets don't.
-- [ ] On the iOS 27 simulator's Home Screen: a Task made Complete stays struck through for about 3 s, then leaves. Tapping its circle within that time makes it Incomplete again, in place. With Off, it leaves at once.
+- [x] Previews (`RenderPreview`) of the medium and large sizes with a kept row among Incomplete ones, on Today and in Overdue.
+- [x] The settings sheet of a medium and a large widget shows "Keep Complete Tasks For" with its five choices, and the small and Lock Screen sheets don't.
+- [x] On the iOS 27 simulator's Home Screen: a Task made Complete stays struck through for about 3 s, then leaves. Tapping its circle within that time makes it Incomplete again, in place. With Off, it leaves at once.
 - [x] `build_sim`, `test_sim` and `scripts/check.sh` pass.
 
 ## Comments
@@ -30,3 +30,4 @@ Status: ready-for-agent
 
 2026-11-11:
 - The setting is an `AppEntity` rather than an `AppEnum`: an `AppEnum`'s titles must be catalog keys, which meant translating "3 s", "5 s", "10 s" and "20 s" one by one. An entity's title is built at run time, so the system formats each duration. A widget configuration parameter of entity type must be optional; with none chosen, the widget keeps 3 s.
+- The previews of the medium and large sizes with kept rows on Today and in Overdue render (`RenderPreview`, iPhone 18 Pro, iOS 27.2) after the warm-up's `timelineReloadTimeout`: each kept row shows a checked circle and a struck-through name, no Move arrows in their kept place, and the steps of its neighbours pass over it.
