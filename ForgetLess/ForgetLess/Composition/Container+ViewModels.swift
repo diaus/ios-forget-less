@@ -8,6 +8,7 @@ extension Container {
     }
 
     @MainActor var settingsViewModel: Factory<SettingsViewModel> {
-        self { @MainActor in SettingsViewModel() }
+        // Shared, so a screen's subviews resolve the instance the screen holds.
+        self { @MainActor in SettingsViewModel() }.shared
     }
 }

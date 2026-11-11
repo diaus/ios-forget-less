@@ -13,6 +13,7 @@ struct SettingsView: View {
             } footer: {
                 Text(.settingsKeptDurationFooter)
             }
+            AboutSectionView()
         }
         .navigationTitle(Text(.settingsTitle))
         .alert(
