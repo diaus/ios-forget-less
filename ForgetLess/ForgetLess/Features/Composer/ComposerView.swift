@@ -66,6 +66,11 @@ struct ComposerView: View {
         // A container, so VoiceOver's escape (two-finger scrub) from any of its elements dismisses, like the drag.
         .accessibilityElement(children: .contain)
         .accessibilityAction(.escape, session.requestDismissal)
+        // A hardware keyboard's Esc, which reaches the panel from its focused field.
+        .onKeyPress(.escape) {
+            session.escape()
+            return .handled
+        }
         // Typing goes straight back to the name field.
         .onChange(of: session.composer.taskName) { session.closeDayChipPicker() }
         .onChange(of: session.composer.dayChipAccessibilityFocusCount) { isDayChipAccessibilityFocused = true }

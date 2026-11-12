@@ -55,6 +55,16 @@ final class ComposerSession {
         }
     }
 
+    /// Closes the Day chip picker back to the composer when it's open, or else dismisses the composer as a tap outside
+    /// it does.
+    func escape() {
+        if dayChipPicker != nil {
+            closeDayChipPickerRestoringFocus()
+        } else {
+            requestDismissal()
+        }
+    }
+
     /// Hides the composer and drops what's typed, so the next add starts blank. VoiceOver goes back to what showed it,
     /// and the list brings a Day stepped to into view.
     func dismiss() {
