@@ -690,8 +690,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/hmlongco/Factory.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.5.0;
+				kind = exactVersion;
+				version = 3.5.3;
 			};
 		};
 		AA00000000000000000000A4 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {

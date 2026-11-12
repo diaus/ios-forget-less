@@ -14,7 +14,7 @@ let package = Package(
     dependencies: [
         .package(path: "../Domain"),
         .package(path: "../Utils"),
-        .package(url: "https://github.com/hmlongco/Factory.git", from: "3.5.0"),
+        .package(url: "https://github.com/hmlongco/Factory.git", exact: "3.5.3"),
     ],
     targets: [
         .target(

@@ -27,6 +27,10 @@ These are the judgement calls tooling can't make. Tooling already enforces these
 - **A rule with no I/O is a pure Domain function or entity method,** such as the end-of-Day rule. Use cases and view models call it, and it's tested without fakes. A repository calls it when the rule must read and write in one step, as `create(name:day:)` does with the end-of-Day rule, so two creates at once can't take the same place.
 - **Abstractions answer the current spec.** Add a protocol, wrapper or injection point only for a need the current spec has. View models read `Date.today`; use cases take `today` as a parameter, so there is no clock or `DateProvider` to inject. A two-case enum that only means yes/no is a `Bool`.
 
+## Dependencies
+
+- **Every remote SPM dependency, in the app project and in each local package, is pinned to an exact version,** the latest one when it's added or upgraded, so the version a build uses is one someone chose.
+
 ## Naming
 
 - **The glossary word is Task; the type is `TodoTask`.** That's the one place the code departs from the glossary, so it doesn't shadow Swift's `Task`. Derived names follow the type (`TodoTaskRepository`). Prose, test names and catalog keys say Task (`addTaskRefusesAnEmptyNameAndCreatesNothing`).
