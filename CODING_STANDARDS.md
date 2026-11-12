@@ -30,6 +30,7 @@ These are the judgement calls tooling can't make. Tooling already enforces these
 ## Dependencies
 
 - **Every remote SPM dependency, in the app project and in each local package, is pinned to an exact version,** the latest one when it's added or upgraded, so the version a build uses is one someone chose.
+- **Adding, removing or upgrading a dependency that ships in the app updates its entry and text in `Resources/Licenses/` in the same change,** so the Open Source Licenses screen names what ships. `scripts/licenses.py check` enforces this.
 
 ## Naming
 

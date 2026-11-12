@@ -11,4 +11,9 @@ extension Container {
         // Shared, so a screen's subviews resolve the instance the screen holds.
         self { @MainActor in SettingsViewModel() }.shared
     }
+
+    @MainActor var licensesViewModel: Factory<LicensesViewModel> {
+        // Shared, so a library's page resolves the instance the list holds.
+        self { @MainActor in LicensesViewModel() }.shared
+    }
 }

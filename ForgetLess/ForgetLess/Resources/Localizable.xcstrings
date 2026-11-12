@@ -476,6 +476,57 @@
         }
       }
     },
+    "settings.about.licenses" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Source Licenses"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ліцензії відкритого коду"
+          }
+        }
+      }
+    },
+    "settings.about.licenses.license" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "License"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ліцензія"
+          }
+        }
+      }
+    },
+    "settings.about.licenses.repository" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repository"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Репозиторій"
+          }
+        }
+      }
+    },
     "settings.about.privacyPolicy" : {
       "extractionState" : "manual",
       "localizations" : {
